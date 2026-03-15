@@ -44,13 +44,15 @@ jobs:
           env | grep -E '^(NEXT_PUBLIC_|TELEGRAM_|SMTP_|EMAIL_)' > .env.local
           echo "Created .env.local with $(wc -l < .env.local) variables"
 
-      - name: Build Next.js (static export)
-        run: npm run build
-
       - name: Write service account key
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: echo "$FIREBASE_SA" > /tmp/firebase-sa.json
+
+      - name: Build Next.js (static export)
+        run: npm run build
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/firebase-sa.json
 
       - name: Deploy to Firebase Hosting
         run: npx firebase-tools deploy --only hosting --project somanatha-shop --non-interactive
