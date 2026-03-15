@@ -1,0 +1,409 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   PREMIUM VEDIC STORE - DESIGN TOKENS
+   ============================================================================ */
+
+:root {
+    /* Deep, rich base colors */
+    --color-obsidian: #0D0A0B;
+    --color-charcoal: #1A1517;
+    --color-maroon-deep: #2D1B1F;
+    --color-maroon: #4A2C32;
+    --color-maroon-light: #6B3D45;
+
+    /* Warm cream/parchment */
+    --color-parchment: #F5ECD7;
+    --color-cream: #FAF6ED;
+    --color-ivory: #FFFDF8;
+
+    /* Metallic gold spectrum */
+    --color-gold-dark: #8B6914;
+    --color-gold: #C9A227;
+    --color-gold-light: #E8D48B;
+    --color-gold-pale: #F5EEC3;
+
+    /* Brass/Bronze accents */
+    --color-brass: #B5A642;
+    --color-bronze: #CD7F32;
+    --color-copper: #B87333;
+
+    /* Sacred/mystical accents */
+    --color-deep-purple: #2E1A47;
+    --color-mystical-blue: #1A2F4B;
+
+    /* Text colors */
+    --color-text-dark: #1A1517;
+    --color-text-light: #F5ECD7;
+    --color-text-muted: rgba(245, 236, 215, 0.7);
+}
+
+/* ============================================================================
+   BASE STYLES
+   ============================================================================ */
+
+html {
+    scroll-behavior: smooth;
+    background-color: var(--color-charcoal);
+    overflow-x: hidden;
+}
+
+body {
+    font-family: var(--font-open-sans), sans-serif;
+    background-color: var(--color-charcoal);
+    color: var(--color-text-light);
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Hide scrollbar for horizontal scroll containers */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* Ornamental Serif for titles */
+.font-ornamental {
+    font-family: var(--font-cinzel), serif;
+}
+
+/* Elegant Serif for headings */
+.font-elegant {
+    font-family: var(--font-cormorant), serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-cormorant), serif;
+    font-weight: 600;
+}
+
+/* ============================================================================
+   TEXTURED BACKGROUNDS
+   ============================================================================ */
+
+/* Sacred geometry pattern overlay */
+.bg-sacred-pattern {
+    background-image:
+        url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23C9A227' stroke-opacity='0.08' stroke-width='1'%3E%3Ccircle cx='40' cy='40' r='30'/%3E%3Ccircle cx='40' cy='40' r='20'/%3E%3Ccircle cx='40' cy='40' r='10'/%3E%3Cpath d='M40 10 L40 70 M10 40 L70 40'/%3E%3Cpath d='M18 18 L62 62 M62 18 L18 62'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Parchment texture overlay */
+.bg-parchment-texture {
+    background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+/* Deep maroon gradient with texture */
+.bg-hero-premium {
+    background:
+        linear-gradient(180deg,
+            rgba(13, 10, 11, 0.95) 0%,
+            rgba(45, 27, 31, 0.9) 30%,
+            rgba(74, 44, 50, 0.85) 60%,
+            rgba(45, 27, 31, 0.95) 100%),
+        url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23C9A227' stroke-opacity='0.06'%3E%3Ccircle cx='50' cy='50' r='40'/%3E%3Ccircle cx='50' cy='50' r='30'/%3E%3Ccircle cx='50' cy='50' r='20'/%3E%3Ccircle cx='50' cy='50' r='10'/%3E%3Cpath d='M50 10L50 90M10 50L90 50' stroke-width='0.5'/%3E%3Cpath d='M20 20L80 80M80 20L20 80' stroke-width='0.5'/%3E%3C/g%3E%3C/svg%3E"),
+        radial-gradient(ellipse at 50% 0%, rgba(201, 162, 39, 0.08) 0%, transparent 50%);
+    background-size: cover, 100px 100px, cover;
+}
+
+/* ============================================================================
+   METALLIC BUTTON STYLES
+   ============================================================================ */
+
+.btn-metallic-gold {
+    background: linear-gradient(180deg,
+            #E8D48B 0%,
+            #C9A227 20%,
+            #8B6914 50%,
+            #C9A227 80%,
+            #E8D48B 100%);
+    border: 2px solid #C9A227;
+    box-shadow:
+        0 4px 15px rgba(201, 162, 39, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+    color: #1A1517;
+    font-weight: 700;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-metallic-gold::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-metallic-gold:hover {
+    background: linear-gradient(180deg,
+            #F5EEC3 0%,
+            #E8D48B 20%,
+            #C9A227 50%,
+            #E8D48B 80%,
+            #F5EEC3 100%);
+    box-shadow:
+        0 6px 25px rgba(201, 162, 39, 0.6),
+        0 0 30px rgba(201, 162, 39, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+}
+
+.btn-metallic-gold:hover::before {
+    left: 100%;
+}
+
+/* Brass outline button */
+.btn-brass-outline {
+    background: transparent;
+    border: 2px solid var(--color-gold);
+    color: var(--color-gold-light);
+    box-shadow:
+        0 0 15px rgba(201, 162, 39, 0.2),
+        inset 0 0 20px rgba(201, 162, 39, 0.05);
+    transition: all 0.3s ease;
+}
+
+.btn-brass-outline:hover {
+    background: rgba(201, 162, 39, 0.15);
+    box-shadow:
+        0 0 25px rgba(201, 162, 39, 0.4),
+        inset 0 0 30px rgba(201, 162, 39, 0.1);
+    border-color: var(--color-gold-light);
+}
+
+/* ============================================================================
+   PREMIUM CARD STYLES
+   ============================================================================ */
+
+.card-premium {
+    background: linear-gradient(145deg,
+            var(--color-cream) 0%,
+            var(--color-parchment) 50%,
+            #EDE4CC 100%);
+    border: 2px solid var(--color-gold);
+    border-radius: 16px;
+    box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(201, 162, 39, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(139, 105, 20, 0.2);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-premium::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg,
+            var(--color-gold-dark),
+            var(--color-gold-light),
+            var(--color-gold-dark));
+}
+
+.card-premium:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.6),
+        0 0 40px rgba(201, 162, 39, 0.3),
+        0 0 0 1px rgba(201, 162, 39, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Engraved icon style */
+.icon-engraved {
+    background: linear-gradient(145deg, #D4C4A8, #F5ECD7);
+    border-radius: 50%;
+    box-shadow:
+        inset 3px 3px 6px rgba(0, 0, 0, 0.15),
+        inset -3px -3px 6px rgba(255, 255, 255, 0.8),
+        0 4px 15px rgba(0, 0, 0, 0.2);
+    padding: 1.5rem;
+}
+
+/* ============================================================================
+   DECORATIVE ELEMENTS
+   ============================================================================ */
+
+/* Golden ornamental divider */
+.divider-ornamental {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.divider-ornamental::before,
+.divider-ornamental::after {
+    content: '';
+    height: 1px;
+    width: 80px;
+    background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+}
+
+/* Glowing text effect */
+.text-glow-gold {
+    text-shadow:
+        0 0 10px rgba(201, 162, 39, 0.5),
+        0 0 20px rgba(201, 162, 39, 0.3),
+        0 0 40px rgba(201, 162, 39, 0.2);
+}
+
+/* ============================================================================
+   SCROLLBAR
+   ============================================================================ */
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-charcoal);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--color-gold-dark), var(--color-gold));
+    border-radius: 5px;
+    border: 2px solid var(--color-charcoal);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--color-gold), var(--color-gold-light));
+}
+
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
+
+@keyframes floating {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        text-shadow: 0 0 20px rgba(201, 162, 39, 0.3);
+    }
+
+    50% {
+        text-shadow: 0 0 40px rgba(201, 162, 39, 0.6);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% center;
+    }
+
+    100% {
+        background-position: 200% center;
+    }
+}
+
+.animate-float {
+    animation: floating 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* ============================================================================
+   ADMIN PANEL FORM STYLING
+   ============================================================================ */
+
+/* Ensure all form elements in admin section have readable dark text */
+.bg-gray-100 input,
+.bg-gray-100 textarea,
+.bg-gray-100 select,
+.bg-white input,
+.bg-white textarea,
+.bg-white select {
+    color: #1f2937 !important;
+    /* text-gray-800 */
+}
+
+.bg-gray-100 input::placeholder,
+.bg-gray-100 textarea::placeholder,
+.bg-white input::placeholder,
+.bg-white textarea::placeholder {
+    color: #9ca3af !important;
+    /* text-gray-400 */
+}
+
+/* ============================================================================
+   IMAGE PROTECTION - Prevent right-click save and drag
+   ============================================================================ */
+
+/* Protected images class */
+.protected-image {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+    pointer-events: none;
+}
+
+/* Make product images non-draggable */
+.protected-image img,
+.product-image-container img {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    pointer-events: none;
+}
+
+/* Container allows interaction but image inside is protected */
+.product-image-container {
+    position: relative;
+}
+
+/* Invisible overlay to block right-click on images */
+.product-image-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent;
+    pointer-events: auto;
+}

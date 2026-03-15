@@ -1,0 +1,42 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Products: Public read, authenticated write
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Orders: Public read (needed for payment status page), authenticated write
+    match /orders/{orderId} {
+      allow read: if true;
+      allow create: if true; // Anyone can create orders
+      allow update, delete: if request.auth != null;
+    }
+    
+    // Options/Settings: Public read, authenticated write
+    match /options/{optionId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Category Variations: Public read, authenticated write
+    match /categoryVariations/{categoryId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Subcategories: Public read, authenticated write
+    match /subcategories/{subcategoryId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Reviews: Public read, authenticated write
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}

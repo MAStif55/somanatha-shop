@@ -1,0 +1,126 @@
+/**
+ * Product Types
+ * 
+ * Define your product structure here.
+ * These are example types - customize for your project.
+ */
+
+/**
+ * Variation Option - single selectable option within a group
+ */
+export interface VariationOption {
+    id: string;
+    label: { en: string; ru: string };
+    description?: { en: string; ru: string };
+    priceModifier: number; // Price change (can be positive/negative)
+}
+
+/**
+ * Variation Group - a category of options (e.g., Material, Size)
+ */
+export interface VariationGroup {
+    id: string;
+    name: { en: string; ru: string };
+    options: VariationOption[];
+}
+
+/**
+ * Variation Overrides - controls how products inherit category defaults
+ */
+export interface VariationOverrides {
+    useDefaults: boolean; // true = inherit from category, false = use custom variations only
+    disabledOptions?: string[]; // Option IDs to hide from category defaults
+}
+
+/**
+ * Product Image with SEO metadata
+ */
+export interface ProductImage {
+    url: string;
+    alt: { en: string; ru: string };
+    keywords?: string[];
+}
+
+/**
+ * Helper to normalize images (handles backwards compatibility)
+ */
+export function normalizeImages(images: (string | ProductImage)[] | undefined): ProductImage[] {
+    if (!images) return [];
+    return images.map(img =>
+        typeof img === 'string'
+            ? { url: img, alt: { en: '', ru: '' } }
+            : img
+    );
+}
+
+/**
+ * Helper to get image URL (handles both string and ProductImage)
+ */
+export function getImageUrl(image: string | ProductImage): string {
+    return typeof image === 'string' ? image : image.url;
+}
+
+/**
+ * Helper to get image alt text (handles both string and ProductImage)
+ */
+export function getImageAlt(image: string | ProductImage, locale: 'en' | 'ru', fallback: string = ''): string {
+    if (typeof image === 'string') return fallback;
+    return image.alt[locale] || image.alt.ru || image.alt.en || fallback;
+}
+
+export interface Product {
+    id: string;
+    slug: string;
+    title: { en: string; ru: string };
+    shortDescription?: { en: string; ru: string };
+    description: { en: string; ru: string };
+    basePrice: number;
+    images: (string | ProductImage)[]; // Supports both legacy strings and new ProductImage objects
+    videoPreviewUrl?: string; // URL for the live photo / looping video preview
+    category?: string;
+    subcategory?: string;
+    tags?: string[];
+    variations?: VariationGroup[]; // Custom variations (when not using defaults)
+    variationOverrides?: VariationOverrides; // Category default controls
+    createdAt?: number; // timestamp
+    order?: number; // for manual sorting
+}
+
+/**
+ * Product Configuration Options
+ * 
+ * Use these for products with customizable options (size, material, etc.)
+ */
+
+export interface ProductOption {
+    id: string;
+    label: { en: string; ru: string };
+    description?: { en: string; ru: string };
+}
+
+export interface PriceModifierOption extends ProductOption {
+    priceMultiplier: number; // e.g., 1.0 for standard, 1.2 for premium
+}
+
+export interface PriceAddonOption extends ProductOption {
+    priceAddon: number; // e.g., 0 for none, 50 for extra feature
+}
+
+export interface SizeOption {
+    id: string;
+    label: string;
+    width: number;
+    height: number;
+    basePriceModifier: number;
+}
+
+/**
+ * Product Configuration
+ * 
+ * Represents the selected options for a product.
+ * Customize fields based on your product options.
+ */
+export interface ProductConfiguration {
+    productId: string;
+    [optionKey: string]: string; // Flexible key-value pairs for options
+}
