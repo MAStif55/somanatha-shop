@@ -432,6 +432,67 @@ exports.yookassaWebhook = functions.https.onRequest(async (req, res) => {
 /**
  * submitFeedback - Receives contact form submissions, sends to Telegram and email.
  */
+/**
+ * triggerDeploy - Callable function to trigger a GitHub Actions deployment.
+ * Requires the caller to be authenticated via Firebase Auth.
+ * The GitHub PAT must be set via: firebase functions:secrets:set GITHUB_PAT
+ */
+exports.triggerDeploy = functions
+    .runWith({ secrets: ['GITHUB_PAT'] })
+    .https.onCall(async (data, context) => {
+        // 1. Verify the caller is authenticated
+        if (!context.auth) {
+            throw new functions.https.HttpsError(
+                'unauthenticated',
+                'You must be logged in to trigger a deploy.'
+            );
+        }
+
+        const githubPat = process.env.GITHUB_PAT;
+        if (!githubPat) {
+            throw new functions.https.HttpsError(
+                'failed-precondition',
+                'GitHub PAT is not configured. Run: firebase functions:secrets:set GITHUB_PAT'
+            );
+        }
+
+        try {
+            const response = await fetch(
+                'https://api.github.com/repos/MAStif55/somanatha-shop/dispatches',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Authorization': `token ${githubPat}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        event_type: 'trigger-deploy',
+                        client_payload: {
+                            triggered_by: context.auth.token.email || context.auth.uid,
+                            timestamp: new Date().toISOString(),
+                        },
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                console.error('GitHub API error:', response.status, errorBody);
+                throw new functions.https.HttpsError(
+                    'internal',
+                    `GitHub API returned ${response.status}`
+                );
+            }
+
+            return { success: true, message: 'Deploy triggered successfully' };
+        } catch (error) {
+            if (error instanceof functions.https.HttpsError) throw error;
+            console.error('triggerDeploy error:', error);
+            throw new functions.https.HttpsError('internal', 'Failed to trigger deploy');
+        }
+    });
+
 exports.submitFeedback = functions.https.onRequest((req, res) => {
     cors(req, res, async () => {
         if (req.method !== 'POST') {
