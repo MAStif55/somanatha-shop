@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Plus } from 'lucide-react';
 import { getAllProducts } from '@/lib/firestore-utils';
-import { Product, getImageUrl } from '@/types/product';
+import { Product, getThumbImageUrl } from '@/types/product';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ProductSelectorProps {
@@ -72,7 +72,7 @@ export default function ProductSelector({ onSelect, onCancel }: ProductSelectorP
                         >
                             <div className="w-10 h-10 bg-gray-100 rounded overflow-hidden flex-shrink-0">
                                 {product.images[0] && (
-                                    <img src={getImageUrl(product.images[0])} alt="" className="w-full h-full object-cover" />
+                                    <img src={getThumbImageUrl(product.images[0])} alt="" className="w-full h-full object-cover" />
                                 )}
                             </div>
                             <div className="flex-1">

@@ -5,6 +5,12 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 import { LiveVideoProvider } from '@/contexts/LiveVideoContext';
 import ToastContainer from '@/components/Toast';
 import CartDrawer from '@/components/CartDrawer';
+import dynamic from 'next/dynamic';
+
+const UnderConstructionPopup = dynamic(
+    () => import('@/components/UnderConstructionPopup'),
+    { ssr: false },
+);
 
 const cinzel = Cinzel_Decorative({
     weight: ['400', '700', '900'],
@@ -54,6 +60,7 @@ export default function RootLayout({
                 <LanguageProvider>
                     <LiveVideoProvider>
                         {children}
+                        <UnderConstructionPopup />
                         <CartDrawer />
                         <ToastContainer />
                     </LiveVideoProvider>

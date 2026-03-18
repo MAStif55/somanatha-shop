@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -7,6 +8,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import { Product } from '@/types/product';
+import { getNewestProducts } from '@/lib/firestore-utils';
 
 // Dynamic Components (Lazy Load)
 const TrustSignals = dynamic(() => import('@/components/TrustSignals'), { ssr: false });
@@ -19,6 +21,15 @@ interface HomePageContentProps {
 
 export default function HomePageContent({ initialProducts }: HomePageContentProps) {
     const { locale } = useLanguage();
+    const [products, setProducts] = useState<Product[]>(initialProducts);
+
+    // Client-side fallback: if SSG didn't fetch products (e.g. missing Admin SDK credentials),
+    // load them client-side from Firestore so the section always appears
+    useEffect(() => {
+        if (initialProducts.length === 0) {
+            getNewestProducts<Product>(4).then(setProducts).catch(console.error);
+        }
+    }, [initialProducts]);
 
     return (
         <main className="min-h-screen bg-[#0D0A0B]">
@@ -89,7 +100,7 @@ export default function HomePageContent({ initialProducts }: HomePageContentProp
             <TrustSignals />
 
             {/* NEW ARRIVALS */}
-            {initialProducts.length > 0 && (
+            {products.length > 0 && (
                 <section className="py-24 px-6 bg-[#1A1517] bg-sacred-pattern relative">
                     {/* Gradient Mask for top edge of pattern */}
                     <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-[#1A1517] to-transparent pointer-events-none z-0"></div>
@@ -102,7 +113,7 @@ export default function HomePageContent({ initialProducts }: HomePageContentProp
                         </div>
 
                         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-                            {initialProducts.map((product) => (
+                            {products.map((product) => (
                                 <ProductCard key={product.id} product={product} />
                             ))}
                         </div>

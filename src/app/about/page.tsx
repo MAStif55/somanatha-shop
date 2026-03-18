@@ -2,6 +2,7 @@
 
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useState } from 'react';
+import Image from 'next/image';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { API } from '@/lib/config';
@@ -127,10 +128,14 @@ export default function AboutPage() {
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-5 p-6 rounded-xl border border-[#C9A227]/30 bg-[#1A1517]/80 hover:border-[#C9A227]/60 hover:bg-[#1A1517] transition-all group"
                             >
-                                <div className="w-14 h-14 bg-[#FF6600]/15 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <svg viewBox="0 0 24 24" className="w-7 h-7 text-[#FF6600]" fill="currentColor">
-                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6zm4 4h-2v-2h2v2zm0-4h-2V7h2v6z" />
-                                    </svg>
+                                <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                    <Image
+                                        src="/messenger-max.svg"
+                                        alt="Messenger Max"
+                                        width={56}
+                                        height={56}
+                                        className="w-full h-full"
+                                    />
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-[#E8D48B] text-lg group-hover:text-[#C9A227] transition-colors">Max</h4>

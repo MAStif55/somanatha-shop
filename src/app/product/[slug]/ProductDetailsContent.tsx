@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Product, getImageUrl, getImageAlt } from '@/types/product';
+import { Product, getImageUrl, getThumbImageUrl, getImageAlt } from '@/types/product';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -195,7 +195,7 @@ export default function ProductDetailsContent() {
         addToCart({
             productId: product.id,
             productTitle: product.title,
-            productImage: product.images?.[0] ? getImageUrl(product.images[0]) : '',
+            productImage: product.images?.[0] ? getThumbImageUrl(product.images[0]) : '',
             configuration,
             price: totalPrice,
             quantity: 1,
@@ -260,7 +260,7 @@ export default function ProductDetailsContent() {
                                 {hasMedia ? (
                                     selectedMedia === -1 && product.videoPreviewUrl ? (
                                         <video
-                                            src={product.videoPreviewUrl}
+                                            src={product.videoUrl || product.videoPreviewUrl}
                                             autoPlay
                                             loop
                                             muted
@@ -304,7 +304,7 @@ export default function ProductDetailsContent() {
                                             {/* Show first image as video thumbnail background if available */}
                                             {product.images?.[0] ? (
                                                 <Image
-                                                    src={getImageUrl(product.images[0])}
+                                                    src={getThumbImageUrl(product.images[0])}
                                                     alt="Video Thumbnail"
                                                     fill
                                                     className="object-cover opacity-50"
@@ -329,7 +329,7 @@ export default function ProductDetailsContent() {
                                                 }`}
                                         >
                                             <Image
-                                                src={getImageUrl(img)}
+                                                src={getThumbImageUrl(img)}
                                                 alt={getImageAlt(img, locale as 'en' | 'ru', '')}
                                                 fill
                                                 draggable={false}

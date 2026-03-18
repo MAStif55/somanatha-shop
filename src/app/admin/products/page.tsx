@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getAllProducts, deleteProduct, createProduct } from '@/lib/firestore-utils';
-import { Product, getImageUrl } from '@/types/product';
+import { Product, getThumbImageUrl } from '@/types/product';
 import { Plus, Trash2, RefreshCw, Search } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from '@/contexts/LanguageContext';
@@ -357,7 +357,7 @@ export default function AdminProductsPage() {
                                 </button>
                             </div>
                             <img
-                                src={product.images?.[0] ? getImageUrl(product.images[0]) : ''}
+                                src={product.images?.[0] ? getThumbImageUrl(product.images[0]) : ''}
                                 alt={product.title.en}
                                 className="w-12 h-12 object-cover rounded"
                             />

@@ -57,22 +57,31 @@ export default function ImageUpload({
     }, [value.length, prevLength]);
 
     // Robust normalization to handle various input shapes
+    // IMPORTANT: Spread original object to preserve all fields (cardUrl, thumbUrl, etc.)
     const normalizedImages: ProductImage[] = value.map(img => {
         if (typeof img === 'string') {
             return { url: img, alt: { en: '', ru: '' }, keywords: [] };
         }
-        // Defensive copy ensuring all fields exist
+        // Spread the entire object to preserve cardUrl, thumbUrl, and any other fields
         return {
+            ...img,
             url: img.url || '',
             alt: img.alt || { en: '', ru: '' },
             keywords: img.keywords || []
         };
     });
 
+    // Variant definitions for multi-resolution upload
+    const VARIANTS = [
+        { suffix: '',      maxDim: maxWidth, quality: quality },      // full (1200px)
+        { suffix: '_card', maxDim: 600,      quality: 0.82 },        // card (600px)
+        { suffix: '_thumb', maxDim: 300,     quality: 0.75 },        // thumb (300px)
+    ] as const;
+
     /**
-     * Optimizes an image file by resizing and converting to WebP format.
+     * Generates a single WebP variant at the given max dimension and quality.
      */
-    const optimizeImage = async (file: File): Promise<Blob> => {
+    const generateVariant = async (file: File, variantMaxDim: number, variantQuality: number): Promise<Blob> => {
         return new Promise((resolve, reject) => {
             const img = new Image();
             const canvas = document.createElement('canvas');
@@ -81,13 +90,15 @@ export default function ImageUpload({
             img.onload = () => {
                 let { width, height } = img;
 
-                if (width > maxWidth) {
-                    height = (height * maxWidth) / width;
-                    width = maxWidth;
-                }
-                if (height > maxHeight) {
-                    width = (width * maxHeight) / height;
-                    height = maxHeight;
+                // Scale down proportionally if larger than max
+                if (width > variantMaxDim || height > variantMaxDim) {
+                    if (width >= height) {
+                        height = (height * variantMaxDim) / width;
+                        width = variantMaxDim;
+                    } else {
+                        width = (width * variantMaxDim) / height;
+                        height = variantMaxDim;
+                    }
                 }
 
                 canvas.width = width;
@@ -109,13 +120,19 @@ export default function ImageUpload({
                         }
                     },
                     'image/webp',
-                    quality
+                    variantQuality
                 );
             };
 
             img.onerror = () => reject(new Error('Failed to load image'));
             img.src = URL.createObjectURL(file);
         });
+    };
+
+    /** Shared upload metadata for long-term caching */
+    const uploadMetadata = {
+        contentType: 'image/webp',
+        cacheControl: 'public, max-age=31536000, immutable',
     };
 
     const handleUpload = async (file: File) => {
@@ -126,16 +143,28 @@ export default function ImageUpload({
 
         setUploading(true);
         try {
-            const optimizedBlob = await optimizeImage(file);
-            const filename = `${Date.now()}_${file.name.replace(/\.[^/.]+$/, '')}.webp`;
-            const storageRef = ref(storage, `${storagePath}/${filename}`);
+            const baseName = `${Date.now()}_${file.name.replace(/\.[^/.]+$/, '')}`;
 
-            await uploadBytes(storageRef, optimizedBlob, { contentType: 'image/webp' });
-            const url = await getDownloadURL(storageRef);
+            // Generate all variants in parallel
+            const blobs = await Promise.all(
+                VARIANTS.map(v => generateVariant(file, v.maxDim, v.quality))
+            );
 
-            // Create new ProductImage with empty metadata
+            // Upload all variants in parallel
+            const uploadPromises = VARIANTS.map((v, i) => {
+                const filename = `${baseName}${v.suffix}.webp`;
+                const storageRef = ref(storage, `${storagePath}/${filename}`);
+                return uploadBytes(storageRef, blobs[i], uploadMetadata)
+                    .then(() => getDownloadURL(storageRef));
+            });
+
+            const [fullUrl, cardUrl, thumbUrl] = await Promise.all(uploadPromises);
+
+            // Create ProductImage with all variant URLs
             const newImage: ProductImage = {
-                url,
+                url: fullUrl,
+                cardUrl,
+                thumbUrl,
                 alt: { en: '', ru: '' },
                 keywords: []
             };

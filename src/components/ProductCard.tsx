@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRef, useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Product, getImageUrl, getImageAlt } from '@/types/product';
+import { Product, getImageUrl, getCardImageUrl, getThumbImageUrl, getImageAlt } from '@/types/product';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ShoppingCart, Play } from 'lucide-react';
 import { formatPrice } from '@/utils/currency';
@@ -60,7 +60,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         addItem({
             productId: product.id,
             productTitle: product.title,
-            productImage: product.images?.[0] ? getImageUrl(product.images[0]) : '',
+            productImage: product.images?.[0] ? getThumbImageUrl(product.images[0]) : '',
             price: product.basePrice,
             quantity: 1,
             configuration: {}
@@ -97,12 +97,12 @@ export default function ProductCard({ product }: ProductCardProps) {
             >
                 {product.images && product.images.length > 0 ? (
                     <Image
-                        src={getImageUrl(product.images[0])}
+                        src={getCardImageUrl(product.images[0])}
                         alt={getImageAlt(product.images[0], locale as 'en' | 'ru', product.title[locale])}
                         fill
                         draggable={false}
                         className="object-cover transform group-hover:scale-105 transition-transform duration-500"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 300px"
                         onDragStart={(e) => e.preventDefault()}
                     />
                 ) : (
@@ -120,7 +120,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                         muted
                         playsInline
                         loop
-                        preload="none"
+                        preload="metadata"
                         onLoadedData={() => setIsVideoLoaded(true)}
                         onWaiting={() => setIsVideoBuffering(true)}
                         onPlaying={() => {

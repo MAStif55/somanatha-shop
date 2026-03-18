@@ -60,6 +60,7 @@ export interface ServerProduct {
     category?: string;
     slug?: string;
     videoPreviewUrl?: string;
+    videoUrl?: string;
     createdAt?: number;
     [key: string]: unknown;
 }

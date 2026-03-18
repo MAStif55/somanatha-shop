@@ -11,7 +11,7 @@ import 'rc-slider/assets/index.css';
 
 interface VideoUploadProps {
     value?: string;
-    onChange: (url: string) => void;
+    onChange: (result: { videoUrl: string; videoPreviewUrl: string }) => void;
     storagePath?: string;
 }
 
@@ -176,45 +176,83 @@ export default function VideoUpload({
                 '-t', duration.toString(),
             ];
 
-            // Build video filters: crop (if set) + resolution cap at 720p
-            const videoFilters: string[] = [];
-            if (croppedAreaPixels) {
-                const { width, height, x, y } = croppedAreaPixels;
-                videoFilters.push(`crop=${width}:${height}:${x}:${y}`);
-            }
-            videoFilters.push(`scale='min(720,iw)':-2`);
+            // ── Encode HIGH-RES variant (720p, CRF 24) ─────────────────
+            const hiResOutput = 'output_hires.mp4';
+            const hiResFilters = [...(croppedAreaPixels
+                ? [`crop=${croppedAreaPixels.width}:${croppedAreaPixels.height}:${croppedAreaPixels.x}:${croppedAreaPixels.y}`]
+                : []), `scale='min(720,iw)':-2`];
 
-            ffmpegArgs.push('-vf', videoFilters.join(','));
-
-            // Finish arguments with balanced encoding and no audio
-            ffmpegArgs.push(
+            setProgress(20);
+            await ffmpeg.exec([
+                '-ss', startTime.toString(),
+                '-i', inputName,
+                '-t', duration.toString(),
+                '-vf', hiResFilters.join(','),
                 '-c:v', 'libx264',
-                '-preset', 'fast',
-                '-crf', '28',
-                '-an', // mute entirely
-                outputName
-            );
+                '-preset', 'slow',
+                '-crf', '24',
+                '-an',
+                '-movflags', '+faststart',
+                hiResOutput,
+            ]);
 
-            // Run command
-            await ffmpeg.exec(ffmpegArgs);
+            // ── Encode PREVIEW variant (480p, CRF 30) ──────────────────
+            const previewOutput = 'output_preview.mp4';
+            const previewFilters = [...(croppedAreaPixels
+                ? [`crop=${croppedAreaPixels.width}:${croppedAreaPixels.height}:${croppedAreaPixels.x}:${croppedAreaPixels.y}`]
+                : []), `scale='min(480,iw)':-2`];
 
-            // Read result
-            const data = await ffmpeg.readFile(outputName);
-            const blob = new Blob([data as any], { type: 'video/mp4' });
+            setProgress(50);
+            await ffmpeg.exec([
+                '-ss', startTime.toString(),
+                '-i', inputName,
+                '-t', duration.toString(),
+                '-vf', previewFilters.join(','),
+                '-c:v', 'libx264',
+                '-preset', 'slow',
+                '-crf', '30',
+                '-an',
+                '-movflags', '+faststart',
+                previewOutput,
+            ]);
 
-            // Upload the fully processed reliable mp4 blob to Firebase Storage
-            const filename = `${Date.now()}_preview.mp4`;
-            const storageRef = ref(storage, `${storagePath}/${filename}`);
-            await uploadBytes(storageRef, blob, { contentType: 'video/mp4' });
+            setProgress(80);
 
-            const publicUrl = await getDownloadURL(storageRef);
+            // ── Read both results ──────────────────────────────────────
+            const hiResData = await ffmpeg.readFile(hiResOutput);
+            const previewData = await ffmpeg.readFile(previewOutput);
+            const hiResBlob = new Blob([hiResData as any], { type: 'video/mp4' });
+            const previewBlob = new Blob([previewData as any], { type: 'video/mp4' });
+
+            const uploadMeta = {
+                contentType: 'video/mp4',
+                cacheControl: 'public, max-age=31536000, immutable',
+            };
+
+            // ── Upload both variants in parallel ───────────────────────
+            const baseName = `${Date.now()}`;
+            const hiResRef = ref(storage, `${storagePath}/${baseName}_full.mp4`);
+            const previewRef = ref(storage, `${storagePath}/${baseName}_preview.mp4`);
+
+            const [, ] = await Promise.all([
+                uploadBytes(hiResRef, hiResBlob, uploadMeta),
+                uploadBytes(previewRef, previewBlob, uploadMeta),
+            ]);
+
+            const [videoUrl, videoPreviewUrl] = await Promise.all([
+                getDownloadURL(hiResRef),
+                getDownloadURL(previewRef),
+            ]);
+
+            setProgress(95);
 
             // Clean up memory
             await ffmpeg.deleteFile(inputName);
-            await ffmpeg.deleteFile(outputName);
+            await ffmpeg.deleteFile(hiResOutput);
+            await ffmpeg.deleteFile(previewOutput);
 
-            // Return the URL upwards (no need to append #t hash anymore since it's already perfectly trimmed!)
-            onChange(publicUrl);
+            // Return both URLs upwards
+            onChange({ videoUrl, videoPreviewUrl });
 
             // Clean up UI local state
             setOriginalVideoUrl(null);
@@ -263,7 +301,7 @@ export default function VideoUpload({
                 console.error("Failed to delete video from storage", e);
             }
         }
-        onChange("");
+        onChange({ videoUrl: '', videoPreviewUrl: '' });
     };
 
     const handleCancelSelection = () => {

@@ -4,7 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Product, getImageUrl, getImageAlt } from '@/types/product';
+import { Product, getImageUrl, getThumbImageUrl, getImageAlt } from '@/types/product';
 import { VariationGroup } from '@/types/product';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/Header';
@@ -128,7 +128,7 @@ function ProductContent() {
         addToCart({
             productId: product.id,
             productTitle: product.title,
-            productImage: product.images?.[0] ? getImageUrl(product.images[0]) : '',
+            productImage: product.images?.[0] ? getThumbImageUrl(product.images[0]) : '',
             configuration,
             price: totalPrice,
             quantity: 1,
@@ -267,7 +267,7 @@ function ProductContent() {
                                                 }`}
                                         >
                                             <Image
-                                                src={getImageUrl(img)}
+                                                src={getThumbImageUrl(img)}
                                                 alt={getImageAlt(img, locale as 'en' | 'ru', '')}
                                                 fill
                                                 draggable={false}

@@ -1,6 +1,6 @@
 'use client';
 
-import { Product, getImageUrl } from '@/types/product';
+import { Product, getCardImageUrl } from '@/types/product';
 import Link from 'next/link';
 import { Copy, ExternalLink, Trash2, Check } from 'lucide-react';
 import { formatCurrency } from '@/utils/currency';
@@ -47,7 +47,7 @@ export function AdminProductCard({
             <div className="relative aspect-square w-full overflow-hidden rounded-t-xl bg-gray-100">
                 {product.images?.[0] ? (
                     <img
-                        src={getImageUrl(product.images[0])}
+                        src={getCardImageUrl(product.images[0])}
                         alt={product.title[locale]}
                         className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />

@@ -29,6 +29,8 @@
         "react-easy-crop": "^5.5.6",
         "react-hook-form": "^7.71.1",
         "react-markdown": "^10.1.0",
+        "sharp": "^0.34.5",
+        "uuid": "^13.0.0",
         "zod": "^4.3.5",
         "zustand": "^5.0.10"
     },

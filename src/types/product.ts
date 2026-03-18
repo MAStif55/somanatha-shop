@@ -33,10 +33,12 @@ export interface VariationOverrides {
 }
 
 /**
- * Product Image with SEO metadata
+ * Product Image with SEO metadata and optimized variants
  */
 export interface ProductImage {
-    url: string;
+    url: string;           // Full-resolution (1200px) — always present
+    cardUrl?: string;      // Medium variant (600px) for product cards
+    thumbUrl?: string;     // Small variant (300px) for thumbnails, cart, etc.
     alt: { en: string; ru: string };
     keywords?: string[];
 }
@@ -54,10 +56,26 @@ export function normalizeImages(images: (string | ProductImage)[] | undefined): 
 }
 
 /**
- * Helper to get image URL (handles both string and ProductImage)
+ * Helper to get full-resolution image URL (handles both string and ProductImage)
  */
 export function getImageUrl(image: string | ProductImage): string {
     return typeof image === 'string' ? image : image.url;
+}
+
+/**
+ * Helper to get card-size (600px) image URL with fallback to full-res
+ */
+export function getCardImageUrl(image: string | ProductImage): string {
+    if (typeof image === 'string') return image;
+    return image.cardUrl || image.url;
+}
+
+/**
+ * Helper to get thumbnail-size (300px) image URL with fallback chain
+ */
+export function getThumbImageUrl(image: string | ProductImage): string {
+    if (typeof image === 'string') return image;
+    return image.thumbUrl || image.cardUrl || image.url;
 }
 
 /**
@@ -76,7 +94,8 @@ export interface Product {
     description: { en: string; ru: string };
     basePrice: number;
     images: (string | ProductImage)[]; // Supports both legacy strings and new ProductImage objects
-    videoPreviewUrl?: string; // URL for the live photo / looping video preview
+    videoPreviewUrl?: string; // 480p compressed preview for product cards
+    videoUrl?: string;        // 720p high-quality video for product detail page
     category?: string;
     subcategory?: string;
     tags?: string[];
