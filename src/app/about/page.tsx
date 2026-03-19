@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { API } from '@/lib/config';
+import { reachGoal } from '@/components/YandexMetrika';
 
 export default function AboutPage() {
     const { locale } = useLanguage();
@@ -36,6 +37,7 @@ export default function AboutPage() {
             if (data.success) {
                 setSubmitted(true);
                 setFormData({ phone: '', telegram: '', message: '' });
+                reachGoal('CONTACT_FORM_SUBMIT');
             } else {
                 setSubmitError(true);
             }

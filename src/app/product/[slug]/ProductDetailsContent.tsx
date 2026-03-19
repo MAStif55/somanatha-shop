@@ -15,6 +15,7 @@ import { getCategoryVariations } from '@/lib/variations-service';
 import { VariationGroup } from '@/types/product';
 import { useCartStore } from '@/store/cart-store';
 import { useToastStore } from '@/store/toast-store';
+import { reachGoal } from '@/components/YandexMetrika';
 
 // New Components
 import RelatedProducts from '@/components/RelatedProducts';
@@ -209,6 +210,8 @@ export default function ProductDetailsContent() {
             type: 'success',
             duration: 3000,
         });
+
+        reachGoal('ADD_TO_CART', { productId: product.id, price: totalPrice });
 
         setAddedToCart(true);
         setTimeout(() => setAddedToCart(false), 2000);

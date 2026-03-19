@@ -7,6 +7,7 @@ import { useCartStore } from '@/store/cart-store';
 import { useEffect, useState, Suspense } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { reachGoal } from '@/components/YandexMetrika';
 
 function OrderSuccessContent() {
     const searchParams = useSearchParams();
@@ -24,6 +25,7 @@ function OrderSuccessContent() {
     useEffect(() => {
         if (mounted && orderId) {
             clearCart();
+            reachGoal('ORDER_COMPLETE', { orderId });
         }
     }, [orderId, clearCart, mounted]);
 

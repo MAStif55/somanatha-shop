@@ -6,6 +6,7 @@ import { LiveVideoProvider } from '@/contexts/LiveVideoContext';
 import ToastContainer from '@/components/Toast';
 import CartDrawer from '@/components/CartDrawer';
 import dynamic from 'next/dynamic';
+import YandexMetrika from '@/components/YandexMetrika';
 
 const UnderConstructionPopup = dynamic(
     () => import('@/components/UnderConstructionPopup'),
@@ -65,6 +66,7 @@ export default function RootLayout({
                         <ToastContainer />
                     </LiveVideoProvider>
                 </LanguageProvider>
+                <YandexMetrika />
             </body>
         </html>
     );
