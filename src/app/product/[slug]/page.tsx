@@ -76,7 +76,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
             offers: {
                 '@type': 'Offer',
                 price: product.basePrice,
-                priceCurrency: 'USD', // Assuming USD based on previous context, verify if needed
+                priceCurrency: 'RUB',
                 availability: 'https://schema.org/InStock',
             },
         };

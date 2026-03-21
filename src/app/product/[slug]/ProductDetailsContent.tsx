@@ -333,7 +333,7 @@ export default function ProductDetailsContent() {
                                         >
                                             <Image
                                                 src={getThumbImageUrl(img)}
-                                                alt={getImageAlt(img, locale as 'en' | 'ru', '')}
+                                                alt={getImageAlt(img, locale as 'en' | 'ru', product.title[locale])}
                                                 fill
                                                 draggable={false}
                                                 className="object-cover"

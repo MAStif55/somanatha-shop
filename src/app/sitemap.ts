@@ -8,7 +8,15 @@ const BASE_URL = 'https://somanatha.ru';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const products = await getAllProducts<Product>();
 
-    const productUrls = products.map((product) => ({
+    // Deduplicate products by slug to prevent duplicate sitemap entries
+    const seenSlugs = new Set<string>();
+    const uniqueProducts = products.filter((product) => {
+        if (seenSlugs.has(product.slug)) return false;
+        seenSlugs.add(product.slug);
+        return true;
+    });
+
+    const productUrls = uniqueProducts.map((product) => ({
         url: `${BASE_URL}/product/${product.slug}/`,
         lastModified: new Date(), // Ideally this would come from the product updated_at
         changeFrequency: 'weekly' as const,
