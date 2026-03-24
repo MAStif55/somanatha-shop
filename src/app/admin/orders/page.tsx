@@ -129,7 +129,7 @@ export default function AdminOrdersPage() {
             className="bg-white p-4 rounded-lg border shadow-sm mb-3 hover:shadow-md transition-shadow cursor-pointer group"
         >
             <div className="flex justify-between items-start mb-2">
-                <span className="text-xs font-mono text-gray-500 group-hover:text-primary transition-colors">#{order.id.slice(0, 6)}</span>
+                <span className="text-xs font-mono text-gray-500 group-hover:text-primary transition-colors">#{order.id.slice(-8).toUpperCase()}</span>
                 <span className="text-xs text-gray-400">{formatDate(order.createdAt)}</span>
             </div>
 

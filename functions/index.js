@@ -69,7 +69,7 @@ async function sendTelegramNotification(orderData, orderId, isPaid) {
         const message = `
 🛒 *Новый заказ\\!*
 
-📋 *Заказ \\#${orderId.slice(-6).toUpperCase()}*
+📋 *Заказ \\#${orderId.slice(-8).toUpperCase()}*
 
 👤 *Клиент:* ${escapeMarkdown(orderData.customerName)}
 📧 *Email:* ${escapeMarkdown(orderData.email)}
@@ -97,6 +97,7 @@ ${escapeMarkdown(paymentStatusLabel)}
         });
     } catch (e) {
         console.error('Telegram Error:', e);
+        throw e;
     }
 }
 
@@ -122,7 +123,7 @@ async function sendEmailNotification(orderData, orderId, isPaid) {
             : '⏳ Ожидает подтверждения';
 
         const emailHtml = `
-            <h1>Новый заказ #${orderId.slice(-6).toUpperCase()}</h1>
+            <h1>Новый заказ #${orderId.slice(-8).toUpperCase()}</h1>
             <p><strong>Клиент:</strong> ${orderData.customerName}</p>
             <p><strong>Email:</strong> ${orderData.email}</p>
             <p><strong>Телефон:</strong> ${orderData.phone}</p>
@@ -139,11 +140,12 @@ async function sendEmailNotification(orderData, orderId, isPaid) {
         await transporter.sendMail({
             from: process.env.EMAIL_FROM || process.env.SMTP_USER,
             to: process.env.EMAIL_TO || process.env.SMTP_USER,
-            subject: `Новый заказ #${orderId.slice(-6).toUpperCase()}`,
+            subject: `Новый заказ #${orderId.slice(-8).toUpperCase()}`,
             html: emailHtml,
         });
     } catch (e) {
         console.error('Email Error:', e);
+        throw e;
     }
 }
 
@@ -300,7 +302,7 @@ exports.createOrder = functions.https.onRequest((req, res) => {
                 status: 'pending',
                 paymentMethod: paymentMethod,
                 paymentStatus: paymentMethod === 'card' ? 'pending' : 'awaiting_transfer',
-                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                createdAt: Date.now(),
             };
 
             // 1. Save order to Firestore
@@ -313,7 +315,7 @@ exports.createOrder = functions.https.onRequest((req, res) => {
                 const itemDescriptions = orderItems
                     .map((item) => `${item.productTitle} x${item.quantity}`)
                     .join(', ');
-                const description = `Заказ #${orderId.slice(-6).toUpperCase()}: ${itemDescriptions}`.substring(0, 128);
+                const description = `Заказ #${orderId.slice(-8).toUpperCase()}: ${itemDescriptions}`.substring(0, 128);
 
                 try {
                     const payment = await createYooKassaPayment(
@@ -345,10 +347,22 @@ exports.createOrder = functions.https.onRequest((req, res) => {
             } else {
                 // --- BANK TRANSFER: order placed, manager will approve ---
                 // Send notifications immediately so the manager knows
-                await Promise.all([
+                const [telegramResult, emailResult] = await Promise.allSettled([
                     sendTelegramNotification(orderData, orderId, false),
                     sendEmailNotification(orderData, orderId, false),
                 ]);
+
+                // Log notification failures to the order document
+                const notificationStatus = {};
+                if (telegramResult.status === 'rejected') {
+                    notificationStatus.telegramError = telegramResult.reason?.message || 'Unknown error';
+                }
+                if (emailResult.status === 'rejected') {
+                    notificationStatus.emailError = emailResult.reason?.message || 'Unknown error';
+                }
+                if (Object.keys(notificationStatus).length > 0) {
+                    await docRef.update({ notificationStatus });
+                }
 
                 return res.status(200).json({
                     success: true,

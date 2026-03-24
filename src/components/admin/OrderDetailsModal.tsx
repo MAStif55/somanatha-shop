@@ -136,7 +136,7 @@ export default function OrderDetailsModal({ order, isOpen, onClose, onUpdate }: 
                     <div>
                         <div className="flex items-center gap-3">
                             <h2 className="text-2xl font-bold text-gray-900">
-                                {locale === 'ru' ? 'Заказ' : 'Order'} #{order.id.slice(0, 6)}
+                                {locale === 'ru' ? 'Заказ' : 'Order'} #{order.id.slice(-8).toUpperCase()}
                             </h2>
                             <span className={`px-3 py-1 rounded-full text-xs font-medium uppercase
                                 ${order.status === 'completed' ? 'bg-green-100 text-green-800' :
