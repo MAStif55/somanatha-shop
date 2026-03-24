@@ -103,7 +103,9 @@
             "move_prev": "Назад",
             "mark_completed": "Завершить",
             "mark_archived": "В архив",
-            "restore": "Вернуть"
+            "restore": "Вернуть",
+            "permanent_delete": "Удалить навсегда",
+            "confirm_permanent_delete": "Заказ будет безвозвратно удалён из базы данных. Продолжить?"
         },
         "status": {
             "pending": "Ожидает",

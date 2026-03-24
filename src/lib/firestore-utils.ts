@@ -298,6 +298,13 @@ export async function updateOrder<T extends DocumentData>(
     await updateDoc(docRef, data as DocumentData);
 }
 
+/**
+ * Permanently delete an order
+ */
+export async function deleteOrder(id: string): Promise<void> {
+    return deleteDocument('orders', id);
+}
+
 // ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================

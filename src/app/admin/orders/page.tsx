@@ -1,19 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getAllOrders, updateOrder } from '@/lib/firestore-utils';
+import { getAllOrders, updateOrder, deleteOrder } from '@/lib/firestore-utils';
 import { Order, OrderStatus } from '@/types/order';
 import { useTranslation } from '@/contexts/LanguageContext';
 import Breadcrumbs from '@/components/admin/Breadcrumbs';
 import { formatPrice } from '@/utils/currency';
-import { Clock, CheckCircle, XCircle, Archive, Search, RefreshCw, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, Archive, Search, RefreshCw, ArrowRight, ArrowLeft, Trash2 } from 'lucide-react';
 import OrderDetailsModal from '@/components/admin/OrderDetailsModal';
+import ConfirmModal from '@/components/admin/ConfirmModal';
 
 export default function AdminOrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
     const { t, locale } = useTranslation();
 
     const fetchOrders = async () => {
@@ -47,6 +49,19 @@ export default function AdminOrdersPage() {
         } catch (error) {
             console.error("Error updating status:", error);
             alert(t('admin.save_error'));
+        }
+    };
+
+    const handlePermanentDelete = async () => {
+        if (!deleteTarget) return;
+        try {
+            await deleteOrder(deleteTarget);
+            setOrders(prev => prev.filter(o => o.id !== deleteTarget));
+        } catch (error) {
+            console.error("Error deleting order:", error);
+            alert(t('admin.delete_failed'));
+        } finally {
+            setDeleteTarget(null);
         }
     };
 
@@ -187,12 +202,21 @@ export default function AdminOrdersPage() {
                         <span className={`text-xs px-2 py-0.5 rounded font-medium ${order.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>
                             {t(`admin.status.${order.status}`)}
                         </span>
-                        <button
-                            onClick={() => handleStatusChange(order.id, 'pending')}
-                            className="text-xs text-blue-600 hover:underline"
-                        >
-                            {t('admin.orders_kanban.restore')}
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setDeleteTarget(order.id)}
+                                className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 font-medium"
+                            >
+                                <Trash2 size={12} />
+                                {t('admin.orders_kanban.permanent_delete')}
+                            </button>
+                            <button
+                                onClick={() => handleStatusChange(order.id, 'pending')}
+                                className="text-xs text-blue-600 hover:underline"
+                            >
+                                {t('admin.orders_kanban.restore')}
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
@@ -273,6 +297,17 @@ export default function AdminOrdersPage() {
                 isOpen={!!selectedOrder}
                 onClose={() => setSelectedOrder(null)}
                 onUpdate={fetchOrders}
+            />
+
+            <ConfirmModal
+                isOpen={!!deleteTarget}
+                title={t('admin.orders_kanban.permanent_delete')}
+                message={t('admin.orders_kanban.confirm_permanent_delete')}
+                confirmLabel={t('common.delete')}
+                cancelLabel={t('common.cancel')}
+                variant="danger"
+                onConfirm={handlePermanentDelete}
+                onCancel={() => setDeleteTarget(null)}
             />
         </div>
     );

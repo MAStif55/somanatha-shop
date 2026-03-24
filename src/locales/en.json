@@ -103,7 +103,9 @@
             "move_prev": "Back",
             "mark_completed": "Complete",
             "mark_archived": "Archive",
-            "restore": "Restore"
+            "restore": "Restore",
+            "permanent_delete": "Delete forever",
+            "confirm_permanent_delete": "This order will be permanently removed from the database. Continue?"
         },
         "status": {
             "pending": "Pending",

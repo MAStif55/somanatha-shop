@@ -12,25 +12,30 @@ import { Order } from '@/types/order';
 export default function AdminDashboard() {
     const { user } = useAuth();
     const { t, locale } = useTranslation();
-    const [ordersCount, setOrdersCount] = useState<string>('...');
+    const [pendingCount, setPendingCount] = useState<number | null>(null);
+    const [completedCount, setCompletedCount] = useState<number | null>(null);
 
     useEffect(() => {
         const fetchStats = async () => {
             try {
                 const orders = await getAllOrders<Order>();
-                setOrdersCount(orders.length.toString());
+                setPendingCount(orders.filter(o => o.status === 'pending').length);
+                setCompletedCount(orders.filter(o => o.status === 'completed').length);
             } catch (error) {
                 console.error("Error fetching stats:", error);
-                setOrdersCount('0');
+                setPendingCount(0);
+                setCompletedCount(0);
             }
         };
 
         fetchStats();
     }, []);
 
+    const ordersDisplay = pendingCount === null ? '...' : '';
+
     const stats = [
         { label: locale === 'ru' ? 'Товары' : 'Products', value: '...', icon: Package, href: '/admin/products', color: 'bg-blue-500' },
-        { label: locale === 'ru' ? 'Заказы' : 'Orders', value: ordersCount, icon: ShoppingCart, href: '/admin/orders', color: 'bg-green-500' },
+        { label: locale === 'ru' ? 'Заказы' : 'Orders', value: ordersDisplay, icon: ShoppingCart, href: '/admin/orders', color: 'bg-green-500', isOrders: true },
         { label: locale === 'ru' ? 'Клиенты' : 'Customers', value: '', icon: Users, href: '/admin/customers', color: 'bg-indigo-500' },
         { label: locale === 'ru' ? 'Настройки' : 'Settings', value: '', icon: Settings, href: '/admin/settings', color: 'bg-gray-500' },
     ];
@@ -49,13 +54,27 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {stats.map((stat, index) => {
                     const Icon = stat.icon;
+                    const isOrders = 'isOrders' in stat && stat.isOrders;
                     return (
                         <Link key={index} href={stat.href} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                             <div className="flex items-center justify-between mb-4">
                                 <div className={`p-3 rounded-lg ${stat.color} bg-opacity-10`}>
                                     <Icon className={`w-6 h-6 ${stat.color.replace('bg-', 'text-')}`} />
                                 </div>
-                                <span className="text-2xl font-bold text-gray-900">{stat.value}</span>
+                                {isOrders && pendingCount !== null ? (
+                                    <div className="flex items-center gap-3">
+                                        <span className="flex items-center gap-1.5 text-lg font-bold text-red-600">
+                                            <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>
+                                            {pendingCount}
+                                        </span>
+                                        <span className="flex items-center gap-1.5 text-lg font-bold text-green-600">
+                                            <span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block"></span>
+                                            {completedCount}
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <span className="text-2xl font-bold text-gray-900">{stat.value}</span>
+                                )}
                             </div>
                             <h3 className="text-gray-600 font-semibold">{stat.label}</h3>
                         </Link>
