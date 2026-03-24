@@ -47,6 +47,29 @@ function escapeMarkdown(text) {
 // NOTIFICATION HELPERS
 // ============================================================================
 
+const CONTACT_METHOD_LABELS = {
+    telegram: '💬 Telegram',
+    max: '📲 MAX',
+    phone_call: '📞 Звонок',
+    sms: '📱 SMS',
+    email: '📧 Email',
+};
+
+function formatContactPreferences(orderData) {
+    const cp = orderData.contactPreferences;
+    if (!cp || !cp.methods || cp.methods.length === 0) {
+        // Legacy fallback
+        return orderData.telegram ? `💬 Telegram: ${orderData.telegram}` : '';
+    }
+    const lines = cp.methods.map(m => {
+        let label = CONTACT_METHOD_LABELS[m] || m;
+        if (m === 'telegram' && cp.telegramHandle) label += `: ${cp.telegramHandle}`;
+        if (m === 'max' && cp.maxId) label += `: ${cp.maxId}`;
+        return `  • ${label}`;
+    });
+    return lines.join('\n');
+}
+
 async function sendTelegramNotification(orderData, orderId, isPaid) {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -66,6 +89,11 @@ async function sendTelegramNotification(orderData, orderId, isPaid) {
             ? '✅ Оплачен'
             : '⏳ Ожидает подтверждения менеджером';
 
+        const contactLines = formatContactPreferences(orderData);
+        const contactSection = contactLines
+            ? `\n📞 *Способы связи:*\n${escapeMarkdown(contactLines)}`
+            : '';
+
         const message = `
 🛒 *Новый заказ\\!*
 
@@ -75,8 +103,7 @@ async function sendTelegramNotification(orderData, orderId, isPaid) {
 📧 *Email:* ${escapeMarkdown(orderData.email)}
 📱 *Телефон:* ${escapeMarkdown(orderData.phone)}
 📍 *Адрес:* ${escapeMarkdown(orderData.address)}
-${orderData.telegram ? `💬 *Telegram:* ${escapeMarkdown(orderData.telegram)}` : ''}
-${orderData.customerNotes ? `📝 *Комментарий:* ${escapeMarkdown(orderData.customerNotes)}` : ''}
+${orderData.customerNotes ? `📝 *Комментарий:* ${escapeMarkdown(orderData.customerNotes)}` : ''}${contactSection}
 
 📦 *Товары:*
 ${itemsList}
@@ -106,7 +133,6 @@ async function sendEmailNotification(orderData, orderId, isPaid) {
     if (!transporter) return;
 
     try {
-
         const itemsHtml = orderData.items
             .map(
                 (item) =>
@@ -122,14 +148,16 @@ async function sendEmailNotification(orderData, orderId, isPaid) {
             ? '✅ Оплачен'
             : '⏳ Ожидает подтверждения';
 
+        const contactHtml = formatContactPreferences(orderData).replace(/\n/g, '<br>');
+
         const emailHtml = `
             <h1>Новый заказ #${orderId.slice(-8).toUpperCase()}</h1>
             <p><strong>Клиент:</strong> ${orderData.customerName}</p>
             <p><strong>Email:</strong> ${orderData.email}</p>
             <p><strong>Телефон:</strong> ${orderData.phone}</p>
             <p><strong>Адрес:</strong> ${orderData.address}</p>
-            ${orderData.telegram ? `<p><strong>Telegram:</strong> ${orderData.telegram}</p>` : ''}
             ${orderData.customerNotes ? `<p><strong>Комментарий:</strong> ${orderData.customerNotes}</p>` : ''}
+            ${contactHtml ? `<p><strong>Способы связи:</strong><br>${contactHtml}</p>` : ''}
             <h3>Товары:</h3>
             <ul>${itemsHtml}</ul>
             <h3>Итого: ${orderData.total}₽</h3>
@@ -289,13 +317,19 @@ exports.createOrder = functions.https.onRequest((req, res) => {
 
             const paymentMethod = customerInfo.paymentMethod; // 'card' or 'bank_transfer'
 
+            // Extract contact preferences
+            const contactPreferences = customerInfo.contactPreferences || null;
+            // Legacy telegram field for backward compat
+            const telegramHandle = contactPreferences?.telegramHandle || customerInfo.telegram || null;
+
             const orderData = {
                 customerName: customerInfo.customerName,
                 email: customerInfo.email,
                 phone: customerInfo.phone,
                 address: customerInfo.address,
                 addressDetails: customerInfo.addressDetails || null,
-                telegram: customerInfo.telegram || null,
+                telegram: telegramHandle,
+                contactPreferences: contactPreferences,
                 customerNotes: customerInfo.notes || null,
                 items: orderItems,
                 total,

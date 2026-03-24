@@ -21,13 +21,22 @@ export interface OrderItem {
     selectedVariations?: SelectedVariation[];
 }
 
+export type ContactMethod = 'telegram' | 'max' | 'phone_call' | 'sms' | 'email';
+
+export interface ContactPreferences {
+    methods: ContactMethod[];
+    telegramHandle?: string;
+    maxId?: string;
+}
+
 export interface Order {
     id: string;
     customerName: string;
     email: string;
     phone: string;
     address: string;
-    telegram?: string;
+    telegram?: string; // Legacy — kept for backward compat
+    contactPreferences?: ContactPreferences;
     items: OrderItem[];
     total: number;
     status: 'pending' | 'completed' | 'cancelled' | 'archived';

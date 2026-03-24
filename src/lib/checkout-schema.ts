@@ -4,11 +4,12 @@ import { z } from 'zod';
  * Checkout Form Validation Schema
  * 
  * Uses Zod for type-safe validation with localized error messages.
- * Customize the fields and validation rules for your project.
  */
 
 // Russian phone number regex: +7 or 8 followed by 10 digits
 const phoneRegex = /^(\+7|8)?[\s-]?\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}$/;
+
+const contactMethodValues = ['telegram', 'max', 'phone_call', 'sms', 'email'] as const;
 
 export const checkoutSchema = z.object({
     customerName: z
@@ -25,13 +26,33 @@ export const checkoutSchema = z.object({
         .string()
         .min(10, { message: 'Address must be at least 10 characters' })
         .max(500, { message: 'Address must be less than 500 characters' }),
-    telegram: z
-        .string()
-        .optional()
-        .refine(
-            (val) => !val || val.startsWith('@') || val.length === 0,
-            { message: 'Telegram username should start with @' }
-        ),
+    contactPreferences: z.object({
+        methods: z.array(z.enum(contactMethodValues)).min(1, { message: 'Select at least one contact method' }),
+        telegramHandle: z.string().optional(),
+        maxId: z.string().optional(),
+    }).superRefine((val, ctx) => {
+        if (val.methods.includes('telegram') && (!val.telegramHandle || val.telegramHandle.trim() === '')) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Telegram handle is required',
+                path: ['telegramHandle'],
+            });
+        }
+        if (val.telegramHandle && val.telegramHandle.trim() !== '' && !val.telegramHandle.startsWith('@')) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Telegram username should start with @',
+                path: ['telegramHandle'],
+            });
+        }
+        if (val.methods.includes('max') && (!val.maxId || val.maxId.trim() === '')) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'MAX ID is required',
+                path: ['maxId'],
+            });
+        }
+    }),
     notes: z
         .string()
         .max(1000, { message: 'Note must be less than 1000 characters' })
@@ -46,8 +67,6 @@ export type CheckoutFormData = z.infer<typeof checkoutSchema>;
 
 /**
  * Get localized validation schema
- * 
- * Returns a Zod schema with error messages in the specified locale.
  */
 export const getLocalizedSchema = (locale: 'en' | 'ru') => {
     const messages = {
@@ -58,7 +77,10 @@ export const getLocalizedSchema = (locale: 'en' | 'ru') => {
             phoneInvalid: 'Please enter a valid phone number (+7 or 8 format)',
             addressMin: 'Address must be at least 10 characters',
             addressMax: 'Address must be less than 500 characters',
+            contactMethodsMin: 'Select at least one contact method',
+            telegramRequired: 'Telegram handle is required',
             telegramFormat: 'Telegram username should start with @',
+            maxRequired: 'MAX ID / Phone is required',
         },
         ru: {
             nameMin: 'Имя должно содержать минимум 2 символа',
@@ -67,7 +89,10 @@ export const getLocalizedSchema = (locale: 'en' | 'ru') => {
             phoneInvalid: 'Введите корректный номер телефона (+7 или 8)',
             addressMin: 'Адрес должен содержать минимум 10 символов',
             addressMax: 'Адрес должен быть менее 500 символов',
+            contactMethodsMin: 'Выберите хотя бы один способ связи',
+            telegramRequired: 'Укажите Telegram имя пользователя',
             telegramFormat: 'Telegram никнейм должен начинаться с @',
+            maxRequired: 'Укажите MAX ID / Телефон',
         },
     };
 
@@ -88,13 +113,33 @@ export const getLocalizedSchema = (locale: 'en' | 'ru') => {
             .string()
             .min(10, { message: m.addressMin })
             .max(500, { message: m.addressMax }),
-        telegram: z
-            .string()
-            .optional()
-            .refine(
-                (val) => !val || val.startsWith('@') || val.length === 0,
-                { message: m.telegramFormat }
-            ),
+        contactPreferences: z.object({
+            methods: z.array(z.enum(contactMethodValues)).min(1, { message: m.contactMethodsMin }),
+            telegramHandle: z.string().optional(),
+            maxId: z.string().optional(),
+        }).superRefine((val, ctx) => {
+            if (val.methods.includes('telegram') && (!val.telegramHandle || val.telegramHandle.trim() === '')) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: m.telegramRequired,
+                    path: ['telegramHandle'],
+                });
+            }
+            if (val.telegramHandle && val.telegramHandle.trim() !== '' && !val.telegramHandle.startsWith('@')) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: m.telegramFormat,
+                    path: ['telegramHandle'],
+                });
+            }
+            if (val.methods.includes('max') && (!val.maxId || val.maxId.trim() === '')) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: m.maxRequired,
+                    path: ['maxId'],
+                });
+            }
+        }),
         notes: z
             .string()
             .max(1000, { message: locale === 'ru' ? 'Комментарий слишком длинный' : 'Note is too long' })

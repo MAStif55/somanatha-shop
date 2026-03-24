@@ -211,12 +211,37 @@ export default function OrderDetailsModal({ order, isOpen, onClose, onUpdate }: 
                                         <p className="font-medium text-gray-900">{order.address}</p>
                                     </div>
                                 </div>
-                                {order.telegram && (
+                                {/* Contact Preferences */}
+                                {order.contactPreferences?.methods && order.contactPreferences.methods.length > 0 ? (
+                                    <div className="mt-2">
+                                        <p className="text-gray-500 text-xs mb-1.5">{locale === 'ru' ? 'Способы связи' : 'Contact via'}</p>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {order.contactPreferences.methods.map((method: string) => {
+                                                const config: Record<string, { icon: string; label: string; color: string }> = {
+                                                    telegram: { icon: '💬', label: 'Telegram', color: 'bg-sky-50 text-sky-700' },
+                                                    max: { icon: '📲', label: 'MAX', color: 'bg-purple-50 text-purple-700' },
+                                                    phone_call: { icon: '📞', label: locale === 'ru' ? 'Звонок' : 'Phone Call', color: 'bg-green-50 text-green-700' },
+                                                    sms: { icon: '📱', label: 'SMS', color: 'bg-orange-50 text-orange-700' },
+                                                    email: { icon: '📧', label: 'Email', color: 'bg-blue-50 text-blue-700' },
+                                                };
+                                                const c = config[method] || { icon: '📌', label: method, color: 'bg-gray-50 text-gray-700' };
+                                                let extra = '';
+                                                if (method === 'telegram' && order.contactPreferences?.telegramHandle) extra = `: ${order.contactPreferences.telegramHandle}`;
+                                                if (method === 'max' && order.contactPreferences?.maxId) extra = `: ${order.contactPreferences.maxId}`;
+                                                return (
+                                                    <span key={method} className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md ${c.color}`}>
+                                                        {c.icon} {c.label}{extra}
+                                                    </span>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                ) : order.telegram ? (
                                     <div className="flex items-center gap-2 bg-sky-50 p-2 rounded text-sky-700">
                                         <MessageCircle size={14} />
                                         <span className="font-medium">{order.telegram}</span>
                                     </div>
-                                )}
+                                ) : null}
                             </div>
                         </div>
 

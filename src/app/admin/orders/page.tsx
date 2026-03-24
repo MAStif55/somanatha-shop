@@ -159,6 +159,26 @@ export default function AdminOrdersPage() {
                 ) : null}
             </div>
 
+            {/* Contact Methods */}
+            {order.contactPreferences?.methods && order.contactPreferences.methods.length > 0 ? (
+                <div className="flex flex-wrap gap-1 mb-3">
+                    <span className="text-[10px] text-gray-400 font-medium mr-1">{locale === 'ru' ? 'Связь:' : 'Contact:'}</span>
+                    {order.contactPreferences.methods.map((method: string) => {
+                        const icons: Record<string, string> = { telegram: '💬', max: '📲', phone_call: '📞', sms: '📱', email: '📧' };
+                        const labels: Record<string, string> = { telegram: 'TG', max: 'MAX', phone_call: locale === 'ru' ? 'Звонок' : 'Call', sms: 'SMS', email: 'Email' };
+                        return (
+                            <span key={method} className="inline-flex items-center gap-0.5 text-[10px] font-medium bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded">
+                                {icons[method]} {labels[method]}
+                            </span>
+                        );
+                    })}
+                </div>
+            ) : order.telegram ? (
+                <div className="flex items-center gap-1 text-[10px] text-sky-600 mb-3">
+                    💬 {order.telegram}
+                </div>
+            ) : null}
+
             {/* Actions */}
             <div className="flex justify-between items-center pt-3 border-t gap-2" onClick={e => e.stopPropagation()}>
                 {order.status === 'pending' && (

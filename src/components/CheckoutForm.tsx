@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -10,6 +10,14 @@ import { getLocalizedSchema, CheckoutFormData } from '@/lib/checkout-schema';
 import { AddressAutocomplete } from './AddressAutocomplete';
 import { formatPrice } from '@/utils/currency';
 import { API } from '@/lib/config';
+
+const CONTACT_METHODS = [
+    { id: 'telegram', icon: '💬', labelKey: 'method_telegram' },
+    { id: 'max', icon: '📲', labelKey: 'method_max' },
+    { id: 'phone_call', icon: '📞', labelKey: 'method_phone_call' },
+    { id: 'sms', icon: '📱', labelKey: 'method_sms' },
+    { id: 'email', icon: '📧', labelKey: 'method_email' },
+] as const;
 
 export default function CheckoutForm() {
     const { locale, t } = useLanguage();
@@ -25,24 +33,37 @@ export default function CheckoutForm() {
         handleSubmit,
         setValue,
         watch,
+        control,
         formState: { errors },
     } = useForm<CheckoutFormData>({
         resolver: zodResolver(schema),
+        defaultValues: {
+            contactPreferences: {
+                methods: [],
+                telegramHandle: '',
+                maxId: '',
+            },
+        },
     });
 
     const addressValue = watch('address') || '';
     const paymentMethodValue = watch('paymentMethod');
+    const selectedMethods = useWatch({ control, name: 'contactPreferences.methods' }) || [];
 
     const handleAddressChange = (value: string) => {
         setValue('address', value, { shouldValidate: true });
     };
 
     const handleAddressSelect = (suggestion: any) => {
-        // Save full structured data
         setValue('addressDetails', suggestion.data);
+    };
 
-        // You might want to auto-fill zip code if available, but for now we just save the struct
-        // suggestion.data.postal_code could be useful
+    const toggleMethod = (methodId: string) => {
+        const current = selectedMethods as string[];
+        const updated = current.includes(methodId)
+            ? current.filter((m: string) => m !== methodId)
+            : [...current, methodId];
+        setValue('contactPreferences.methods', updated as any, { shouldValidate: true });
     };
 
     const onSubmit = async (data: CheckoutFormData) => {
@@ -69,10 +90,8 @@ export default function CheckoutForm() {
             }
 
             if (result.success && result.paymentUrl) {
-                // Card payment: redirect to YooKassa payment page
                 window.location.href = result.paymentUrl;
             } else if (result.success) {
-                // Bank transfer: go to order success page
                 router.push(`/order-success?orderId=${result.orderId}&method=bank_transfer`);
             }
         } catch (error) {
@@ -150,22 +169,79 @@ export default function CheckoutForm() {
                     locale={locale}
                     placeholder={locale === 'ru' ? 'г. Москва, ул. Пушкина, д. 1, кв. 10' : '123 Main St, New York, NY'}
                 />
-
             </div>
 
-            {/* Telegram (Optional) */}
+            {/* Preferred Contact Methods */}
             <div>
-                <label className="block text-sm font-medium text-[#E8D48B] mb-2">
-                    Telegram <span className="text-[#F5ECD7]/50 font-normal">({locale === 'ru' ? 'необязательно' : 'optional'})</span>
+                <label className="block text-sm font-medium text-[#E8D48B] mb-1">
+                    {t('checkout.contactMethods')}
                 </label>
-                <input
-                    type="text"
-                    {...register('telegram')}
-                    className="w-full px-4 py-3 bg-[#0D0A0B] border border-[#C9A227]/30 rounded-lg text-[#F5ECD7] placeholder-[#F5ECD7]/40 focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] transition-colors"
-                    placeholder="@username"
-                />
-                {errors.telegram && (
-                    <p className="text-red-400 text-sm mt-1">{errors.telegram.message}</p>
+                <p className="text-xs text-[#F5ECD7]/50 mb-3">
+                    {t('checkout.contactMethodsHint')}
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {CONTACT_METHODS.map((method) => {
+                        const isSelected = (selectedMethods as string[]).includes(method.id);
+                        return (
+                            <button
+                                key={method.id}
+                                type="button"
+                                onClick={() => toggleMethod(method.id)}
+                                className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${
+                                    isSelected
+                                        ? 'bg-[#C9A227]/15 border-[#C9A227]/60 text-[#E8D48B] ring-1 ring-[#C9A227]/40 shadow-[0_0_8px_rgba(201,162,39,0.1)]'
+                                        : 'bg-[#0D0A0B] border-[#C9A227]/20 text-[#F5ECD7]/60 hover:border-[#C9A227]/40 hover:text-[#F5ECD7]/80'
+                                }`}
+                            >
+                                <span className="text-base">{method.icon}</span>
+                                <span>{t(`checkout.${method.labelKey}`)}</span>
+                                {isSelected && (
+                                    <svg className="w-4 h-4 ml-auto text-[#C9A227]" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+                {errors.contactPreferences?.methods && (
+                    <p className="text-red-400 text-sm mt-2">{errors.contactPreferences.methods.message}</p>
+                )}
+
+                {/* Conditional: Telegram Handle */}
+                {(selectedMethods as string[]).includes('telegram') && (
+                    <div className="mt-3 animate-in slide-in-from-top-1 duration-200">
+                        <label className="block text-xs font-medium text-[#E8D48B]/80 mb-1">
+                            {t('checkout.telegramHandle')}
+                        </label>
+                        <input
+                            type="text"
+                            {...register('contactPreferences.telegramHandle')}
+                            className="w-full px-4 py-2.5 bg-[#0D0A0B] border border-[#C9A227]/30 rounded-lg text-[#F5ECD7] placeholder-[#F5ECD7]/40 focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] transition-colors text-sm"
+                            placeholder="@username"
+                        />
+                        {errors.contactPreferences?.telegramHandle && (
+                            <p className="text-red-400 text-xs mt-1">{errors.contactPreferences.telegramHandle.message}</p>
+                        )}
+                    </div>
+                )}
+
+                {/* Conditional: MAX ID */}
+                {(selectedMethods as string[]).includes('max') && (
+                    <div className="mt-3 animate-in slide-in-from-top-1 duration-200">
+                        <label className="block text-xs font-medium text-[#E8D48B]/80 mb-1">
+                            {t('checkout.maxId')}
+                        </label>
+                        <input
+                            type="text"
+                            {...register('contactPreferences.maxId')}
+                            className="w-full px-4 py-2.5 bg-[#0D0A0B] border border-[#C9A227]/30 rounded-lg text-[#F5ECD7] placeholder-[#F5ECD7]/40 focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] transition-colors text-sm"
+                            placeholder={locale === 'ru' ? 'ID или номер телефона' : 'ID or phone number'}
+                        />
+                        {errors.contactPreferences?.maxId && (
+                            <p className="text-red-400 text-xs mt-1">{errors.contactPreferences.maxId.message}</p>
+                        )}
+                    </div>
                 )}
             </div>
 
