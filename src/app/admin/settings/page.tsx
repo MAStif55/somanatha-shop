@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { StoreSettings, defaultSettings } from '@/types/settings';
 import { getStoreSettings, updateStoreSettings } from '@/lib/settings-service';
+import { invalidateSettingsCache } from '@/hooks/useStoreSettings';
 import Breadcrumbs from '@/components/admin/Breadcrumbs';
 import { Save, Truck, Mail, Bell, Database, Download } from 'lucide-react';
 import { getAllProducts, getAllOrders } from '@/lib/firestore-utils';
@@ -30,6 +31,7 @@ export default function AdminSettingsPage() {
         setSaving(true);
         try {
             await updateStoreSettings(settings);
+            invalidateSettingsCache();
             alert(locale === 'ru' ? 'Настройки сохранены' : 'Settings saved');
         } catch (error) {
             console.error(error);
@@ -159,6 +161,31 @@ export default function AdminSettingsPage() {
                                         className="w-full p-2 border rounded-lg"
                                         rows={3}
                                     />
+                                </div>
+                                <div className="pt-4 border-t">
+                                    <h3 className="text-sm font-semibold text-gray-800 mb-3 uppercase tracking-wide">{locale === 'ru' ? 'Социальные ссылки' : 'Social Links'}</h3>
+                                    <div className="grid gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">{locale === 'ru' ? 'Ссылка на Telegram' : 'Telegram Link'}</label>
+                                            <input
+                                                type="url"
+                                                value={settings.contact.telegramLink || ''}
+                                                onChange={e => setSettings({ ...settings, contact: { ...settings.contact, telegramLink: e.target.value } })}
+                                                className="w-full p-2 border rounded-lg"
+                                                placeholder="https://t.me/username"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">{locale === 'ru' ? 'Ссылка на Max' : 'Max Messenger Link'}</label>
+                                            <input
+                                                type="url"
+                                                value={settings.contact.maxLink || ''}
+                                                onChange={e => setSettings({ ...settings, contact: { ...settings.contact, maxLink: e.target.value } })}
+                                                className="w-full p-2 border rounded-lg"
+                                                placeholder="https://max.ru/u/..."
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

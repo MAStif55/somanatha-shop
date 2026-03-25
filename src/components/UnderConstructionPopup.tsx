@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { X, MessageCircle } from 'lucide-react';
+import { useStoreSettings } from '@/hooks/useStoreSettings';
+import { defaultSettings } from '@/types/settings';
 
 const STORAGE_KEY = 'under-construction-dismissed';
 const ANIM_MS = 450;
@@ -21,6 +23,7 @@ export default function UnderConstructionPopup() {
     const { locale } = useLanguage();
     const [phase, setPhase] = useState<Phase>('hidden');
     const [mounted, setMounted] = useState(false);
+    const { settings } = useStoreSettings();
 
     const modalRef = useRef<HTMLDivElement>(null);
     const overlayRef = useRef<HTMLDivElement>(null);
@@ -191,7 +194,7 @@ export default function UnderConstructionPopup() {
 
                             <div className="flex flex-col gap-3 mb-6">
                                 <a
-                                    href="https://t.me/Trubitsina_Elena_Astrolog"
+                                    href={settings.contact.telegramLink || defaultSettings.contact.telegramLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex items-center gap-4 p-4 rounded-xl border border-[#C9A227]/30 bg-[#1A1517]/80 hover:border-[#C9A227]/60 hover:bg-[#1A1517] transition-all group"
@@ -213,7 +216,7 @@ export default function UnderConstructionPopup() {
                                 </a>
 
                                 <a
-                                    href="https://max.ru/u/f9LHodD0cOIistNNtQFWq4OLPx_ZPYrqvTyLMwLrRY0P9hHA7Zd06uRLwCg"
+                                    href={settings.contact.maxLink || defaultSettings.contact.maxLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex items-center gap-4 p-4 rounded-xl border border-[#C9A227]/30 bg-[#1A1517]/80 hover:border-[#C9A227]/60 hover:bg-[#1A1517] transition-all group"

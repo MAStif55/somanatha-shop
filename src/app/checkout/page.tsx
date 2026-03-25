@@ -8,12 +8,21 @@ import Footer from '@/components/Footer';
 import CheckoutForm from '@/components/CheckoutForm';
 import { useRouter } from 'next/navigation';
 import { formatPrice } from '@/utils/currency';
+import { useStoreSettings } from '@/hooks/useStoreSettings';
 
 export default function CheckoutPage() {
     const { locale, t } = useLanguage();
-    const { items, getTotalPrice, getDiscount, getFinalPrice, getShippingCost, isFreeShippingEligible } = useCartStore();
+    const { items, getTotalPrice, getDiscount, getFinalPrice, getShippingCost, isFreeShippingEligible, setShippingConfig } = useCartStore();
     const router = useRouter();
     const [mounted, setMounted] = useState(false);
+    const { settings } = useStoreSettings();
+
+    // Sync shipping config from Firestore settings into cart store
+    useEffect(() => {
+        if (settings.shipping) {
+            setShippingConfig(settings.shipping.price, settings.shipping.freeThreshold);
+        }
+    }, [settings.shipping, setShippingConfig]);
 
     // Hydration safety
     useEffect(() => {

@@ -7,6 +7,8 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { API } from '@/lib/config';
 import { reachGoal } from '@/components/YandexMetrika';
+import { useStoreSettings } from '@/hooks/useStoreSettings';
+import { defaultSettings } from '@/types/settings';
 
 export default function AboutPage() {
     const { locale } = useLanguage();
@@ -18,6 +20,7 @@ export default function AboutPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [submitError, setSubmitError] = useState(false);
+    const { settings } = useStoreSettings();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -105,7 +108,7 @@ export default function AboutPage() {
                         {/* Messenger Buttons */}
                         <div className="flex flex-col gap-5 justify-center">
                             <a
-                                href="https://t.me/Trubitsina_Elena_Astrolog"
+                                href={settings.contact.telegramLink || defaultSettings.contact.telegramLink}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-5 p-6 rounded-xl border border-[#C9A227]/30 bg-[#1A1517]/80 hover:border-[#C9A227]/60 hover:bg-[#1A1517] transition-all group"
@@ -125,7 +128,7 @@ export default function AboutPage() {
                             </a>
 
                             <a
-                                href="https://max.ru/u/f9LHodD0cOIistNNtQFWq4OLPx_ZPYrqvTyLMwLrRY0P9hHA7Zd06uRLwCg"
+                                href={settings.contact.maxLink || defaultSettings.contact.maxLink}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-5 p-6 rounded-xl border border-[#C9A227]/30 bg-[#1A1517]/80 hover:border-[#C9A227]/60 hover:bg-[#1A1517] transition-all group"

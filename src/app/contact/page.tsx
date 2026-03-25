@@ -6,6 +6,8 @@ import Footer from '@/components/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Mail, MessageCircle, MapPin, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { API } from '@/lib/config';
+import { useStoreSettings } from '@/hooks/useStoreSettings';
+import { defaultSettings } from '@/types/settings';
 
 export default function ContactPage() {
     const { locale } = useLanguage();
@@ -14,6 +16,7 @@ export default function ContactPage() {
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+    const { settings } = useStoreSettings();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -67,7 +70,7 @@ export default function ContactPage() {
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-[#2D1B1F]">Email</h3>
-                                        <p className="text-[#666]">support@somanatha.com</p>
+                                        <p className="text-[#666]">{settings.contact.email || defaultSettings.contact.email}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-4">
@@ -76,7 +79,7 @@ export default function ContactPage() {
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-[#2D1B1F]">WhatsApp / Telegram</h3>
-                                        <p className="text-[#666]">+66 12 345 6789</p>
+                                        <p className="text-[#666]">{settings.contact.phone || defaultSettings.contact.phone}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-4">
@@ -85,9 +88,8 @@ export default function ContactPage() {
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-[#2D1B1F]">{locale === 'ru' ? 'Мастерская' : 'Workshop'}</h3>
-                                        <p className="text-[#666]">
-                                            Koh Phangan, Thailand<br />
-                                            Surat Thani, 84280
+                                        <p className="text-[#666]" style={{ whiteSpace: 'pre-line' }}>
+                                            {settings.contact.address || defaultSettings.contact.address}
                                         </p>
                                     </div>
                                 </div>

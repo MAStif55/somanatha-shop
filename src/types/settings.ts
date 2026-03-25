@@ -16,6 +16,8 @@ export interface StoreSettings {
         whatsapp: string;
         instagram: string;
         address: string;
+        telegramLink: string;   // Full Telegram URL (e.g. https://t.me/username)
+        maxLink: string;        // Full Max messenger URL
     };
     notifications: {
         telegramEnabled: boolean;
@@ -30,16 +32,18 @@ export interface StoreSettings {
 export const defaultSettings: StoreSettings = {
     shipping: {
         price: 350,
-        freeThreshold: 5000,
+        freeThreshold: 3000,
         enabled: true
     },
     contact: {
-        email: '',
-        phone: '',
+        email: 'support@somanatha.com',
+        phone: '+66 12 345 6789',
         telegram: '',
         whatsapp: '',
         instagram: '',
-        address: ''
+        address: 'Koh Phangan, Thailand\nSurat Thani, 84280',
+        telegramLink: 'https://t.me/Trubitsina_Elena_Astrolog',
+        maxLink: 'https://max.ru/u/f9LHodD0cOIistNNtQFWq4OLPx_ZPYrqvTyLMwLrRY0P9hHA7Zd06uRLwCg',
     },
     notifications: {
         telegramEnabled: true,

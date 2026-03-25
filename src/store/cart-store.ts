@@ -36,6 +36,7 @@ interface CartState {
     getDiscount: () => number;
     getShippingCost: () => number;
     getFinalPrice: () => number;
+    setShippingConfig: (price: number, freeThreshold: number) => void;
 }
 
 // ============================================================================
@@ -49,6 +50,8 @@ export const useCartStore = create<CartState>()(
     persist(
         (set, get) => ({
             items: [],
+            _shippingPrice: 350,
+            _shippingFreeThreshold: 3000,
 
             addItem: (newItem) => {
                 const { items } = get();
@@ -119,11 +122,13 @@ export const useCartStore = create<CartState>()(
 
             getFreeShippingThreshold: () => {
                 const subtotal = get().getTotalPrice();
-                return Math.max(0, 3000 - subtotal);
+                const threshold = (get() as any)._shippingFreeThreshold || 3000;
+                return Math.max(0, threshold - subtotal);
             },
 
             isFreeShippingEligible: () => {
-                return get().getTotalPrice() >= 3000;
+                const threshold = (get() as any)._shippingFreeThreshold || 3000;
+                return get().getTotalPrice() >= threshold;
             },
 
             getGiftThreshold: () => {
@@ -175,7 +180,8 @@ export const useCartStore = create<CartState>()(
             },
 
             getShippingCost: () => {
-                return get().isFreeShippingEligible() ? 0 : 350;
+                const price = (get() as any)._shippingPrice || 350;
+                return get().isFreeShippingEligible() ? 0 : price;
             },
 
             getFinalPrice: () => {
@@ -183,6 +189,10 @@ export const useCartStore = create<CartState>()(
                 const discount = get().getDiscount();
                 const shipping = get().getShippingCost();
                 return Math.max(0, subtotal - discount + shipping);
+            },
+
+            setShippingConfig: (price: number, freeThreshold: number) => {
+                set({ _shippingPrice: price, _shippingFreeThreshold: freeThreshold } as any);
             }
         }),
         {
