@@ -96,13 +96,13 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     ];
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="admin-shell flex min-h-screen bg-gray-50">
             {/* Sidebar */}
-            <aside className="w-64 bg-white shadow-md flex flex-col">
-                <div className="p-6 border-b">
-                    <h2 className="text-xl font-bold text-gray-900">{t('admin.title')}</h2>
+            <aside className="admin-sidebar w-64 flex flex-col shadow-sm">
+                <div className="admin-sidebar-header p-5">
+                    <h2 className="text-lg font-bold text-gray-900 tracking-tight">{t('admin.title')}</h2>
                 </div>
-                <nav className="p-4 space-y-2 flex-1">
+                <nav className="px-3 py-4 space-y-1 flex-1">
                     {navItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href ||
@@ -111,23 +111,20 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                                    ? 'bg-primary text-white'
-                                    : 'text-gray-800 hover:bg-gray-100 font-medium'
-                                    }`}
+                                className={`admin-nav-item ${isActive ? 'active' : ''}`}
                             >
-                                <Icon size={20} />
+                                <Icon size={19} className="admin-nav-icon" />
                                 <span>{item.label}</span>
                             </Link>
                         );
                     })}
                 </nav>
-                <div className="p-4 border-t">
+                <div className="px-3 py-4 border-t border-gray-100">
                     <button
                         onClick={() => logout()}
-                        className="flex items-center space-x-3 px-4 py-3 w-full text-left text-red-700 hover:bg-red-50 rounded-lg transition-colors font-medium"
+                        className="admin-logout-btn"
                     >
-                        <LogOut size={20} />
+                        <LogOut size={19} />
                         <span>{t('admin.logout')}</span>
                     </button>
                 </div>

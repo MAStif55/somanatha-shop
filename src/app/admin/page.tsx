@@ -43,23 +43,36 @@ export default function AdminDashboard() {
     return (
         <div>
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-800">
+                <h1 className="admin-page-title">
                     {locale === 'ru' ? 'Панель управления' : 'Dashboard'}
                 </h1>
-                <p className="text-gray-500 mt-2">
-                    {locale === 'ru' ? 'Добро пожаловать,' : 'Welcome back,'} <span className="font-semibold">{user?.email}</span>
+                <p className="admin-page-subtitle">
+                    {locale === 'ru' ? 'Добро пожаловать,' : 'Welcome back,'} <span className="font-semibold text-gray-800">{user?.email}</span>
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
                 {stats.map((stat, index) => {
                     const Icon = stat.icon;
                     const isOrders = 'isOrders' in stat && stat.isOrders;
+                    const accentColor = stat.color.replace('bg-', '');
+                    const colorMap: Record<string, string> = {
+                        'blue-500': '#3b82f6',
+                        'green-500': '#22c55e',
+                        'indigo-500': '#6366f1',
+                        'gray-500': '#6b7280',
+                    };
+                    const borderColor = colorMap[accentColor] || '#e5e7eb';
                     return (
-                        <Link key={index} href={stat.href} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                        <Link
+                            key={index}
+                            href={stat.href}
+                            className="admin-stat-card"
+                            style={{ borderTop: `3px solid ${borderColor}` }}
+                        >
                             <div className="flex items-center justify-between mb-4">
-                                <div className={`p-3 rounded-lg ${stat.color} bg-opacity-10`}>
-                                    <Icon className={`w-6 h-6 ${stat.color.replace('bg-', 'text-')}`} />
+                                <div className={`p-2.5 rounded-xl ${stat.color} bg-opacity-10`}>
+                                    <Icon className={`w-5 h-5 ${stat.color.replace('bg-', 'text-')}`} />
                                 </div>
                                 {isOrders && pendingCount !== null ? (
                                     <div className="flex items-center gap-3">
@@ -76,32 +89,32 @@ export default function AdminDashboard() {
                                     <span className="text-2xl font-bold text-gray-900">{stat.value}</span>
                                 )}
                             </div>
-                            <h3 className="text-gray-600 font-semibold">{stat.label}</h3>
+                            <h3 className="text-gray-600 font-semibold text-sm">{stat.label}</h3>
                         </Link>
                     );
                 })}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="admin-section-card">
+                    <h2 className="admin-section-title">
                         {locale === 'ru' ? 'Последние действия' : 'Recent Activity'}
                     </h2>
-                    <div className="text-center py-8 text-gray-500 font-medium">
+                    <div className="text-center py-8 text-gray-400 font-medium text-sm">
                         {locale === 'ru' ? 'История пуста' : 'No recent activity'}
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">
+                <div className="admin-section-card">
+                    <h2 className="admin-section-title">
                         {locale === 'ru' ? 'Быстрые действия' : 'Quick Actions'}
                     </h2>
                     <div className="space-y-3">
-                        <Link href="/admin/products/new" className="block w-full text-center py-3 border-2 border-dashed border-gray-400 rounded-lg text-gray-600 font-medium hover:border-primary hover:text-primary transition-colors">
+                        <Link href="/admin/products/new" className="block w-full text-center py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 font-medium hover:border-orange-400 hover:text-orange-600 transition-colors text-sm">
                             + {locale === 'ru' ? 'Добавить товар' : 'Add New Product'}
                         </Link>
-                        <div className="pt-2 border-t border-gray-100">
-                            <p className="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wide">
+                        <div className="pt-3 border-t border-gray-100">
+                            <p className="text-xs text-gray-400 mb-2 font-semibold uppercase tracking-wider">
                                 {locale === 'ru' ? 'Деплой' : 'Deployment'}
                             </p>
                             <DeployButton />
