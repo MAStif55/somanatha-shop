@@ -29,13 +29,100 @@ function getTransporter() {
 // HELPERS
 // ============================================================================
 
+const VALID_CONTACT_METHODS = ['telegram', 'max', 'phone_call', 'sms', 'email'];
+const PHONE_REGEX = /^(\+7|8)?[\s-]?\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function validateOrder(data) {
-    if (!data.customerName || data.customerName.length < 2) return 'Invalid name';
-    if (!data.email || !data.email.includes('@')) return 'Invalid email';
-    if (!data.phone) return 'Invalid phone';
-    if (!data.address || data.address.length < 10) return 'Invalid address';
+    // Name: min 2, max 100
+    if (!data.customerName || typeof data.customerName !== 'string') return 'Invalid name';
+    if (data.customerName.length < 2 || data.customerName.length > 100) return 'Name must be 2–100 characters';
+
+    // Email: standard format
+    if (!data.email || !EMAIL_REGEX.test(data.email)) return 'Invalid email';
+
+    // Phone: Russian format
+    if (!data.phone || !PHONE_REGEX.test(data.phone)) return 'Invalid phone number';
+
+    // Address: min 10, max 500
+    if (!data.address || typeof data.address !== 'string') return 'Invalid address';
+    if (data.address.length < 10 || data.address.length > 500) return 'Address must be 10–500 characters';
+
+    // Customer notes: max 1000 (optional)
+    if (data.notes && typeof data.notes === 'string' && data.notes.length > 1000) {
+        return 'Notes must be under 1000 characters';
+    }
+
+    // Payment method: enum
     if (!['card', 'bank_transfer'].includes(data.paymentMethod)) return 'Invalid payment method';
+
+    // Contact preferences validation
+    const cp = data.contactPreferences;
+    if (cp) {
+        if (!cp.methods || !Array.isArray(cp.methods) || cp.methods.length === 0) {
+            return 'Select at least one contact method';
+        }
+        for (const method of cp.methods) {
+            if (!VALID_CONTACT_METHODS.includes(method)) {
+                return `Invalid contact method: ${method}`;
+            }
+        }
+        if (cp.methods.includes('telegram')) {
+            if (!cp.telegramHandle || typeof cp.telegramHandle !== 'string' || cp.telegramHandle.trim() === '') {
+                return 'Telegram handle is required';
+            }
+            if (!cp.telegramHandle.startsWith('@')) {
+                return 'Telegram handle must start with @';
+            }
+        }
+        if (cp.methods.includes('max')) {
+            if (!cp.maxId || typeof cp.maxId !== 'string' || cp.maxId.trim() === '') {
+                return 'MAX ID is required';
+            }
+        }
+    }
+
     return null;
+}
+
+/**
+ * Safely serialize a product title to a plain string.
+ * Handles both { en, ru } objects and plain strings from the cart.
+ */
+function serializeProductTitle(title) {
+    if (!title) return '';
+    if (typeof title === 'string') return title;
+    if (typeof title === 'object' && title !== null) {
+        return title.ru || title.en || JSON.stringify(title);
+    }
+    return String(title);
+}
+
+/**
+ * Server-side gift discount calculation.
+ * Mirrors the client-side logic: every 11th item is free (cheapest first).
+ */
+function calculateGiftDiscount(items) {
+    const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+    const freeItemCount = Math.floor(totalItems / 11);
+    if (freeItemCount === 0) return 0;
+
+    // Flatten into individual units with their prices
+    const units = [];
+    items.forEach((item) => {
+        for (let i = 0; i < item.quantity; i++) {
+            units.push(item.price);
+        }
+    });
+
+    // Sort ascending — discount the cheapest items
+    units.sort((a, b) => a - b);
+
+    let discount = 0;
+    for (let i = 0; i < freeItemCount; i++) {
+        discount += units[i];
+    }
+    return discount;
 }
 
 function escapeMarkdown(text) {
@@ -305,15 +392,18 @@ exports.createOrder = functions.https.onRequest((req, res) => {
                 return res.status(400).json({ success: false, error });
             }
 
-            const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
             const orderItems = cartItems.map((item) => ({
                 productId: item.productId,
-                productTitle: item.productTitle.ru || item.productTitle,
+                productTitle: serializeProductTitle(item.productTitle),
                 configuration: item.configuration || {},
                 quantity: item.quantity,
                 price: item.price,
             }));
+
+            // Server-side price calculation (source of truth)
+            const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            const giftDiscount = calculateGiftDiscount(orderItems);
+            const total = Math.max(0, subtotal - giftDiscount);
 
             const paymentMethod = customerInfo.paymentMethod; // 'card' or 'bank_transfer'
 
@@ -452,14 +542,26 @@ exports.yookassaWebhook = functions.https.onRequest(async (req, res) => {
             await orderRef.update({
                 paymentStatus: 'paid',
                 paymentId: paymentId,
-                paidAt: admin.firestore.FieldValue.serverTimestamp(),
+                paidAt: Date.now(),
             });
 
             // Send notifications after card payment confirmed
-            await Promise.all([
+            const [telegramResult, emailResult] = await Promise.allSettled([
                 sendTelegramNotification(orderData, orderId, true),
                 sendEmailNotification(orderData, orderId, true),
             ]);
+
+            // Log notification failures to the order document
+            const notificationStatus = {};
+            if (telegramResult.status === 'rejected') {
+                notificationStatus.telegramError = telegramResult.reason?.message || 'Unknown error';
+            }
+            if (emailResult.status === 'rejected') {
+                notificationStatus.emailError = emailResult.reason?.message || 'Unknown error';
+            }
+            if (Object.keys(notificationStatus).length > 0) {
+                await orderRef.update({ notificationStatus });
+            }
 
             console.log(`Order ${orderId} payment confirmed, notifications sent`);
         } else if (event.event === 'payment.canceled') {
