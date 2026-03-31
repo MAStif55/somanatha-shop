@@ -170,7 +170,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 <div className="flex flex-col mt-auto pt-4 border-t border-[#C9A227]/20">
                     <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-3 w-full">
                         <div className="w-full sm:flex-1 flex items-center justify-center h-10 sm:h-11 px-2 rounded-lg border border-[#C9A227]/40 text-[#C9A227] font-semibold font-elegant text-[11px] sm:text-xs lg:text-[13px] uppercase tracking-[0.05em] hover:bg-[#C9A227]/10 hover:border-[#C9A227] transition-all duration-200 text-center">
-                            {locale === 'ru' ? 'Подробнее' : 'Details'}
+                            {locale === 'ru' ? 'Полное описание' : 'Details'}
                         </div>
                         <button
                             onClick={handleAddToCart}
