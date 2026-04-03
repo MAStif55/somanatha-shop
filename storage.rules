@@ -1,26 +1,30 @@
 rules_version = '2';
 
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
-    
-    // Allow public read access to all files
+
+    // ─── Backup archives — NEVER publicly accessible ────────────────────────
+    // Access is granted exclusively via time-limited Signed URLs generated
+    // by the Firebase Admin SDK inside the createBackup Cloud Function.
+    // This rule must be listed BEFORE the catch-all read rule below.
+    match /backups/{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    // ─── Public assets ──────────────────────────────────────────────────────
+    // Product images, videos and other public media are readable by anyone.
     match /{allPaths=**} {
       allow read: if true;
     }
 
-    // Allow upload only if user is authenticated (Check this against your needs)
-    // Ideally restricts to admins
+    // ─── Authenticated uploads ──────────────────────────────────────────────
     match /uploads/{allPaths=**} {
       allow write: if request.auth != null;
     }
-    
+
     // Allow video uploads for Live Photo feature
     match /videos/{allPaths=**} {
       allow write: if request.auth != null;
     }
   }
 }
-

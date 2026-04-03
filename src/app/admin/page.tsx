@@ -5,6 +5,7 @@ import { useTranslation } from '@/contexts/LanguageContext';
 import Link from 'next/link';
 import { Package, ShoppingCart, Users, TrendingUp, Settings } from 'lucide-react';
 import DeployButton from '@/components/admin/DeployButton';
+import BackupButton from '@/components/admin/BackupButton';
 import { useEffect, useState } from 'react';
 import { getAllOrders } from '@/lib/firestore-utils';
 import { Order } from '@/types/order';
@@ -118,6 +119,12 @@ export default function AdminDashboard() {
                                 {locale === 'ru' ? 'Деплой' : 'Deployment'}
                             </p>
                             <DeployButton />
+                        </div>
+                        <div className="pt-3 border-t border-gray-100">
+                            <p className="text-xs text-gray-400 mb-2 font-semibold uppercase tracking-wider">
+                                {locale === 'ru' ? 'Данные и резервные копии' : 'Data & Backup'}
+                            </p>
+                            <BackupButton />
                         </div>
                     </div>
                 </div>

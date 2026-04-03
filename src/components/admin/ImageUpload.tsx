@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
-import { Loader2, Upload, X, ImageIcon, Download, ChevronDown, ChevronUp } from 'lucide-react';
+import { Loader2, Upload, X, ImageIcon, Download, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ProductImage } from '@/types/product';
 import ImageCropper from './ImageCropper';
@@ -47,6 +47,8 @@ export default function ImageUpload({
     // Cropping State
     const [croppingFile, setCroppingFile] = useState<string | null>(null);
     const [fileName, setFileName] = useState<string>('');
+    const [replacingIndex, setReplacingIndex] = useState<number | null>(null);
+    const replaceInputRef = useRef<HTMLInputElement>(null);
 
     // Auto-expand new images
     useEffect(() => {
@@ -183,6 +185,59 @@ export default function ImageUpload({
         }
     };
 
+    const handleReplaceUpload = async (file: File) => {
+        if (replacingIndex === null) return;
+        setUploading(true);
+        try {
+            const baseName = `${Date.now()}_${file.name.replace(/\\.[^/.]+$/, '')}`;
+
+            const blobs = await Promise.all(
+                VARIANTS.map(v => generateVariant(file, v.maxDim, v.quality))
+            );
+
+            const uploadPromises = VARIANTS.map((v, i) => {
+                const filename = `${baseName}${v.suffix}.webp`;
+                const storageRef = ref(storage, `${storagePath}/${filename}`);
+                return uploadBytes(storageRef, blobs[i], uploadMetadata)
+                    .then(() => getDownloadURL(storageRef));
+            });
+
+            const [fullUrl, cardUrl, thumbUrl] = await Promise.all(uploadPromises);
+
+            const newImages = [...normalizedImages];
+            const oldImage = newImages[replacingIndex];
+
+            if (oldImage.url) {
+                try { await deleteObject(ref(storage, oldImage.url)); } catch (e) { }
+            }
+            if (oldImage.cardUrl) {
+                try { await deleteObject(ref(storage, oldImage.cardUrl)); } catch (e) { }
+            }
+            if (oldImage.thumbUrl) {
+                try { await deleteObject(ref(storage, oldImage.thumbUrl)); } catch (e) { }
+            }
+
+            newImages[replacingIndex] = {
+                ...oldImage,
+                url: fullUrl,
+                cardUrl,
+                thumbUrl
+            };
+
+            onChange(newImages);
+        } catch (error: any) {
+            console.error("Replace upload failed", error);
+            let errorMessage = locale === 'ru' ? "Ошибка замены!" : "Replace failed!";
+            if (error.code === 'storage/unauthorized') {
+                errorMessage = locale === 'ru' ? "Нет прав доступа." : "Permission denied.";
+            }
+            alert(errorMessage);
+        } finally {
+            setUploading(false);
+            setReplacingIndex(null);
+        }
+    };
+
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];
@@ -192,6 +247,9 @@ export default function ImageUpload({
                 setCroppingFile(reader.result?.toString() || null);
             });
             reader.readAsDataURL(file);
+            e.target.value = '';
+        } else {
+            setReplacingIndex(null);
         }
     };
 
@@ -297,11 +355,16 @@ export default function ImageUpload({
                     onCropComplete={async (croppedBlob) => {
                         const file = new File([croppedBlob], fileName, { type: 'image/webp' });
                         setCroppingFile(null);
-                        await handleUpload(file);
+                        if (replacingIndex !== null) {
+                            await handleReplaceUpload(file);
+                        } else {
+                            await handleUpload(file);
+                        }
                     }}
                     onCancel={() => {
                         setCroppingFile(null);
                         setFileName('');
+                        setReplacingIndex(null);
                     }}
                 />
             )}
@@ -328,6 +391,19 @@ export default function ImageUpload({
                             </div>
 
                             <div className="flex items-center gap-1">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setReplacingIndex(idx);
+                                        if (replaceInputRef.current) {
+                                            replaceInputRef.current.click();
+                                        }
+                                    }}
+                                    className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                    title={locale === 'ru' ? 'Заменить изображение' : 'Replace Image'}
+                                >
+                                    {uploading && replacingIndex === idx ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
+                                </button>
                                 <button
                                     type="button"
                                     onClick={() => toggleExpand(idx)}
@@ -438,6 +514,14 @@ export default function ImageUpload({
                 <input
                     type="file"
                     accept="image/*"
+                    className="hidden"
+                    onChange={handleFileChange}
+                    disabled={uploading}
+                />
+                <input
+                    type="file"
+                    accept="image/*"
+                    ref={replaceInputRef}
                     className="hidden"
                     onChange={handleFileChange}
                     disabled={uploading}

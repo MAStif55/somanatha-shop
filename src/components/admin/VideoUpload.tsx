@@ -4,7 +4,7 @@ import { storage } from '@/lib/firebase';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import Cropper, { Area } from 'react-easy-crop';
-import { Loader2, Video, X, Play, Pause } from 'lucide-react';
+import { Loader2, Video, X, Play, Pause, RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
@@ -23,6 +23,8 @@ export default function VideoUpload({
     const { locale } = useLanguage();
     const [uploading, setUploading] = useState(false);
     const [dragOver, setDragOver] = useState(false);
+    const [isReplacing, setIsReplacing] = useState(false);
+    const replaceVideoInputRef = useRef<HTMLInputElement>(null);
 
     // Original Video Selected
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -251,12 +253,22 @@ export default function VideoUpload({
             await ffmpeg.deleteFile(hiResOutput);
             await ffmpeg.deleteFile(previewOutput);
 
+            if (isReplacing && value) {
+                try {
+                    const refToDelete = ref(storage, value);
+                    await deleteObject(refToDelete);
+                } catch (e) {
+                    console.error("Failed to delete old video from storage", e);
+                }
+            }
+
             // Return both URLs upwards
             onChange({ videoUrl, videoPreviewUrl });
 
             // Clean up UI local state
             setOriginalVideoUrl(null);
             setSelectedFile(null);
+            setIsReplacing(false);
             setProgress(0);
 
         } catch (error: any) {
@@ -308,6 +320,7 @@ export default function VideoUpload({
         setSelectedFile(null);
         setOriginalVideoUrl(null);
         setIsPlayingPreview(false);
+        setIsReplacing(false);
     };
 
     const togglePlayPreview = () => {
@@ -326,7 +339,6 @@ export default function VideoUpload({
         }
     };
 
-    // If a video preview already exists for this product
     if (value && !selectedFile) {
         return (
             <div className="bg-gray-50 border rounded-lg overflow-hidden p-4">
@@ -334,14 +346,30 @@ export default function VideoUpload({
                     <span className="text-sm font-medium text-gray-700">
                         {locale === 'ru' ? 'Текущее Live Photo' : 'Current Live Photo'}
                     </span>
-                    <button
-                        type="button"
-                        onClick={handleRemoveCurrent}
-                        className="text-red-500 hover:text-red-700 p-1 bg-red-50 hover:bg-red-100 rounded transition-colors"
-                        title={locale === 'ru' ? 'Удалить видео' : 'Remove video'}
-                    >
-                        <X size={20} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsReplacing(true);
+                                if (replaceVideoInputRef.current) {
+                                                                       replaceVideoInputRef.current.click();
+                                }
+                            }}
+                            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                            title={locale === 'ru' ? 'Заменить видео' : 'Replace video'}
+                        >
+                            <RefreshCw size={16} />
+                            {locale === 'ru' ? 'Заменить' : 'Replace'}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleRemoveCurrent}
+                            className="text-red-500 hover:text-red-700 p-1.5 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                            title={locale === 'ru' ? 'Удалить видео' : 'Remove video'}
+                        >
+                            <X size={20} />
+                        </button>
+                    </div>
                 </div>
                 <div className="relative aspect-video bg-black rounded overflow-hidden">
                     <video
@@ -353,6 +381,16 @@ export default function VideoUpload({
                         playsInline
                     />
                 </div>
+                <input
+                    type="file"
+                    accept="video/*"
+                    ref={replaceVideoInputRef}
+                    className="hidden"
+                    onChange={(e) => {
+                        handleFileChange(e);
+                        if (e.target) e.target.value = '';
+                    }}
+                />
             </div>
         );
     }
