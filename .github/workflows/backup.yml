@@ -162,15 +162,19 @@ jobs:
 
           mkdir -p media
 
-          echo "Downloading products/ from gs://${STORAGE_BUCKET}/products/ ..."
-          gsutil -m cp -r "gs://${STORAGE_BUCKET}/products" media/ 2>&1 || true
-
-          echo "Downloading static/ from gs://${STORAGE_BUCKET}/static/ ..."
-          gsutil -m cp -r "gs://${STORAGE_BUCKET}/static" media/ 2>&1 || true
+          echo "Synchronizing entire storage bucket: gs://${STORAGE_BUCKET} ..."
+          # 'rsync -r' safely handles the root bucket structure without needing specific parent folders.
+          # We removed '|| true' so that any actual authentication or network failures will halt the workflow.
+          gsutil -m rsync -r "gs://${STORAGE_BUCKET}" media/
 
           echo "── Media mirror complete ──"
-          find media -type f | wc -l | xargs -I{} echo "{} total media files downloaded"
+          MEDIA_COUNT=$(find media -type f | wc -l | tr -d ' ')
+          echo "$MEDIA_COUNT total media files downloaded"
           du -sh media/ || true
+          
+          if [ "$MEDIA_COUNT" -eq "0" ]; then
+            echo "⚠️ Warning: 0 media files found. This may be normal for a fresh project without uploaded media."
+          fi
 
       # ── 11. Create git bundle (full offline-cloneable history) ──────────────
       - name: 📜 Create git bundle
