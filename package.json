@@ -7,7 +7,11 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "lint": "eslint"
+        "lint": "eslint",
+        "audit:secrets": "node scripts/audit-secrets.js",
+        "backup:export": "node scripts/export-firestore.js",
+        "backup:restore": "node scripts/restore-firestore.js",
+        "backup:restore:dry": "node scripts/restore-firestore.js --dry-run"
     },
     "dependencies": {
         "@ffmpeg-installer/ffmpeg": "^1.1.0",

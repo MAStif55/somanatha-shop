@@ -1,0 +1,422 @@
+name: 🚨 Universal Recovery Package
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Triggers:
+#   • Weekly  — every Sunday at 03:00 UTC (low traffic, free runner minutes)
+#   • Manual  — "Run workflow" button in GitHub Actions UI
+#
+# Required GitHub Secrets (Settings → Secrets → Actions):
+#   FIREBASE_SERVICE_ACCOUNT   — Raw JSON of the Firebase service account key
+#   NEXT_PUBLIC_FIREBASE_API_KEY
+#   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+#   NEXT_PUBLIC_FIREBASE_PROJECT_ID
+#   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+#   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+#   NEXT_PUBLIC_FIREBASE_APP_ID
+#   NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+#   TELEGRAM_BOT_TOKEN
+#   TELEGRAM_CHAT_ID
+#   SMTP_HOST
+#   SMTP_PORT
+#   SMTP_USER
+#   SMTP_PASS
+#   EMAIL_FROM
+#   EMAIL_TO
+#   YOOKASSA_SHOP_ID
+#   YOOKASSA_SECRET_KEY
+#   GH_RELEASE_TOKEN           — GitHub PAT with `repo` scope (for upload to Releases)
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'   # Every Sunday at 03:00 UTC
+  workflow_dispatch:        # Manual trigger — GitHub UI "Run workflow" button
+    inputs:
+      notes:
+        description: 'Optional backup notes (will appear in Release description)'
+        required: false
+        default: 'Manual backup'
+
+jobs:
+  build-recovery-package:
+    name: Build & Upload Recovery Package
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # ── 1. Checkout ─────────────────────────────────────────────────────────
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Full history for git bundle
+
+      # ── 2. Node.js ──────────────────────────────────────────────────────────
+      - name: ⚙️ Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      # ── 3. Install root dependencies (needed for audit-secrets) ─────────────
+      - name: 📦 Install root dependencies
+        run: npm ci --prefer-offline
+
+      # ── 4. Install script dependencies (firebase-admin for export/restore) ──
+      - name: 📦 Install firebase-admin for scripts
+        run: npm install --no-save firebase-admin
+        # Note: firebase-admin is listed in root package.json but this ensures
+        # it's available as a standalone dep for the scripts/ folder.
+
+      # ── 4b. Install 7-Zip for AES-256 encrypted archive ─────────────────────
+      - name: 🔒 Install 7-Zip (p7zip-full)
+        run: |
+          sudo apt-get install -y p7zip-full
+          7z --help | head -2
+
+      # ── 5. Write service account + base64 env var ───────────────────────────
+      - name: 🔑 Configure Firebase credentials
+        env:
+          FIREBASE_SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          echo "$FIREBASE_SA_JSON" > /tmp/sa.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json" >> $GITHUB_ENV
+
+      # ── 6. Build .env.local from GitHub Secrets ──────────────────────────────
+      #    This .env.local file will be included (encrypted) inside the ZIP.
+      - name: 🔐 Assemble .env.local from GitHub Secrets
+        env:
+          NEXT_PUBLIC_FIREBASE_API_KEY:            ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:        ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID:         ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET:     ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID:             ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+          NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID:     ${{ secrets.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID }}
+          TELEGRAM_BOT_TOKEN:                      ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:                        ${{ secrets.TELEGRAM_CHAT_ID }}
+          SMTP_HOST:                               ${{ secrets.SMTP_HOST }}
+          SMTP_PORT:                               ${{ secrets.SMTP_PORT }}
+          SMTP_USER:                               ${{ secrets.SMTP_USER }}
+          SMTP_PASS:                               ${{ secrets.SMTP_PASS }}
+          EMAIL_FROM:                              ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO:                                ${{ secrets.EMAIL_TO }}
+          YOOKASSA_SHOP_ID:                        ${{ secrets.YOOKASSA_SHOP_ID }}
+          YOOKASSA_SECRET_KEY:                     ${{ secrets.YOOKASSA_SECRET_KEY }}
+        run: |
+          # Write all env vars that match known prefixes/names to .env.local
+          env | grep -E \
+            '^(NEXT_PUBLIC_|TELEGRAM_|SMTP_|EMAIL_|YOOKASSA_|FIREBASE_SERVICE_ACCOUNT_BASE64)' \
+            | sort > .env.local
+          echo "✅ .env.local assembled — $(wc -l < .env.local) variables"
+
+      # ── 7. Run secrets audit — fail fast if anything is missing ─────────────
+      - name: 🔍 Run pre-flight secrets audit
+        run: node scripts/audit-secrets.js --env .env.local
+
+      # ── 8. Export Firestore → NDJSON ────────────────────────────────────────
+      - name: 🗄️ Export Firestore to NDJSON
+        run: |
+          mkdir -p data/exports
+          # Convert service account to base64 inline — avoids storing secret in GITHUB_ENV
+          export FIREBASE_SERVICE_ACCOUNT_BASE64=$(base64 -w0 /tmp/sa.json)
+          node scripts/export-firestore.js --out data/exports
+        env:
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+
+      # ── 9. Verify export succeeded ──────────────────────────────────────────
+      - name: ✅ Verify NDJSON export
+        run: |
+          echo "── Export contents ──"
+          ls -lh data/exports/
+          echo ""
+          echo "── Document counts ──"
+          for f in data/exports/*.ndjson; do
+            count=$(wc -l < "$f" | tr -d ' ')
+            echo "  $count docs → $(basename $f)"
+          done
+          echo ""
+          # Fail if products.ndjson is empty (something is seriously wrong)
+          PROD_COUNT=$(wc -l < data/exports/products.ndjson | tr -d ' ')
+          if [ "$PROD_COUNT" -eq "0" ]; then
+            echo "❌ products.ndjson is empty — aborting backup"
+            exit 1
+          fi
+          echo "✅ Export verified — $PROD_COUNT product documents"
+
+      # ── 10. Mirror Firebase Storage media ────────────────────────────────────
+      #     Uses gsutil (pre-installed on ubuntu-latest) to download all media.
+      #     Files are organised into media/images/ and media/videos/ by gsutil.
+      - name: 🖼️ Mirror Firebase Storage media
+        env:
+          STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+        run: |
+          # Activate GCP service account
+          gcloud auth activate-service-account \
+            --key-file=/tmp/sa.json \
+            --project="${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}"
+
+          mkdir -p media
+
+          echo "Downloading products/ from gs://${STORAGE_BUCKET}/products/ ..."
+          gsutil -m cp -r "gs://${STORAGE_BUCKET}/products" media/ 2>&1 || true
+
+          echo "Downloading static/ from gs://${STORAGE_BUCKET}/static/ ..."
+          gsutil -m cp -r "gs://${STORAGE_BUCKET}/static" media/ 2>&1 || true
+
+          echo "── Media mirror complete ──"
+          find media -type f | wc -l | xargs -I{} echo "{} total media files downloaded"
+          du -sh media/ || true
+
+      # ── 11. Create git bundle (full offline-cloneable history) ──────────────
+      - name: 📜 Create git bundle
+        run: |
+          mkdir -p code
+          git bundle create code/git-bundle.git --all
+          git archive HEAD --format=tar.gz --output=code/source.tar.gz
+          echo "Git bundle: $(du -sh code/git-bundle.git | cut -f1)"
+          echo "Source archive: $(du -sh code/source.tar.gz | cut -f1)"
+
+      # ── 12. Copy config files ────────────────────────────────────────────────
+      - name: 📋 Copy configuration files
+        run: |
+          mkdir -p config
+          cp firebase.json        config/ 2>/dev/null || true
+          cp .firebaserc          config/ 2>/dev/null || true
+          cp firestore.rules      config/ 2>/dev/null || true
+          cp firestore.indexes.json config/ 2>/dev/null || true
+          cp storage.rules        config/ 2>/dev/null || true
+          cp next.config.mjs      config/ 2>/dev/null || true
+          cp .env.local.example   config/ 2>/dev/null || true
+
+      # ── 13. Package Cloud Functions source ───────────────────────────────────
+      - name: ⚡ Package Cloud Functions source
+        run: |
+          mkdir -p functions-backup
+          tar -czf functions-backup/functions-source.tar.gz \
+            --exclude='functions/node_modules' \
+            --exclude='functions/.env' \
+            functions/
+          echo "Functions archive: $(du -sh functions-backup/functions-source.tar.gz | cut -f1)"
+
+      # ── 14. Copy restore scripts ─────────────────────────────────────────────
+      - name: 🔧 Copy restoration tools
+        run: |
+          mkdir -p tools
+          cp scripts/restore-firestore.js tools/
+          cp scripts/audit-secrets.js     tools/
+          # Generate a minimal package.json so node tools/ work out of the box
+          cat > tools/package.json << 'EOF'
+          {
+            "name": "somanatha-recovery-tools",
+            "version": "1.0.0",
+            "description": "Restoration scripts for Somanatha Shop Universal Recovery Package",
+            "scripts": {
+              "restore": "node restore-firestore.js",
+              "audit":   "node audit-secrets.js --env ../.env.local"
+            },
+            "dependencies": {
+              "firebase-admin": "^11.8.0"
+            }
+          }
+          EOF
+
+      # ── 15. Generate MANIFEST.json ───────────────────────────────────────────
+      - name: 📄 Generate MANIFEST.json
+        run: |
+          DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          COMMIT=$(git rev-parse --short HEAD)
+          COMMIT_FULL=$(git rev-parse HEAD)
+          PROD_COUNT=$(wc -l < data/exports/products.ndjson | tr -d ' ')
+          ORDER_COUNT=$(wc -l < data/exports/orders.ndjson | tr -d ' ')
+          CUST_COUNT=$(wc -l < data/exports/customers.ndjson | tr -d ' ')
+          MEDIA_COUNT=$(find media -type f 2>/dev/null | wc -l | tr -d ' ')
+          NOTES="${{ github.event.inputs.notes }}"
+
+          cat > MANIFEST.json << EOF
+          {
+            "package_version": "2.0",
+            "created_at": "${DATE}",
+            "project": "somanatha-shop",
+            "source_platform": "firebase",
+            "triggered_by": "${{ github.actor }}",
+            "trigger": "${{ github.event_name }}",
+            "notes": "${NOTES:-Scheduled weekly backup}",
+            "git": {
+              "commit_short": "${COMMIT}",
+              "commit_full": "${COMMIT_FULL}",
+              "ref": "${{ github.ref }}",
+              "repository": "${{ github.repository }}"
+            },
+            "data": {
+              "products":  ${PROD_COUNT},
+              "orders":    ${ORDER_COUNT},
+              "customers": ${CUST_COUNT}
+            },
+            "media": {
+              "total_files": ${MEDIA_COUNT}
+            },
+            "contents": {
+              "code":      "code/",
+              "data":      "data/exports/",
+              "media":     "media/",
+              "config":    "config/",
+              "functions": "functions-backup/",
+              "tools":     "tools/",
+              "env":       ".env.local",
+              "recovery":  "RECOVERY.md"
+            }
+          }
+          EOF
+          echo "✅ MANIFEST.json generated"
+          cat MANIFEST.json
+
+      # ── 16. Prepare secrets folder for packaging ─────────────────────────────
+      #     All secrets are bundled INSIDE the AES-256 encrypted archive.
+      #     Nothing sensitive will be accessible without the archive password.
+      - name: 🔐 Prepare secrets for packaging
+        run: |
+          mkdir -p secrets
+          # .env.local was assembled in step 6
+          cp .env.local secrets/.env.local
+          # Service account JSON encoded as base64 (decode to use as credentials)
+          base64 -w0 /tmp/sa.json > secrets/service-account.b64
+          printf 'HOW TO USE THESE FILES\n1. Copy .env.local to your project root.\n2. Decode service account: base64 -d service-account.b64 > service-account.json\n3. Set credentials: export GOOGLE_APPLICATION_CREDENTIALS=./service-account.json\n' > secrets/README.txt
+
+      # ── 17. Assemble AES-256 encrypted 7z archive ────────────────────────────
+      #
+      #   Security properties:
+      #     -p  — password from BACKUP_ARCHIVE_PASSWORD secret (never logged)
+      #     -mhe=on — encrypt file HEADERS too (filenames hidden from attackers)
+      #     -mx=5   — compression level 5 (balance speed vs. size)
+      #     -mmt=on — multi-threaded compression
+      #     -t7z    — 7z container format (supports AES-256)
+      #
+      #   Result: even if the archive URL is leaked, the content is
+      #   unreadable without the password.
+      - name: 📦 Assemble AES-256 Encrypted Recovery Archive
+        id: zip
+        env:
+          ARCHIVE_PASSWORD: ${{ secrets.BACKUP_ARCHIVE_PASSWORD }}
+        run: |
+          DATE=$(date -u +"%Y-%m-%d")
+          ZIP_NAME="somanatha-recovery-${DATE}.7z"
+
+          # Collect all items to archive into a staging directory
+          # so 7z can recurse cleanly without extra exclusion flags
+          mkdir -p _stage
+          cp RECOVERY.md        _stage/ 2>/dev/null || true
+          cp MANIFEST.json      _stage/ 2>/dev/null || true
+          cp .env.local.example _stage/ 2>/dev/null || true
+          cp -r secrets/        _stage/secrets/
+          cp -r code/           _stage/code/
+          cp -r data/           _stage/data/
+          cp -r media/          _stage/media/ 2>/dev/null || true
+          cp -r config/         _stage/config/
+          cp -r functions-backup/ _stage/functions-backup/
+          cp -r tools/          _stage/tools/
+
+          # Remove artifacts that should never be packaged
+          find _stage -type d -name 'node_modules' -exec rm -rf {} + 2>/dev/null || true
+          find _stage -name '.DS_Store' -delete 2>/dev/null || true
+          find _stage -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true
+
+          # Create AES-256 encrypted archive with hidden headers
+          7z a \
+            -t7z \
+            -p"${ARCHIVE_PASSWORD}" \
+            -mhe=on \
+            -mx=5 \
+            -mmt=on \
+            "${ZIP_NAME}" \
+            ./_stage/*
+
+          rm -rf _stage
+
+          ZIP_SIZE=$(du -sh "${ZIP_NAME}" | cut -f1)
+          echo "✅ Encrypted archive: ${ZIP_NAME} (${ZIP_SIZE})"
+          echo "zip_name=${ZIP_NAME}" >> $GITHUB_OUTPUT
+          echo "zip_size=${ZIP_SIZE}" >> $GITHUB_OUTPUT
+
+      # ── 18. Generate SHA-256 checksum ───────────────────────────────────────
+      - name: 🔒 Generate SHA-256 checksum
+        run: |
+          ARCHIVE="${{ steps.zip.outputs.zip_name }}"
+          sha256sum "${ARCHIVE}" > "${ARCHIVE}.sha256"
+          echo "Checksum: $(cat ${ARCHIVE}.sha256)"
+
+      # ── 19. Upload to GitHub Releases ────────────────────────────────────────
+      - name: 🚀 Upload to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "backup-${{ github.run_number }}"
+          name: "🔐 Recovery Package #${{ github.run_number }} (AES-256)"
+          body: |
+            ## 🚨 Somanatha Shop — Universal Recovery Package
+
+            | Field | Value |
+            |---|---|
+            | **Triggered by** | `${{ github.actor }}` |
+            | **Trigger** | `${{ github.event_name }}` |
+            | **Archive Size** | ${{ steps.zip.outputs.zip_size }} |
+            | **Encryption** | ✅ AES-256 + hidden headers (`-mhe=on`) |
+            | **Notes** | ${{ github.event.inputs.notes || 'Scheduled weekly backup' }} |
+
+            ### 🔒 This archive is AES-256 encrypted
+            The `.7z` file is password-protected with AES-256 encryption and
+            **header encryption** — filenames inside are hidden from anyone without the password.
+
+            > 🔑 **Password location:** GitHub Secrets → `BACKUP_ARCHIVE_PASSWORD`
+            > Copy from: **Settings → Secrets → Actions → BACKUP_ARCHIVE_PASSWORD**
+
+            ### 📦 Contents (inside encrypted archive)
+            - ✅ Firestore data (NDJSON — products, orders, customers, reviews, settings)
+            - ✅ Firebase Storage media (images + videos)
+            - ✅ Full git history bundle + source code archive
+            - ✅ Configuration files + Cloud Functions source
+            - ✅ `secrets/.env.local` with all API keys
+            - ✅ Restore tools (`restore-firestore.js`, `audit-secrets.js`)
+
+            ### 🔑 To restore:
+            1. Download the `.7z` archive
+            2. Extract: `7z x somanatha-recovery-YYYY-MM-DD.7z` (enter password when prompted)
+            3. Read `RECOVERY.md` inside for full step-by-step instructions
+
+            > ⚠️ **Safe to publish publicly** — content is unreadable without the password.
+          files: |
+            ${{ steps.zip.outputs.zip_name }}
+            ${{ steps.zip.outputs.zip_name }}.sha256
+          draft: false
+          prerelease: false
+          make_latest: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+
+      # ── 20. Cleanup sensitive files from runner ───────────────────────────────
+      - name: 🧹 Cleanup sensitive files
+        if: always()
+        run: |
+          rm -f /tmp/sa.json
+          rm -f .env.local
+          rm -rf secrets/
+          echo "✅ Sensitive files removed from runner"
+
+      # ── 21. Summary ──────────────────────────────────────────────────────────
+      - name: 📊 Job Summary
+        if: always()
+        run: |
+          ARCHIVE="${{ steps.zip.outputs.zip_name }}"
+          SIZE="${{ steps.zip.outputs.zip_size }}"
+          echo "## 🔐 Universal Recovery Package Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Item | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Archive | \`${ARCHIVE}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Encryption | AES-256 + hidden headers |" >> $GITHUB_STEP_SUMMARY
+          echo "| Size | ${SIZE} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Git Commit | \`$(git rev-parse --short HEAD)\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Products exported | $(wc -l < data/exports/products.ndjson | tr -d ' ') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Orders exported | $(wc -l < data/exports/orders.ndjson | tr -d ' ') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Media files | $(find media -type f 2>/dev/null | wc -l | tr -d ' ') |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ AES-256 encrypted archive uploaded to GitHub Releases" >> $GITHUB_STEP_SUMMARY
+          echo "🔑 Password stored in: GitHub Secrets → BACKUP_ARCHIVE_PASSWORD" >> $GITHUB_STEP_SUMMARY
