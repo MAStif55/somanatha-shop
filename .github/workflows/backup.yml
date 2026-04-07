@@ -105,8 +105,11 @@ jobs:
         run: |
           # Write all env vars that match known prefixes/names to .env.local
           env | grep -E \
-            '^(NEXT_PUBLIC_|TELEGRAM_|SMTP_|EMAIL_|YOOKASSA_|FIREBASE_SERVICE_ACCOUNT_BASE64)' \
+            '^(NEXT_PUBLIC_|TELEGRAM_|SMTP_|EMAIL_|YOOKASSA_)' \
             | sort > .env.local
+          # Generate FIREBASE_SERVICE_ACCOUNT_BASE64 from the SA JSON already on disk
+          # (set in the previous step — avoids storing a redundant base64 secret)
+          echo "FIREBASE_SERVICE_ACCOUNT_BASE64=$(base64 -w0 /tmp/sa.json)" >> .env.local
           echo "✅ .env.local assembled — $(wc -l < .env.local) variables"
 
       # ── 7. Run secrets audit — fail fast if anything is missing ─────────────
