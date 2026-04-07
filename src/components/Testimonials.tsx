@@ -3,8 +3,7 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Quote } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { db } from '@/lib/firebase';
-import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { ReviewRepository } from '@/lib/data';
 import { Review } from '@/types/review';
 import ReviewCard from '@/components/ReviewCard';
 
@@ -16,16 +15,7 @@ export default function Testimonials() {
     useEffect(() => {
         const fetchReviews = async () => {
             try {
-                const q = query(
-                    collection(db, 'reviews'),
-                    orderBy('createdAt', 'desc'),
-                    limit(6)
-                );
-                const snapshot = await getDocs(q);
-                const reviewsData = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                })) as Review[];
+                const reviewsData = await ReviewRepository.getLatest(6);
                 setReviews(reviewsData);
             } catch (error) {
                 console.error('Error fetching reviews:', error);

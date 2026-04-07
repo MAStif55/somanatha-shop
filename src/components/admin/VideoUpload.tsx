@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { storage } from '@/lib/firebase';
+import { StorageRepository } from '@/lib/data';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import Cropper, { Area } from 'react-easy-crop';
@@ -233,17 +232,12 @@ export default function VideoUpload({
 
             // ── Upload both variants in parallel ───────────────────────
             const baseName = `${Date.now()}`;
-            const hiResRef = ref(storage, `${storagePath}/${baseName}_full.mp4`);
-            const previewRef = ref(storage, `${storagePath}/${baseName}_preview.mp4`);
-
-            const [, ] = await Promise.all([
-                uploadBytes(hiResRef, hiResBlob, uploadMeta),
-                uploadBytes(previewRef, previewBlob, uploadMeta),
-            ]);
+            const hiResPath = `${storagePath}/${baseName}_full.mp4`;
+            const previewPath = `${storagePath}/${baseName}_preview.mp4`;
 
             const [videoUrl, videoPreviewUrl] = await Promise.all([
-                getDownloadURL(hiResRef),
-                getDownloadURL(previewRef),
+                StorageRepository.uploadFile(hiResPath, hiResBlob),
+                StorageRepository.uploadFile(previewPath, previewBlob)
             ]);
 
             setProgress(95);
@@ -255,8 +249,7 @@ export default function VideoUpload({
 
             if (isReplacing && value) {
                 try {
-                    const refToDelete = ref(storage, value);
-                    await deleteObject(refToDelete);
+                    await StorageRepository.deleteFile(value);
                 } catch (e) {
                     console.error("Failed to delete old video from storage", e);
                 }
@@ -306,8 +299,7 @@ export default function VideoUpload({
         if (value) {
             // Delete old video from Firebase Storage to free up space
             try {
-                const refToDelete = ref(storage, value);
-                await deleteObject(refToDelete);
+                await StorageRepository.deleteFile(value);
             } catch (e) {
                 // Silently fail — file may already be deleted or URL may not be a storage ref
                 console.error("Failed to delete video from storage", e);

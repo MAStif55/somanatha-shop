@@ -1,5 +1,6 @@
 'use client';
 
+import { ProductRepository } from '@/lib/data';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -8,7 +9,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import { Product } from '@/types/product';
-import { getNewestProducts } from '@/lib/firestore-utils';
+
 
 // Dynamic Components (Lazy Load)
 const TrustSignals = dynamic(() => import('@/components/TrustSignals'), { ssr: false });
@@ -27,7 +28,7 @@ export default function HomePageContent({ initialProducts }: HomePageContentProp
     // load them client-side from Firestore so the section always appears
     useEffect(() => {
         if (initialProducts.length === 0) {
-            getNewestProducts<Product>(4).then(setProducts).catch(console.error);
+            ProductRepository.getNewest(4).then(data => setProducts(data as Product[])).catch(console.error);
         }
     }, [initialProducts]);
 

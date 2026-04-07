@@ -1,10 +1,11 @@
 'use client';
 
+import { CategoryRepository, ProductRepository } from '@/lib/data';
 import { useState, useEffect } from 'react';
 import { VariationGroup, Product } from '@/types/product';
-import { getCategoryVariations, saveCategoryVariations } from '@/lib/variations-service';
+
 import { CATEGORIES } from '@/types/category';
-import { getProductsByCategory, bulkUpdateProductPrices } from '@/lib/firestore-utils';
+
 import VariationsEditor from '@/components/admin/VariationsEditor';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { Loader2, Save, Check, DollarSign } from 'lucide-react';
@@ -29,7 +30,7 @@ export default function VariationsPage() {
             setLoading(true);
             const result: Record<string, VariationGroup[]> = {};
             for (const cat of CATEGORIES) {
-                result[cat.slug] = await getCategoryVariations(cat.slug);
+                result[cat.slug] = await CategoryRepository.getVariations(cat.slug);
             }
             setVariations(result);
             setLoading(false);
@@ -41,7 +42,7 @@ export default function VariationsPage() {
     useEffect(() => {
         async function loadProducts() {
             try {
-                const data = await getProductsByCategory<Product>(activeCategory);
+                const data = await ProductRepository.getByCategory(activeCategory) as Product[];
                 setProducts(data);
                 setSelectedProducts(new Set()); // Reset selection
                 setBulkPrice('');
@@ -61,7 +62,7 @@ export default function VariationsPage() {
     const handleSave = async (categorySlug: string) => {
         setSaving(true);
         try {
-            await saveCategoryVariations(categorySlug, variations[categorySlug] || []);
+            await CategoryRepository.saveVariations(categorySlug, variations[categorySlug] || []);
             setIsDirty(prev => ({ ...prev, [categorySlug]: false }));
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
@@ -85,7 +86,7 @@ export default function VariationsPage() {
 
         setBulkUpdating(true);
         try {
-            await bulkUpdateProductPrices(Array.from(selectedProducts), price);
+            await ProductRepository.bulkUpdatePrices(Array.from(selectedProducts), price);
 
             // Update local state to reflect changes
             setProducts(prev => prev.map(p =>

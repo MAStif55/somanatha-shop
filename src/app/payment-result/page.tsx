@@ -7,8 +7,7 @@ import { useCartStore } from '@/store/cart-store';
 import { useEffect, useState, Suspense, useCallback } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { OrderRepository } from '@/lib/data';
 
 type PaymentStatus = 'pending' | 'paid' | 'failed' | 'cancelled' | 'unknown';
 
@@ -38,17 +37,15 @@ function PaymentResultContent() {
         }
 
         try {
-            const orderRef = doc(db, 'orders', orderId);
-            const orderSnap = await getDoc(orderRef);
+            const order = await OrderRepository.getById(orderId);
 
-            if (!orderSnap.exists()) {
+            if (!order) {
                 setPaymentStatus('unknown');
                 setChecking(false);
                 return;
             }
 
-            const data = orderSnap.data();
-            const status = data.paymentStatus as PaymentStatus;
+            const status = order.paymentStatus as PaymentStatus;
 
             if (status === 'paid') {
                 setPaymentStatus('paid');

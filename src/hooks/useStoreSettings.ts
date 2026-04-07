@@ -1,8 +1,9 @@
 'use client';
 
+import { SettingsRepository } from '@/lib/data';
 import { useState, useEffect } from 'react';
 import { StoreSettings, defaultSettings } from '@/types/settings';
-import { getStoreSettings } from '@/lib/settings-service';
+
 
 // Module-level cache so multiple components don't trigger redundant Firestore reads
 let cachedSettings: StoreSettings | null = null;
@@ -12,7 +13,7 @@ function fetchSettings(): Promise<StoreSettings> {
     if (cachedSettings) return Promise.resolve(cachedSettings);
     if (fetchPromise) return fetchPromise;
 
-    fetchPromise = getStoreSettings().then((data) => {
+    fetchPromise = SettingsRepository.getSettings().then((data) => {
         // Deep-merge with defaults to ensure new fields always have values
         cachedSettings = {
             ...defaultSettings,

@@ -1,24 +1,16 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import {
-    User,
-    onAuthStateChanged,
-    signInWithEmailAndPassword,
-    signOut as firebaseSignOut
-} from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { AuthRepository } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 
-/**
- * Authentication Context
- * 
- * Wraps Firebase Authentication in a React Context.
- * Provides login/logout functionality and current user state.
- */
+export interface AppUser {
+    uid: string;
+    email: string | null;
+}
 
 interface AuthContextType {
-    user: User | null;
+    user: AppUser | null;
     loading: boolean;
     login: (email: string, pass: string) => Promise<void>;
     logout: () => Promise<void>;
@@ -35,8 +27,8 @@ export const useAuth = () => useContext(AuthContext);
 
 interface AuthProviderProps {
     children: React.ReactNode;
-    loginRedirect?: string;  // Where to redirect after login
-    logoutRedirect?: string; // Where to redirect after logout
+    loginRedirect?: string;
+    logoutRedirect?: string;
 }
 
 export const AuthProvider = ({
@@ -44,17 +36,12 @@ export const AuthProvider = ({
     loginRedirect = '/admin',
     logoutRedirect = '/admin/login'
 }: AuthProviderProps) => {
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<AppUser | null>(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
     useEffect(() => {
-        if (!auth) {
-            console.error("Auth instance is missing. Firebase initialization failed?");
-            setLoading(false);
-            return;
-        }
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        const unsubscribe = AuthRepository.onAuthStateChanged((currentUser) => {
             setUser(currentUser);
             setLoading(false);
         });
@@ -62,12 +49,12 @@ export const AuthProvider = ({
     }, []);
 
     const login = async (email: string, pass: string) => {
-        await signInWithEmailAndPassword(auth, email, pass);
+        await AuthRepository.signInWithEmail(email, pass);
         router.push(loginRedirect);
     };
 
     const logout = async () => {
-        await firebaseSignOut(auth);
+        await AuthRepository.signOut();
         router.push(logoutRedirect);
     };
 
@@ -77,3 +64,4 @@ export const AuthProvider = ({
         </AuthContext.Provider>
     );
 };
+

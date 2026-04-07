@@ -1,10 +1,11 @@
 'use client';
 
+import { ProductRepository, CategoryRepository } from '@/lib/data';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, VariationOverrides, ProductImage } from '@/types/product';
-import { createProduct, updateProduct } from '@/lib/firestore-utils';
-import { getCategoryVariations } from '@/lib/variations-service';
+
+
 import { Loader2, Save, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import Link from 'next/link';
 import ImageUpload from './ImageUpload';
@@ -19,7 +20,7 @@ import { VariationGroup } from '@/types/product';
 // Predefined categories - customize for your project
 // Predefined categories - specific to Somanatha Shop
 import { CATEGORIES, SubCategory } from '@/types/category';
-import { getSubcategories } from '@/lib/firestore-utils';
+
 
 interface ProductFormProps {
     initialData?: Product | null;
@@ -62,11 +63,11 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     useEffect(() => {
         async function loadCategoryVariations() {
             if (formData.category) {
-                const variations = await getCategoryVariations(formData.category);
+                const variations = await CategoryRepository.getVariations(formData.category);
                 setCategoryVariations(variations);
 
                 // Fetch subcategories
-                const subs = await getSubcategories<SubCategory>(formData.category);
+                const subs = await CategoryRepository.getSubcategories(formData.category) as SubCategory[];
                 setAvailableSubcategories(subs);
 
                 // Reset subcategory if category changes
@@ -120,9 +121,9 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
 
         try {
             if (isEditMode && initialData?.id) {
-                await updateProduct(initialData.id, formData);
+                await ProductRepository.update(initialData.id, formData);
             } else {
-                await createProduct(formData as Product);
+                await ProductRepository.create(formData as Product);
             }
             router.push('/admin/products');
             router.refresh();

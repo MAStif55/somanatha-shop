@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { getFunctions, httpsCallable } from 'firebase/functions';
-import { app } from '@/lib/firebase';
+import { FunctionsRepository } from '@/lib/data';
 import { Rocket, ExternalLink, CheckCircle, XCircle } from 'lucide-react';
 
 type DeployStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -18,9 +17,7 @@ export default function DeployButton() {
         setMessage('');
 
         try {
-            const functions = getFunctions(app);
-            const triggerDeploy = httpsCallable(functions, 'triggerDeploy');
-            await triggerDeploy();
+            await FunctionsRepository.triggerDeploy();
 
             setStatus('success');
             setMessage('Deploy triggered! Check GitHub Actions for build progress.');

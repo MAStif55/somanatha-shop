@@ -1,12 +1,13 @@
 'use client';
 
+import { ProductRepository, CategoryRepository } from '@/lib/data';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { CATEGORIES, getCategoryBySlug, CategorySlug, SubCategory } from '@/types/category';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { getProductsByCategory, getSubcategories } from '@/lib/firestore-utils';
+
 import { Product } from '@/types/product';
 import ProductCard from '@/components/ProductCard';
 import { useScrollRestore } from '@/hooks/useScrollRestore';
@@ -42,7 +43,7 @@ export default function CategoryPageContent({ categorySlug }: CategoryPageConten
         async function loadSubcats() {
             setSubcatsLoading(true);
             try {
-                const data = await getSubcategories<SubCategory>(categorySlug);
+                const data = await CategoryRepository.getSubcategories(categorySlug) as SubCategory[];
                 setSubcategories(data);
             } catch (error) {
                 console.error("Error loading subcategories:", error);

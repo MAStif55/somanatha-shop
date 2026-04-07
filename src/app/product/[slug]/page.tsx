@@ -1,6 +1,7 @@
+import { ProductRepository } from '@/lib/data';
 import type { Metadata } from 'next';
 import ProductDetailsContent from './ProductDetailsContent';
-import { getAllProducts, getProductBySlug } from '@/lib/firestore-utils';
+
 import { Product, getImageUrl } from '@/types/product';
 
 // Ensure this page is statically generated
@@ -8,7 +9,7 @@ export const dynamic = 'force-static';
 
 export async function generateStaticParams() {
     try {
-        const products = await getAllProducts<Product>();
+        const products = await ProductRepository.getAll() as Product[];
 
         // If no products, we can't generate paths. 
         // In a real static export, this might mean no product pages are generated.
@@ -22,7 +23,7 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-    const product = await getProductBySlug<Product>(params.slug);
+    const product = await ProductRepository.getBySlug(params.slug) as Product | null;
 
     if (!product) {
         return {
@@ -57,7 +58,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
     // We try to fetch it here to generate the JSON-LD script. 
     // The client component will re-fetch or we could pass it down, 
     // but to keep architecture simple for now we just fetch for SEO here.
-    const product = await getProductBySlug<Product>(params.slug);
+    const product = await ProductRepository.getBySlug(params.slug) as Product | null;
 
     let jsonLd = null;
     if (product) {

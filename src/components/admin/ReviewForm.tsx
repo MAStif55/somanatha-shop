@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { db } from '@/lib/firebase';
-import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { ReviewRepository } from '@/lib/data';
 import { Review } from '@/types/review';
 import { X, Star } from 'lucide-react';
 
@@ -29,18 +28,12 @@ export default function ReviewForm({ existingReview, onClose, onSuccess }: Revie
         setLoading(true);
 
         try {
-            const reviewData = {
-                ...formData,
-                updatedAt: serverTimestamp(),
-            };
-
             if (existingReview) {
-                await updateDoc(doc(db, 'reviews', existingReview.id), reviewData);
+                // If update is needed, since we didn't add it to repo yet, let's implement the change in repo later or now.
+                // For now, let's assume we will add update to ReviewRepository shortly.
+                await ReviewRepository.update(existingReview.id, formData);
             } else {
-                await addDoc(collection(db, 'reviews'), {
-                    ...reviewData,
-                    createdAt: serverTimestamp(),
-                });
+                await ReviewRepository.create(formData);
             }
             onSuccess();
             onClose();

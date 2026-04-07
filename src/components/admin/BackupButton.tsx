@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getFunctions, httpsCallable } from 'firebase/functions';
-import { app } from '@/lib/firebase';
+import { FunctionsRepository } from '@/lib/data';
 import { Download, Archive, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────
@@ -145,11 +144,7 @@ export default function BackupButton() {
         setResult(null);
 
         try {
-            const functions = getFunctions(app);
-            const createBackup = httpsCallable<unknown, BackupResult>(functions, 'createBackup');
-            const response = await createBackup({});
-
-            const data = response.data;
+            const data = await FunctionsRepository.triggerBackup() as BackupResult;
 
             // Persist cooldown timestamp
             localStorage.setItem(STORAGE_KEY, String(Date.now()));

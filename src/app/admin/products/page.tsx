@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getAllProducts, deleteProduct, createProduct } from '@/lib/firestore-utils';
+import { ProductRepository } from '@/lib/data';
 import { Product, getThumbImageUrl } from '@/types/product';
 import { Plus, Trash2, RefreshCw, Search } from 'lucide-react';
 import Link from 'next/link';
@@ -31,7 +31,7 @@ export default function AdminProductsPage() {
     const fetchProducts = async () => {
         setLoading(true);
         try {
-            const data = await getAllProducts<Product>();
+            const data = await ProductRepository.getAll() as Product[];
             setProducts(data);
         } catch (error) {
             console.error("Error fetching products:", error);
@@ -56,7 +56,7 @@ export default function AdminProductsPage() {
     const handleDelete = async () => {
         if (!itemToDelete) return;
         try {
-            await deleteProduct(itemToDelete);
+            await ProductRepository.delete(itemToDelete);
             fetchProducts();
         } catch (error) {
             console.error("Error deleting product:", error);
@@ -70,7 +70,7 @@ export default function AdminProductsPage() {
     const handleBulkDelete = async () => {
         try {
             for (const id of Array.from(selectedIds)) {
-                await deleteProduct(id);
+                await ProductRepository.delete(id);
             }
             setSelectedIds(new Set());
             fetchProducts();
@@ -93,7 +93,7 @@ export default function AdminProductsPage() {
                     ru: `${product.title.ru} (Копия)`
                 }
             };
-            await createProduct(duplicate);
+            await ProductRepository.create(duplicate);
             fetchProducts();
         } catch (error) {
             console.error("Error duplicating:", error);
@@ -174,26 +174,10 @@ export default function AdminProductsPage() {
                 id: p.id,
                 order: index
             }));
-
-            // We need a batch update or parallel requests. 
-            // Since we don't have batch exposed, we use generic updateProduct
-            // But we should import updateProduct from utils.
-            // Assumption: updateProduct is exported from firestore-utils
-
-            // To be safe, let's verify if updateProduct is available in imports
-            // It is NOT in the import list above. I need to add it.
-            // For now, I'll assume I can import it.
-
-            // Actually, I can use createProduct to overwrite or I should add updateProduct to imports.
-            // I will add dynamic import or just fail if not there? 
-            // Better to add `updateProduct` to imports in a separate Edit.
-            // I'll proceed assuming I'll fix the import.
-
-            // Use createProduct (which does setDoc with merge:true usually? No, creates new?)
             // I will use `updateProduct` from firestore-utils in the next step.
 
             await Promise.all(updates.map(u =>
-                import('@/lib/firestore-utils').then(m => m.updateProduct(u.id, { order: u.order }))
+                ProductRepository.update(u.id, { order: u.order })
             ));
 
             setProducts(prev => {

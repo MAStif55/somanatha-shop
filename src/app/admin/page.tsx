@@ -1,5 +1,6 @@
 'use client';
 
+import { OrderRepository } from '@/lib/data';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from '@/contexts/LanguageContext';
 import Link from 'next/link';
@@ -7,7 +8,7 @@ import { Package, ShoppingCart, Users, TrendingUp, Settings } from 'lucide-react
 import DeployButton from '@/components/admin/DeployButton';
 import BackupButton from '@/components/admin/BackupButton';
 import { useEffect, useState } from 'react';
-import { getAllOrders } from '@/lib/firestore-utils';
+
 import { Order } from '@/types/order';
 
 export default function AdminDashboard() {
@@ -19,7 +20,7 @@ export default function AdminDashboard() {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const orders = await getAllOrders<Order>();
+                const orders = await OrderRepository.getAll();
                 setPendingCount(orders.filter(o => o.status === 'pending').length);
                 setCompletedCount(orders.filter(o => o.status === 'completed').length);
             } catch (error) {

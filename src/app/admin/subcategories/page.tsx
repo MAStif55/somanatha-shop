@@ -1,9 +1,10 @@
 'use client';
 
+import { CategoryRepository } from '@/lib/data';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { CATEGORIES, CategorySlug, SubCategory } from '@/types/category';
-import { getSubcategories, createSubcategory, deleteSubcategory } from '@/lib/firestore-utils';
+
 import { Plus, Trash2, Loader2, AlertCircle } from 'lucide-react';
 
 export default function SubcategoriesPage() {
@@ -27,7 +28,7 @@ export default function SubcategoriesPage() {
         setLoading(true);
         setError(null);
         try {
-            const data = await getSubcategories<SubCategory>(activeTab);
+            const data = await CategoryRepository.getSubcategories(activeTab);
             setSubcategories(data);
         } catch (err) {
             console.error("Error loading subcategories:", err);
@@ -60,7 +61,7 @@ export default function SubcategoriesPage() {
                 parentCategory: activeTab
             };
 
-            await createSubcategory(newSub);
+            await CategoryRepository.createSubcategory(newSub);
 
             // Reset form
             setNewTitleRu('');
@@ -81,7 +82,7 @@ export default function SubcategoriesPage() {
         if (!confirm(locale === 'ru' ? 'Вы уверены?' : 'Are you sure?')) return;
 
         try {
-            await deleteSubcategory(id);
+            await CategoryRepository.deleteSubcategory(id);
             await loadSubcategories();
         } catch (err) {
             console.error("Error deleting subcategory:", err);

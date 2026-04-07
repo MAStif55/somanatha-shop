@@ -1,9 +1,10 @@
+import { OrderRepository } from '@/lib/data';
 import { useState, useEffect } from 'react';
 import { X, User, MapPin, Phone, Mail, MessageCircle, Package, Calendar, Edit, Save, Trash2, Plus, Image as ImageIcon } from 'lucide-react';
 import { Order, OrderItem } from '@/types/order';
 import { Product } from '@/types/product';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { updateOrder } from '@/lib/firestore-utils';
+
 import { formatPrice } from '@/utils/currency';
 import ImageUpload from './ImageUpload';
 import ProductSelector from './ProductSelector';
@@ -53,7 +54,7 @@ export default function OrderDetailsModal({ order, isOpen, onClose, onUpdate }: 
         if (!editedOrder) return;
         setSaving(true);
         try {
-            await updateOrder(editedOrder.id, {
+            await OrderRepository.update(editedOrder.id, {
                 items: editedOrder.items,
                 total: editedOrder.total,
                 notes: localNotes, // Use local notes in case they were edited
@@ -77,7 +78,7 @@ export default function OrderDetailsModal({ order, isOpen, onClose, onUpdate }: 
     const handleSaveNotes = async () => {
         setSavingNotes(true);
         try {
-            await updateOrder(order.id, { notes: localNotes });
+            await OrderRepository.update(order.id, { notes: localNotes });
             setNotesChanged(false);
             if (onUpdate) onUpdate();
         } catch (error) {

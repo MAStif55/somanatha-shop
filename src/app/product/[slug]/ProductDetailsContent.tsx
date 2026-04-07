@@ -1,5 +1,6 @@
 'use client';
 
+import { ProductRepository, CategoryRepository } from '@/lib/data';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -10,8 +11,8 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { formatPrice } from '@/utils/currency';
 import { ShoppingCart, Check, Play, Video } from 'lucide-react';
-import { getProductBySlug, getProductById } from '@/lib/firestore-utils';
-import { getCategoryVariations } from '@/lib/variations-service';
+
+
 import { VariationGroup } from '@/types/product';
 import { useCartStore } from '@/store/cart-store';
 import { useToastStore } from '@/store/toast-store';
@@ -52,11 +53,11 @@ export default function ProductDetailsContent() {
             setLoading(true);
             try {
                 // First try by slug
-                let data = await getProductBySlug<Product>(slug as string);
+                let data = await ProductRepository.getBySlug(slug as string) as Product | null;
 
                 // If not found by slug, try by ID (fallback for products without slugs)
                 if (!data) {
-                    data = await getProductById<Product>(slug as string);
+                    data = await ProductRepository.getById(slug as string) as Product | null;
                 }
 
                 setProduct(data);
@@ -69,7 +70,7 @@ export default function ProductDetailsContent() {
 
                 if (data?.variationOverrides?.useDefaults !== false && data?.category) {
                     // Use category defaults, filter out disabled options
-                    const categoryVars = await getCategoryVariations(data.category);
+                    const categoryVars = await CategoryRepository.getVariations(data.category);
                     const disabledOptions = data.variationOverrides?.disabledOptions || [];
 
                     variations = categoryVars.map(group => ({

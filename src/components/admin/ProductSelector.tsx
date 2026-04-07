@@ -1,8 +1,9 @@
 'use client';
 
+import { ProductRepository } from '@/lib/data';
 import { useState, useEffect } from 'react';
 import { Search, Plus } from 'lucide-react';
-import { getAllProducts } from '@/lib/firestore-utils';
+
 import { Product, getThumbImageUrl } from '@/types/product';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -20,7 +21,7 @@ export default function ProductSelector({ onSelect, onCancel }: ProductSelectorP
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const data = await getAllProducts<Product>();
+                const data = await ProductRepository.getAll() as Product[];
                 setProducts(data);
             } catch (error) {
                 console.error("Failed to fetch products", error);

@@ -2,9 +2,10 @@
 
 export const dynamic = 'force-dynamic';
 
+import { ProductRepository } from '@/lib/data';
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { getProductById } from '@/lib/firestore-utils';
+
 import { Product } from '@/types/product';
 import ProductForm from '@/components/admin/ProductForm';
 
@@ -17,7 +18,7 @@ function EditProductContent() {
     useEffect(() => {
         const fetchProduct = async () => {
             if (id) {
-                const data = await getProductById<Product>(id);
+                const data = await ProductRepository.getById(id) as Product | null;
                 setProduct(data);
                 setLoading(false);
             }

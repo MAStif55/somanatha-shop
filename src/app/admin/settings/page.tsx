@@ -1,13 +1,14 @@
 'use client';
 
+import { SettingsRepository, ProductRepository, OrderRepository } from '@/lib/data';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { StoreSettings, defaultSettings } from '@/types/settings';
-import { getStoreSettings, updateStoreSettings } from '@/lib/settings-service';
+
 import { invalidateSettingsCache } from '@/hooks/useStoreSettings';
 import Breadcrumbs from '@/components/admin/Breadcrumbs';
 import { Save, Truck, Mail, Bell, Database, Download } from 'lucide-react';
-import { getAllProducts, getAllOrders } from '@/lib/firestore-utils';
+
 
 export default function AdminSettingsPage() {
     const { t, locale } = useTranslation();
@@ -22,7 +23,7 @@ export default function AdminSettingsPage() {
 
     const loadSettings = async () => {
         setLoading(true);
-        const data = await getStoreSettings();
+        const data = await SettingsRepository.getSettings();
         setSettings(data);
         setLoading(false);
     };
@@ -30,7 +31,7 @@ export default function AdminSettingsPage() {
     const handleSave = async () => {
         setSaving(true);
         try {
-            await updateStoreSettings(settings);
+            await SettingsRepository.updateSettings(settings);
             invalidateSettingsCache();
             alert(locale === 'ru' ? 'Настройки сохранены' : 'Settings saved');
         } catch (error) {
@@ -43,8 +44,8 @@ export default function AdminSettingsPage() {
 
     const handleBackup = async () => {
         try {
-            const products = await getAllProducts();
-            const orders = await getAllOrders();
+            const products = await ProductRepository.getAll();
+            const orders = await OrderRepository.getAll();
             const backupData = {
                 date: new Date().toISOString(),
                 settings,

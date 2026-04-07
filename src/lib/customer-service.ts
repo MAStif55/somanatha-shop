@@ -1,9 +1,9 @@
-import { getAllOrders } from './firestore-utils';
+import { OrderRepository } from '@/lib/data';
 import { Order } from '@/types/order';
 import { Customer } from '@/types/customer';
 
 export async function getCustomers(): Promise<Customer[]> {
-    const orders = await getAllOrders<Order>();
+    const orders = await OrderRepository.getAll();
     // We will build a list of profiles.
     // For each order, we find matching profiles.
     // If multiple match, we merge them.
@@ -11,7 +11,7 @@ export async function getCustomers(): Promise<Customer[]> {
     // If none, we create new.
     let profiles: Customer[] = [];
 
-    orders.forEach(order => {
+    orders.forEach((order: Order) => {
         // Find all profiles that match this order
         const matchingIndices: number[] = [];
 
@@ -117,13 +117,13 @@ export async function getCustomerOrders(
 ): Promise<Order[]> {
     // Use the preloaded customer if provided, otherwise re-derive from all orders
     const customer = preloadedCustomer
-        ?? (await getCustomers()).find(c => c.id === identifier);
+        ?? (await getCustomers()).find((c: Customer) => c.id === identifier);
 
     if (!customer) return [];
 
-    const allOrders = await getAllOrders<Order>();
+    const allOrders = await OrderRepository.getAll();
 
-    return allOrders.filter(o => {
+    return allOrders.filter((o: Order) => {
         let match = false;
         if (customer.email && o.email && customer.email.toLowerCase() === o.email.toLowerCase()) match = true;
         if (customer.phone && o.phone && customer.phone === o.phone) match = true;
@@ -133,5 +133,5 @@ export async function getCustomerOrders(
             if (t1 === t2) match = true;
         }
         return match;
-    }).sort((a, b) => b.createdAt - a.createdAt);
+    }).sort((a: Order, b: Order) => b.createdAt - a.createdAt);
 }
