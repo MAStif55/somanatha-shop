@@ -27,6 +27,8 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         const normalizedPath = pathname?.endsWith('/') ? pathname.slice(0, -1) : pathname;
         if (!loading && !user && normalizedPath !== '/admin/login') {
             router.push('/admin/login');
+        } else if (!loading && user && normalizedPath === '/admin/login') {
+            router.push('/admin');
         }
     }, [user, loading, router, pathname]);
 

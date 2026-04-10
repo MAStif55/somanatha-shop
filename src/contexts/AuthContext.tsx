@@ -57,8 +57,7 @@ export const AuthProvider = ({
     const login = async (email: string, pass: string) => {
         const res = await loginAction(email, pass);
         if (res.success) {
-            router.push(loginRedirect);
-            window.location.reload(); // Hard reload to populate context on first mount
+            window.location.href = loginRedirect; // Hard navigate to prevent layout caching issues
         } else {
             throw new Error(res.error || 'Login failed');
         }
@@ -66,8 +65,7 @@ export const AuthProvider = ({
 
     const logout = async () => {
         await logoutAction();
-        router.push(logoutRedirect);
-        window.location.reload();
+        window.location.href = logoutRedirect;
     };
 
     return (
