@@ -21,7 +21,7 @@ export async function login(email: string, pass: string) {
         // We set a secure cookie for Next.js to remember the session
         cookies().set(AUTH_COOKIE, email, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: false, // TEMPORARY for IP-based HTTP testing, switch to process.env.NODE_ENV === 'production' when HTTPS is active
             sameSite: 'lax',
             path: '/',
             maxAge: 60 * 60 * 24 * 7, // 1 week

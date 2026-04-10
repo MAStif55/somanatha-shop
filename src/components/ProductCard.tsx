@@ -96,13 +96,11 @@ export default function ProductCard({ product }: ProductCardProps) {
                 onContextMenu={(e) => e.preventDefault()}
             >
                 {product.images && product.images.length > 0 ? (
-                    <Image
+                    <img
                         src={getCardImageUrl(product.images[0])}
                         alt={getImageAlt(product.images[0], locale as 'en' | 'ru', product.title[locale])}
-                        fill
+                        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
                         draggable={false}
-                        className="object-cover transform group-hover:scale-105 transition-transform duration-500"
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 300px"
                         onDragStart={(e) => e.preventDefault()}
                     />
                 ) : (
