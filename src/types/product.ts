@@ -59,23 +59,25 @@ export function normalizeImages(images: (string | ProductImage)[] | undefined): 
  * Helper to get full-resolution image URL (handles both string and ProductImage)
  */
 export function getImageUrl(image: string | ProductImage): string {
-    return typeof image === 'string' ? image : image.url;
+    const url = typeof image === 'string' ? image : image.url;
+    // Don't double encode if it's already encoded (%20)
+    return url.includes('%') ? url : encodeURI(url);
 }
 
 /**
  * Helper to get card-size (600px) image URL with fallback to full-res
  */
 export function getCardImageUrl(image: string | ProductImage): string {
-    if (typeof image === 'string') return image;
-    return image.cardUrl || image.url;
+    const url = typeof image === 'string' ? image : (image.cardUrl || image.url);
+    return url.includes('%') ? url : encodeURI(url);
 }
 
 /**
  * Helper to get thumbnail-size (300px) image URL with fallback chain
  */
 export function getThumbImageUrl(image: string | ProductImage): string {
-    if (typeof image === 'string') return image;
-    return image.thumbUrl || image.cardUrl || image.url;
+    const url = typeof image === 'string' ? image : (image.thumbUrl || image.cardUrl || image.url);
+    return url.includes('%') ? url : encodeURI(url);
 }
 
 /**
