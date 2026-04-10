@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ProductRepository } from '@/lib/data';
+import { getAllProducts, createProduct, updateProduct, deleteProduct } from '@/actions/admin-actions';
+
 import { Product, getThumbImageUrl } from '@/types/product';
 import { Plus, Trash2, RefreshCw, Search } from 'lucide-react';
 import Link from 'next/link';
@@ -31,7 +32,7 @@ export default function AdminProductsPage() {
     const fetchProducts = async () => {
         setLoading(true);
         try {
-            const data = await ProductRepository.getAll() as Product[];
+            const data = await getAllProducts() as Product[];
             setProducts(data);
         } catch (error) {
             console.error("Error fetching products:", error);
@@ -56,7 +57,7 @@ export default function AdminProductsPage() {
     const handleDelete = async () => {
         if (!itemToDelete) return;
         try {
-            await ProductRepository.delete(itemToDelete);
+            await deleteProduct(itemToDelete);
             fetchProducts();
         } catch (error) {
             console.error("Error deleting product:", error);
@@ -70,7 +71,7 @@ export default function AdminProductsPage() {
     const handleBulkDelete = async () => {
         try {
             for (const id of Array.from(selectedIds)) {
-                await ProductRepository.delete(id);
+                await deleteProduct(id);
             }
             setSelectedIds(new Set());
             fetchProducts();
@@ -93,7 +94,7 @@ export default function AdminProductsPage() {
                     ru: `${product.title.ru} (Копия)`
                 }
             };
-            await ProductRepository.create(duplicate);
+            await createProduct(duplicate);
             fetchProducts();
         } catch (error) {
             console.error("Error duplicating:", error);
@@ -177,7 +178,7 @@ export default function AdminProductsPage() {
             // I will use `updateProduct` from firestore-utils in the next step.
 
             await Promise.all(updates.map(u =>
-                ProductRepository.update(u.id, { order: u.order })
+                updateProduct(u.id, { order: u.order })
             ));
 
             setProducts(prev => {

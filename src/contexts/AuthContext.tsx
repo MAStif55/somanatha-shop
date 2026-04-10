@@ -1,13 +1,13 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { AuthRepository } from '@/lib/data';
+import { login as loginAction, logout as logoutAction, getSession, AppUser } from '@/actions/auth-actions';
+
 import { useRouter } from 'next/navigation';
 
-export interface AppUser {
-    uid: string;
-    email: string | null;
-}
+// AppUser moved to auth-actions or keep here.
+// Re-export here for backward compatibility
+export type { AppUser } from '@/actions/auth-actions';
 
 interface AuthContextType {
     user: AppUser | null;
@@ -41,21 +41,33 @@ export const AuthProvider = ({
     const router = useRouter();
 
     useEffect(() => {
-        const unsubscribe = AuthRepository.onAuthStateChanged((currentUser) => {
-            setUser(currentUser);
-            setLoading(false);
+        let mounted = true;
+        getSession().then(session => {
+            if (mounted) {
+                // @ts-ignore
+                setUser(session);
+                setLoading(false);
+            }
+        }).catch(() => {
+            if (mounted) setLoading(false);
         });
-        return () => unsubscribe();
+        return () => { mounted = false; };
     }, []);
 
     const login = async (email: string, pass: string) => {
-        await AuthRepository.signInWithEmail(email, pass);
-        router.push(loginRedirect);
+        const res = await loginAction(email, pass);
+        if (res.success) {
+            router.push(loginRedirect);
+            window.location.reload(); // Hard reload to populate context on first mount
+        } else {
+            throw new Error(res.error || 'Login failed');
+        }
     };
 
     const logout = async () => {
-        await AuthRepository.signOut();
+        await logoutAction();
         router.push(logoutRedirect);
+        window.location.reload();
     };
 
     return (

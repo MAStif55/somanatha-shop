@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { FunctionsRepository } from '@/lib/data';
+import { triggerBackup } from '@/actions/admin-actions';
+
 import { Download, Archive, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────
@@ -144,7 +145,7 @@ export default function BackupButton() {
         setResult(null);
 
         try {
-            const data = await FunctionsRepository.triggerBackup() as BackupResult;
+            const data = await triggerBackup() as BackupResult;
 
             // Persist cooldown timestamp
             localStorage.setItem(STORAGE_KEY, String(Date.now()));

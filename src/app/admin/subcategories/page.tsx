@@ -1,6 +1,7 @@
 'use client';
 
-import { CategoryRepository } from '@/lib/data';
+import { getSubcategories, createSubcategory, deleteSubcategory } from '@/actions/admin-actions';
+
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { CATEGORIES, CategorySlug, SubCategory } from '@/types/category';
@@ -28,7 +29,7 @@ export default function SubcategoriesPage() {
         setLoading(true);
         setError(null);
         try {
-            const data = await CategoryRepository.getSubcategories(activeTab);
+            const data = await getSubcategories(activeTab);
             setSubcategories(data);
         } catch (err) {
             console.error("Error loading subcategories:", err);
@@ -61,7 +62,7 @@ export default function SubcategoriesPage() {
                 parentCategory: activeTab
             };
 
-            await CategoryRepository.createSubcategory(newSub);
+            await createSubcategory(newSub);
 
             // Reset form
             setNewTitleRu('');
@@ -82,7 +83,7 @@ export default function SubcategoriesPage() {
         if (!confirm(locale === 'ru' ? 'Вы уверены?' : 'Are you sure?')) return;
 
         try {
-            await CategoryRepository.deleteSubcategory(id);
+            await deleteSubcategory(id);
             await loadSubcategories();
         } catch (err) {
             console.error("Error deleting subcategory:", err);

@@ -1,4 +1,4 @@
-import { ProductRepository } from '@/lib/data';
+import { getAllProducts } from '@/actions/admin-actions';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Product } from '@/types/product';
@@ -42,7 +42,7 @@ export const useProductStore = create<ProductState>()(
                 set({ isLoading: true, error: null });
 
                 try {
-                    const fetchedProducts = await ProductRepository.getAll() as Product[];
+                    const fetchedProducts = await getAllProducts() as Product[];
                     set({
                         products: fetchedProducts,
                         lastFetched: now,

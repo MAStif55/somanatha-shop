@@ -35,6 +35,7 @@ database-debug.log
 .env.test.local
 .env.production.local
 functions/.env
+authorized_key.json
 
 # ==============================
 # Logs

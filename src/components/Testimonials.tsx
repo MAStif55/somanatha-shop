@@ -3,7 +3,8 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Quote } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { ReviewRepository } from '@/lib/data';
+import { getLatestReviews } from '@/actions/catalog-actions';
+
 import { Review } from '@/types/review';
 import ReviewCard from '@/components/ReviewCard';
 
@@ -15,7 +16,7 @@ export default function Testimonials() {
     useEffect(() => {
         const fetchReviews = async () => {
             try {
-                const reviewsData = await ReviewRepository.getLatest(6);
+                const reviewsData = await getLatestReviews(6);
                 setReviews(reviewsData);
             } catch (error) {
                 console.error('Error fetching reviews:', error);

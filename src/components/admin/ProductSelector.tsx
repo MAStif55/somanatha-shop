@@ -1,6 +1,7 @@
 'use client';
 
-import { ProductRepository } from '@/lib/data';
+import { getAllProducts } from '@/actions/admin-actions';
+
 import { useState, useEffect } from 'react';
 import { Search, Plus } from 'lucide-react';
 
@@ -21,7 +22,7 @@ export default function ProductSelector({ onSelect, onCancel }: ProductSelectorP
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const data = await ProductRepository.getAll() as Product[];
+                const data = await getAllProducts() as Product[];
                 setProducts(data);
             } catch (error) {
                 console.error("Failed to fetch products", error);

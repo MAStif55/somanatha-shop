@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { StorageRepository } from '@/lib/data';
+import { uploadFile, deleteFile } from '@/actions/admin-actions';
 import { Loader2, Upload, X, ImageIcon, Download, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ProductImage } from '@/types/product';
@@ -154,7 +154,9 @@ export default function ImageUpload({
             // Upload all variants in parallel
             const uploadPromises = VARIANTS.map((v, i) => {
                 const filename = `${storagePath}/${baseName}${v.suffix}.webp`;
-                return StorageRepository.uploadFile(filename, blobs[i]);
+                const formData = new FormData();
+                formData.append('file', blobs[i]);
+                return uploadFile(filename, formData);
             });
 
             const [fullUrl, cardUrl, thumbUrl] = await Promise.all(uploadPromises);
@@ -194,7 +196,9 @@ export default function ImageUpload({
 
             const uploadPromises = VARIANTS.map((v, i) => {
                 const filename = `${storagePath}/${baseName}${v.suffix}.webp`;
-                return StorageRepository.uploadFile(filename, blobs[i]);
+                const formData = new FormData();
+                formData.append('file', blobs[i]);
+                return uploadFile(filename, formData);
             });
 
             const [fullUrl, cardUrl, thumbUrl] = await Promise.all(uploadPromises);
@@ -203,13 +207,13 @@ export default function ImageUpload({
             const oldImage = newImages[replacingIndex];
 
             if (oldImage.url) {
-                try { await StorageRepository.deleteFile(oldImage.url); } catch (e) { }
+                try { await deleteFile(oldImage.url); } catch (e) { }
             }
             if (oldImage.cardUrl) {
-                try { await StorageRepository.deleteFile(oldImage.cardUrl); } catch (e) { }
+                try { await deleteFile(oldImage.cardUrl); } catch (e) { }
             }
             if (oldImage.thumbUrl) {
-                try { await StorageRepository.deleteFile(oldImage.thumbUrl); } catch (e) { }
+                try { await deleteFile(oldImage.thumbUrl); } catch (e) { }
             }
 
             newImages[replacingIndex] = {

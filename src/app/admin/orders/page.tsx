@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { OrderRepository } from '@/lib/data';
+import { getAllOrders, updateOrder, deleteOrder } from '@/actions/admin-actions';
+
 import { Order, OrderStatus } from '@/types/order';
 import { useTranslation } from '@/contexts/LanguageContext';
 import Breadcrumbs from '@/components/admin/Breadcrumbs';
@@ -25,7 +26,7 @@ export default function AdminOrdersPage() {
             const timeoutPromise = new Promise((_, reject) =>
                 setTimeout(() => reject(new Error('Timeout')), 8000)
             );
-            const dataPromise = OrderRepository.getAll();
+            const dataPromise = getAllOrders();
             const data = await Promise.race([dataPromise, timeoutPromise]) as Order[];
             setOrders(data);
         } catch (error) {
@@ -41,7 +42,7 @@ export default function AdminOrdersPage() {
 
     const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
         try {
-            await OrderRepository.update(orderId, { status: newStatus });
+            await updateOrder(orderId, { status: newStatus });
             setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
             if (selectedOrder && selectedOrder.id === orderId) {
                 setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
@@ -55,7 +56,7 @@ export default function AdminOrdersPage() {
     const handlePermanentDelete = async () => {
         if (!deleteTarget) return;
         try {
-            await OrderRepository.delete(deleteTarget);
+            await deleteOrder(deleteTarget);
             setOrders(prev => prev.filter(o => o.id !== deleteTarget));
         } catch (error) {
             console.error("Error deleting order:", error);

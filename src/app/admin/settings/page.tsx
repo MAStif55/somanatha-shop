@@ -1,6 +1,7 @@
 'use client';
 
-import { SettingsRepository, ProductRepository, OrderRepository } from '@/lib/data';
+import { getAllProducts, getAllOrders, getSettings, updateSettings } from '@/actions/admin-actions';
+
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { StoreSettings, defaultSettings } from '@/types/settings';
@@ -23,7 +24,7 @@ export default function AdminSettingsPage() {
 
     const loadSettings = async () => {
         setLoading(true);
-        const data = await SettingsRepository.getSettings();
+        const data = await getSettings();
         setSettings(data);
         setLoading(false);
     };
@@ -31,7 +32,7 @@ export default function AdminSettingsPage() {
     const handleSave = async () => {
         setSaving(true);
         try {
-            await SettingsRepository.updateSettings(settings);
+            await updateSettings(settings);
             invalidateSettingsCache();
             alert(locale === 'ru' ? 'Настройки сохранены' : 'Settings saved');
         } catch (error) {
@@ -44,8 +45,8 @@ export default function AdminSettingsPage() {
 
     const handleBackup = async () => {
         try {
-            const products = await ProductRepository.getAll();
-            const orders = await OrderRepository.getAll();
+            const products = await getAllProducts();
+            const orders = await getAllOrders();
             const backupData = {
                 date: new Date().toISOString(),
                 settings,

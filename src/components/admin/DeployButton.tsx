@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { FunctionsRepository } from '@/lib/data';
+import { triggerDeploy } from '@/actions/admin-actions';
+
 import { Rocket, ExternalLink, CheckCircle, XCircle } from 'lucide-react';
 
 type DeployStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -17,7 +18,7 @@ export default function DeployButton() {
         setMessage('');
 
         try {
-            await FunctionsRepository.triggerDeploy();
+            await triggerDeploy();
 
             setStatus('success');
             setMessage('Deploy triggered! Check GitHub Actions for build progress.');

@@ -1,9 +1,9 @@
-import { OrderRepository } from '@/lib/data';
+import { getAllOrders } from '@/actions/admin-actions';
 import { Order } from '@/types/order';
 import { Customer } from '@/types/customer';
 
 export async function getCustomers(): Promise<Customer[]> {
-    const orders = await OrderRepository.getAll();
+    const orders = await getAllOrders();
     // We will build a list of profiles.
     // For each order, we find matching profiles.
     // If multiple match, we merge them.
@@ -121,7 +121,7 @@ export async function getCustomerOrders(
 
     if (!customer) return [];
 
-    const allOrders = await OrderRepository.getAll();
+    const allOrders = await getAllOrders();
 
     return allOrders.filter((o: Order) => {
         let match = false;

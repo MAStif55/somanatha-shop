@@ -1,6 +1,8 @@
 'use client';
 
-import { ProductRepository, CategoryRepository } from '@/lib/data';
+import { getProductById, getVariations } from '@/actions/admin-actions';
+import { getProductBySlug } from '@/actions/catalog-actions';
+
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -53,11 +55,11 @@ export default function ProductDetailsContent() {
             setLoading(true);
             try {
                 // First try by slug
-                let data = await ProductRepository.getBySlug(slug as string) as Product | null;
+                let data = await getProductBySlug(slug as string) as Product | null;
 
                 // If not found by slug, try by ID (fallback for products without slugs)
                 if (!data) {
-                    data = await ProductRepository.getById(slug as string) as Product | null;
+                    data = await getProductById(slug as string) as Product | null;
                 }
 
                 setProduct(data);
@@ -70,7 +72,7 @@ export default function ProductDetailsContent() {
 
                 if (data?.variationOverrides?.useDefaults !== false && data?.category) {
                     // Use category defaults, filter out disabled options
-                    const categoryVars = await CategoryRepository.getVariations(data.category);
+                    const categoryVars = await getVariations(data.category);
                     const disabledOptions = data.variationOverrides?.disabledOptions || [];
 
                     variations = categoryVars.map(group => ({

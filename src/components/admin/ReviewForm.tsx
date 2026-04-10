@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { ReviewRepository } from '@/lib/data';
+import { createReview, updateReview } from '@/actions/admin-actions';
+
 import { Review } from '@/types/review';
 import { X, Star } from 'lucide-react';
 
@@ -31,9 +32,9 @@ export default function ReviewForm({ existingReview, onClose, onSuccess }: Revie
             if (existingReview) {
                 // If update is needed, since we didn't add it to repo yet, let's implement the change in repo later or now.
                 // For now, let's assume we will add update to ReviewRepository shortly.
-                await ReviewRepository.update(existingReview.id, formData);
+                await updateReview(existingReview.id, formData);
             } else {
-                await ReviewRepository.create(formData);
+                await createReview(formData);
             }
             onSuccess();
             onClose();

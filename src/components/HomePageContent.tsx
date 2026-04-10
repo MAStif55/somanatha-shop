@@ -1,6 +1,7 @@
 'use client';
 
-import { ProductRepository } from '@/lib/data';
+import { getNewestProducts } from '@/actions/catalog-actions';
+
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -28,7 +29,7 @@ export default function HomePageContent({ initialProducts }: HomePageContentProp
     // load them client-side from Firestore so the section always appears
     useEffect(() => {
         if (initialProducts.length === 0) {
-            ProductRepository.getNewest(4).then(data => setProducts(data as Product[])).catch(console.error);
+            getNewestProducts(4).then(data => setProducts(data as Product[])).catch(console.error);
         }
     }, [initialProducts]);
 

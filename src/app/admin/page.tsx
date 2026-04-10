@@ -1,6 +1,7 @@
 'use client';
 
-import { OrderRepository } from '@/lib/data';
+import { getAllOrders } from '@/actions/admin-actions';
+
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from '@/contexts/LanguageContext';
 import Link from 'next/link';
@@ -20,7 +21,7 @@ export default function AdminDashboard() {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const orders = await OrderRepository.getAll();
+                const orders = await getAllOrders();
                 setPendingCount(orders.filter(o => o.status === 'pending').length);
                 setCompletedCount(orders.filter(o => o.status === 'completed').length);
             } catch (error) {

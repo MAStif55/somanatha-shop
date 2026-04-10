@@ -1,6 +1,8 @@
 'use client';
 
-import { CategoryRepository, ProductRepository } from '@/lib/data';
+import { bulkUpdatePrices, getVariations, saveVariations } from '@/actions/admin-actions';
+import { getProductsByCategory } from '@/actions/catalog-actions';
+
 import { useState, useEffect } from 'react';
 import { VariationGroup, Product } from '@/types/product';
 
@@ -30,7 +32,7 @@ export default function VariationsPage() {
             setLoading(true);
             const result: Record<string, VariationGroup[]> = {};
             for (const cat of CATEGORIES) {
-                result[cat.slug] = await CategoryRepository.getVariations(cat.slug);
+                result[cat.slug] = await getVariations(cat.slug);
             }
             setVariations(result);
             setLoading(false);
@@ -42,7 +44,7 @@ export default function VariationsPage() {
     useEffect(() => {
         async function loadProducts() {
             try {
-                const data = await ProductRepository.getByCategory(activeCategory) as Product[];
+                const data = await getProductsByCategory(activeCategory) as Product[];
                 setProducts(data);
                 setSelectedProducts(new Set()); // Reset selection
                 setBulkPrice('');
@@ -62,7 +64,7 @@ export default function VariationsPage() {
     const handleSave = async (categorySlug: string) => {
         setSaving(true);
         try {
-            await CategoryRepository.saveVariations(categorySlug, variations[categorySlug] || []);
+            await saveVariations(categorySlug, variations[categorySlug] || []);
             setIsDirty(prev => ({ ...prev, [categorySlug]: false }));
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
@@ -86,7 +88,7 @@ export default function VariationsPage() {
 
         setBulkUpdating(true);
         try {
-            await ProductRepository.bulkUpdatePrices(Array.from(selectedProducts), price);
+            await bulkUpdatePrices(Array.from(selectedProducts), price);
 
             // Update local state to reflect changes
             setProducts(prev => prev.map(p =>

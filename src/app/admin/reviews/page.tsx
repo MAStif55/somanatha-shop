@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { ReviewRepository } from '@/lib/data';
+import { getAllReviews, deleteReview } from '@/actions/admin-actions';
+
 import { Review } from '@/types/review';
 import { Plus, Pencil, Trash2, Star, ExternalLink } from 'lucide-react';
 import ReviewForm from '@/components/admin/ReviewForm';
@@ -18,7 +19,7 @@ export default function ReviewsPage() {
     const loadReviews = useCallback(async () => {
         setLoading(true);
         try {
-            const reviewsData = await ReviewRepository.getAll();
+            const reviewsData = await getAllReviews();
             setReviews(reviewsData);
             setError(null);
         } catch (err) {
@@ -36,7 +37,7 @@ export default function ReviewsPage() {
     const handleDelete = async (id: string) => {
         if (confirm('Are you sure you want to delete this review?')) {
             try {
-                await ReviewRepository.delete(id);
+                await deleteReview(id);
                 loadReviews(); // Refresh the list
             } catch (error) {
                 console.error('Error deleting review:', error);

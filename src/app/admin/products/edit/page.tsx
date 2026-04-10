@@ -2,7 +2,8 @@
 
 export const dynamic = 'force-dynamic';
 
-import { ProductRepository } from '@/lib/data';
+import { getProductById } from '@/actions/admin-actions';
+
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
@@ -18,7 +19,7 @@ function EditProductContent() {
     useEffect(() => {
         const fetchProduct = async () => {
             if (id) {
-                const data = await ProductRepository.getById(id) as Product | null;
+                const data = await getProductById(id) as Product | null;
                 setProduct(data);
                 setLoading(false);
             }

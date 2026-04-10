@@ -7,7 +7,8 @@ import { useCartStore } from '@/store/cart-store';
 import { useEffect, useState, Suspense, useCallback } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { OrderRepository } from '@/lib/data';
+import { getOrderById } from '@/actions/admin-actions';
+
 
 type PaymentStatus = 'pending' | 'paid' | 'failed' | 'cancelled' | 'unknown';
 
@@ -37,7 +38,7 @@ function PaymentResultContent() {
         }
 
         try {
-            const order = await OrderRepository.getById(orderId);
+            const order = await getOrderById(orderId);
 
             if (!order) {
                 setPaymentStatus('unknown');

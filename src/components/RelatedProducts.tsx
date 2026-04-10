@@ -1,6 +1,7 @@
 'use client';
 
-import { ProductRepository } from '@/lib/data';
+import { getAllProducts } from '@/actions/admin-actions';
+
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Product } from '@/types/product';
@@ -21,7 +22,7 @@ export default function RelatedProducts({ currentProductId, category }: RelatedP
             try {
                 // In a real app, we'd query by category limit 4. 
                 // For now, fetching all and filtering client side for simplicity given small dataset.
-                const all = await ProductRepository.getAll() as Product[];
+                const all = await getAllProducts() as Product[];
                 const filtered = all
                     .filter(p => p.id !== currentProductId && p.category === category)
                     .slice(0, 4);

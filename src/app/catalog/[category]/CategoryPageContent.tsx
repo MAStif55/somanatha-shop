@@ -1,6 +1,7 @@
 'use client';
 
-import { ProductRepository, CategoryRepository } from '@/lib/data';
+import { getSubcategories } from '@/actions/admin-actions';
+
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -43,7 +44,7 @@ export default function CategoryPageContent({ categorySlug }: CategoryPageConten
         async function loadSubcats() {
             setSubcatsLoading(true);
             try {
-                const data = await CategoryRepository.getSubcategories(categorySlug) as SubCategory[];
+                const data = await getSubcategories(categorySlug) as SubCategory[];
                 setSubcategories(data);
             } catch (error) {
                 console.error("Error loading subcategories:", error);

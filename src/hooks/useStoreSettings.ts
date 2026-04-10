@@ -1,6 +1,7 @@
 'use client';
 
-import { SettingsRepository } from '@/lib/data';
+import { getSettings } from '@/actions/admin-actions';
+
 import { useState, useEffect } from 'react';
 import { StoreSettings, defaultSettings } from '@/types/settings';
 
@@ -13,7 +14,7 @@ function fetchSettings(): Promise<StoreSettings> {
     if (cachedSettings) return Promise.resolve(cachedSettings);
     if (fetchPromise) return fetchPromise;
 
-    fetchPromise = SettingsRepository.getSettings().then((data) => {
+    fetchPromise = getSettings().then((data) => {
         // Deep-merge with defaults to ensure new fields always have values
         cachedSettings = {
             ...defaultSettings,

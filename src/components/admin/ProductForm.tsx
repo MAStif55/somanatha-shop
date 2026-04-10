@@ -1,6 +1,7 @@
 'use client';
 
-import { ProductRepository, CategoryRepository } from '@/lib/data';
+import { createProduct, updateProduct, getSubcategories, getVariations } from '@/actions/admin-actions';
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, VariationOverrides, ProductImage } from '@/types/product';
@@ -63,11 +64,11 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     useEffect(() => {
         async function loadCategoryVariations() {
             if (formData.category) {
-                const variations = await CategoryRepository.getVariations(formData.category);
+                const variations = await getVariations(formData.category);
                 setCategoryVariations(variations);
 
                 // Fetch subcategories
-                const subs = await CategoryRepository.getSubcategories(formData.category) as SubCategory[];
+                const subs = await getSubcategories(formData.category) as SubCategory[];
                 setAvailableSubcategories(subs);
 
                 // Reset subcategory if category changes
@@ -121,9 +122,9 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
 
         try {
             if (isEditMode && initialData?.id) {
-                await ProductRepository.update(initialData.id, formData);
+                await updateProduct(initialData.id, formData);
             } else {
-                await ProductRepository.create(formData as Product);
+                await createProduct(formData as Product);
             }
             router.push('/admin/products');
             router.refresh();

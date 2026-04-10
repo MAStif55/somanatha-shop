@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { StorageRepository } from '@/lib/data';
+import { uploadFile, deleteFile } from '@/actions/admin-actions';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import Cropper, { Area } from 'react-easy-crop';
@@ -235,9 +235,14 @@ export default function VideoUpload({
             const hiResPath = `${storagePath}/${baseName}_full.mp4`;
             const previewPath = `${storagePath}/${baseName}_preview.mp4`;
 
+            const hiResFormData = new FormData();
+            hiResFormData.append('file', hiResBlob);
+            const previewFormData = new FormData();
+            previewFormData.append('file', previewBlob);
+
             const [videoUrl, videoPreviewUrl] = await Promise.all([
-                StorageRepository.uploadFile(hiResPath, hiResBlob),
-                StorageRepository.uploadFile(previewPath, previewBlob)
+                uploadFile(hiResPath, hiResFormData),
+                uploadFile(previewPath, previewFormData)
             ]);
 
             setProgress(95);
@@ -249,7 +254,7 @@ export default function VideoUpload({
 
             if (isReplacing && value) {
                 try {
-                    await StorageRepository.deleteFile(value);
+                    await deleteFile(value);
                 } catch (e) {
                     console.error("Failed to delete old video from storage", e);
                 }
@@ -299,7 +304,7 @@ export default function VideoUpload({
         if (value) {
             // Delete old video from Firebase Storage to free up space
             try {
-                await StorageRepository.deleteFile(value);
+                await deleteFile(value);
             } catch (e) {
                 // Silently fail — file may already be deleted or URL may not be a storage ref
                 console.error("Failed to delete video from storage", e);
