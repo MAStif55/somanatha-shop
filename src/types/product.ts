@@ -88,6 +88,22 @@ export function getImageAlt(image: string | ProductImage, locale: 'en' | 'ru', f
     return image.alt[locale] || image.alt.ru || image.alt.en || fallback;
 }
 
+/**
+ * Helper to get proper encoded video URL
+ */
+export function getVideoUrl(url: string | undefined): string | undefined {
+    if (!url) return undefined;
+    return url.includes('%') ? url : encodeURI(url);
+}
+
+/**
+ * Helper to get proper encoded video preview URL
+ */
+export function getVideoPreviewUrl(url: string | undefined): string | undefined {
+    if (!url) return undefined;
+    return url.includes('%') ? url : encodeURI(url);
+}
+
 export interface Product {
     id: string;
     slug: string;

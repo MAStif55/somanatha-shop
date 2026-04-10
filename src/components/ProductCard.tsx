@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRef, useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Product, getImageUrl, getCardImageUrl, getThumbImageUrl, getImageAlt } from '@/types/product';
+import { Product, getImageUrl, getCardImageUrl, getThumbImageUrl, getImageAlt, getVideoPreviewUrl } from '@/types/product';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ShoppingCart, Play } from 'lucide-react';
 import { formatPrice } from '@/utils/currency';
@@ -115,7 +115,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 {product.videoPreviewUrl && (
                     <video
                         ref={videoRef}
-                        src={product.videoPreviewUrl}
+                        src={getVideoPreviewUrl(product.videoPreviewUrl)}
                         className={`absolute inset-0 w-full h-full object-cover z-20 pointer-events-none transition-opacity duration-300 ${isPlaying && isVideoLoaded ? 'opacity-100' : 'opacity-0'}`}
                         muted
                         playsInline
