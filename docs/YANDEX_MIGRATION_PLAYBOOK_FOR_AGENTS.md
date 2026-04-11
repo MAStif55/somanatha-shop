@@ -11,8 +11,12 @@ This playbook is an authoritative, step-by-step guide crafted specifically for A
 *   **Authentication Key:** The global Yandex Cloud access file (`authorized_key.json`) **must** be located in the root directory of the application workspace.
 *   Agents must use this key to authenticate with Yandex CLI or Terraform tools if orchestrating infrastructure automatically. If managing storage natively via S3 APIs, traditional `ACCESS_KEY_ID` and `SECRET_ACCESS_KEY` environment variables are preferred.
 
-### B. Resource Isolation (Yandex Cloud Folder)
-*   Before spinning up any Virtual Machines or S3 Buckets, **you must create a new "Folder" (Каталог) within the Yandex Cloud Management Console named after the project.** Do not deploy multiple production sites into the same default Yandex Folder. This ensures clean separation of billing, networking, and security parameters across different websites.
+### B. Multi-Tenant Architecture (Same VM, Separate Folders)
+*   You do **not** necessarily need to spin up a brand new Virtual Machine for every single website. 
+*   **To save costs, you can host multiple websites on a single Yandex Virtual Machine.** To do this, simply create a new distinct folder inside `/var/www/` for the new project (e.g., `/var/www/project-b`).
+*   **PM2 & Ports:** Run the new Next.js application on a different internal port (e.g., `3001`, `3002`) using PM2.
+*   **Nginx Routing:** Create a new Nginx server block (`/etc/nginx/sites-available/project-b`) that listens for the new domain name and proxies traffic to the specific local port.
+*   **Database Isolation:** Use the exact same running MongoDB instance on the VM, but connect to a completely different database name in the connection string (e.g., `mongodb://.../project_b_data`).
 
 ---
 
