@@ -1,54 +1,73 @@
 # Yandex Cloud Migration Playbook for Agents
 
 ## Context
-This playbook is crafted specifically for AI coding agents. It details the precise steps, architectural decisions, and edge-cases encountered when migrating a Firebase-coupled Next.js application to a completely sovereign, self-managed infrastructure on Yandex Cloud.
+This playbook is an authoritative, step-by-step guide crafted specifically for AI coding agents. It details the precise steps, architectural decisions, and edge-cases necessary to execute a successful migration of a Firebase-coupled application (Next.js/React) to a completely sovereign, self-managed infrastructure on Yandex Cloud.
 
 ---
 
-## 1. Target Architecture
-*   **Application Server:** Next.js (App Router) running via `PM2` on a Yandex Compute Cloud Virtual Machine (Ubuntu).
-*   **Database:** MongoDB running natively on the same VM (`localhost:27017`), replacing Firebase Firestore.
-*   **Storage:** Yandex Object Storage (S3 API compatibility), replacing Firebase Storage.
-*   **Reverse Proxy:** Nginx caching and routing traffic to `localhost:3000`.
-*   **Deployment:** A custom Git `post-receive` hook acting as a local CI/CD pipeline on the VM.
+## 1. Prerequisites and Source Preparation
+
+### A. Access Files and Initial Configuration
+*   **Authentication Key:** The global Yandex Cloud access file (`authorized_key.json`) **must** be located in the root directory of the application workspace.
+*   Agents must use this key to authenticate with Yandex CLI or Terraform tools if orchestrating infrastructure automatically. If managing storage natively via S3 APIs, traditional `ACCESS_KEY_ID` and `SECRET_ACCESS_KEY` environment variables are preferred.
+
+### B. Repository Segregation
+*   Before beginning any code changes, **you must create a new version control repository named identically after the project.** Do not destroy the existing Firebase deployment history. Track the split explicitly via Git so the project owner can roll back to the Firebase version instantly if catastrophe strikes.
 
 ---
 
-## 2. Migration Phases
-
-### Phase 1: Decoupling the Codebase
-Firebase SDKs deeply couple UI components with database listeners. Ensure strict adherence to a **Repository Pattern**.
-*   Remove all `firebase/firestore`, `firebase/auth`, and `firebase/storage` imports from the Next.js `src/app` and `src/components`.
-*   Wrap all data queries inside Next.js **Server Actions** (`'use server'`) to enforce server-side execution.
-*   **Crucial Focus:** Ensure `next build` completely strips Firebase dependencies from the client bundle.
-
-### Phase 2: Data & Media Migration
-Execute one-shot Node.js scripts to pull from Firebase and push to Yandex.
-*   **Relational Data:** Iterate over Firestore collections, sanitize data types (specifically Firebase Timestamp to UNIX epoch), and `insertMany` into MongoDB.
-*   **Media Pipeline:** Use `@aws-sdk/client-s3` to upload assets to the Yandex bucket (`storage.yandexcloud.net`).
+## 2. Infrastructure Target Architecture
+*   **Application Virtual Machine:** A high-compute Yandex Compute OS (Ubuntu 22.04 LTS).
+*   **Application Runtime:** Next.js (App Router) managed by `PM2` daemon.
+*   **Database:** MongoDB running natively (`localhost:27017`), fully replacing Firebase Firestore.
+*   **Object Storage:** Yandex Object Storage (S3 API compatible bucket `storage.yandexcloud.net`), replacing Firebase Storage.
+*   **Reverse Proxy:** Nginx caching and routing traffic mapping port `80/443` to `3000`.
+*   **Deployment Pipeline:** A specialized Git `post-receive` bare-repo hook acting as a local CI/CD pipeline on the VM.
 
 ---
 
-## 3. Critical Issues Encountered & Solutions
+## 3. Step-by-Step Execution Phases
+
+### Phase 1: Decoupling the Codebase (The Repository Pattern)
+Firebase SDKs historically couple UI client components tightly with database listeners, which makes migrations lethal if not abstracted.
+1.  Implement a strict **Repository Pattern** interface. All database interactions should pass through `IProductRepository`, `IAuthRepository`, etc.
+2.  Remove **all** `firebase/firestore`, `firebase/auth`, and `firebase/storage` imports from the Next.js `src/app` and `src/components`.
+3.  Wrap all data mutations and reads inside Next.js **Server Actions** (`'use server'`).
+4.  **Verification Check:** Ensure `npm run build` completely strips Firebase dependencies from the client bundle to allow static compiling.
+
+### Phase 2: Solving the "Split-Brain" Execution Environment
+Cloud Functions (like Payment integrations or Telegram bots) are easily forgotten during database migrations.
+1.  **Do not rely on old Firebase Cloud Functions.** Even if the front-end reads from the new Database, legacy webhooks will write orders into the old Firebase Database.
+2.  Port all legacy cloud operations (YooKassa integrations, SMTP Mailers, Webhooks) cleanly into standard Next.js Route Handlers (`src/app/api/...`).
+3.  Ensure the new API Handlers query the new Database Repositories.
+
+### Phase 3: Data & Media Migration
+Execute one-shot Node.js scripts to pull from Firebase and push to Yandex natively.
+1.  **Relational Data:** Query all Firestore records. Explicitly transform Firebase `Timestamp` objects into localized UNIX Epoch bounds (`Date.now()`). Use `MongoClient` to `insertMany` into the target Yandex node.
+2.  **Auth Data:** Iterate through Firebase Admin SDK users. Map to a bespoke `admin_users` MongoDB collection using `crypto` HMAC SHA-256 for local passwords.
+3.  **Media Assets:** Use `@aws-sdk/client-s3` to pipe binary streams directly from Firebase Storage bucket to the Yandex bucket (`storage.yandexcloud.net`).
+
+### Phase 4: Production Routing & Node Setup
+1.  Deploy a local bare repo inside the Yandex VM (`git init --bare /var/repo/[project].git`).
+2.  Implement a `post-receive` script that automatically clones into `/var/www/[project]`, executes `npm ci`, calculates the `npm run build`, and `pm2 restart [project]`.
+3.  Establish an Nginx configuration tunneling traffic into pm2.
+
+---
+
+## 4. Critical Blockers & Edge Cases (CRITICAL READ)
 
 ### A: Browser "Private Network Access" (PNA) Media Blocks
-*   **The Problem:** `<img>` and `<video>` tags pulling from `storage.yandexcloud.net` were failing with `net::ERR_FAILED` and CORS Policy warnings indicating *"resource is in more-private address space local"*. Google Chrome perceives the Yandex Edge CDN as a local node and blocks public HTTP websites from fetching data from it.
-*   **The Solution:** The application **must** be served via HTTPS (SSL Context). PNA restrictions drop entirely once the origin is a Secure Context. Additionally, explicitly apply a permissive CORS policy to the Yandex bucket using the `PutBucketCorsCommand`.
+*   **The Threat:** Chromium browsers will block `<img>` and `<video>` tags pulling from `storage.yandexcloud.net` with `net::ERR_FAILED` accompanied by a CORS "Private Network Access" warning. Chrome mistakenly perceives edge nodes as local network gateways.
+*   **The Mitigation:** The application **must** be served via HTTPS. PNA restrictions are completely waived if the parent app originates from a Secure Context. Additionally, explicitly apply a permissive CORS policy using the AWS SDK `PutBucketCorsCommand` onto the Yandex Bucket.
 
-### B: Cyrillic Asset URLs Fails to Render
-*   **The Problem:** Files uploaded to S3 containing Cyrillic characters or spaces (e.g., `.../uploads/Амулет.webp`) fail to load silently in HTML or cause `next/image` internal crashes.
-*   **The Solution:** Force a strict encoding wrapper. Create helper classes (e.g. `getImageUrl()`) that execute `encodeURI(url)` on the raw string before passing it into `<img src="...">` tags.
+### B: Cyrillic / Non-ASCII Asset URL Failure
+*   **The Threat:** Files uploaded to S3 containing native Russian characters (e.g. `.../uploads/Амулет.webp`) cause `next/image` internal routing engines to crash with 500 errors.
+*   **The Mitigation:** Purge `next/image` usage for remote Yandex storage configurations. Use native `<img src="...">` tags, and forcibly wrap every source URL in standard JavaScript `encodeURI()` handlers to neutralize space/Unicode corruption.
 
 ### C: Next.js Auth Cookies Silent Dropping
-*   **The Problem:** When building the provider-agnostic `MongoAuthRepository`, session tokens were pushed to the client using `cookies().set(..., { secure: true })` inside a Server Action. When testing via an IP address (`http://111.88.251.124`), the browser silently dropped the cookie because `secure=true` mandates an SSL connection, throwing the user into a mysterious continuous login loop.
-*   **The Solution:** Dynamically assign `secure: process.env.NODE_ENV === 'production'` or ensure SSL is fully active before enabling strictly secure cookies. 
+*   **The Threat:** By enforcing `cookies().set(..., { secure: true })` inside Server Actions for Session tokens, agents break site functionality when testing on HTTP IP addresses (`http://111.88.251.124`). The browser silently drops the Auth cookie, initiating an infinite login loop.
+*   **The Mitigation:** Dynamically evaluate Node environments: `secure: process.env.NODE_ENV === 'production'`. Do not force secure cookies until the SSL tunnel is verified.
 
 ### D: Next.js Router Race Conditions
-*   **The Problem:** Post-authentication forcing `router.push('/admin'); window.location.reload();` causes a race condition. The underlying client-side router transition is canceled by the hard reload, causing the page to refresh on the `/login` route, confusing the user who believes the login failed.
-*   **The Solution:** Use `window.location.href = '/admin'` for a hard-redirect to avoid React mounting collisions.
-
----
-
-## 4. Setting up the Environment
-*   **Deploy Git Hook:** `git init --bare /var/repo/project.git`. Add a `post-receive` hook that executes `npm install`, `npm run build`, and `pm2 restart`.
-*   **Nginx SSL:** Issue Let's Encrypt certificates directly using `certbot --nginx -d DOMAIN`. Certbot will automatically inject SSL headers (`X-Forwarded-Proto`).
+*   **The Threat:** Post-authentication flow utilizing `router.push('/admin'); window.location.reload();` to force rehydration explicitly creates a race condition. The underlying client-side router transition is canceled by the reload, resulting in the manager staying stuck on the `/login` screen.
+*   **The Mitigation:** Eliminate React context router overrides during sensitive global state shifts. Force a hard OS redirect using `window.location.href = '/admin'`.
