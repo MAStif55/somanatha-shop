@@ -60,7 +60,8 @@ Firebase SDKs historically couple UI client components tightly with database lis
 1.  Implement a strict **Repository Pattern** interface. All database interactions should pass through `IProductRepository`, `IAuthRepository`, etc.
 2.  Remove **all** `firebase/firestore`, `firebase/auth`, and `firebase/storage` imports from the Next.js `src/app` and `src/components`.
 3.  Wrap all data mutations and reads inside Next.js **Server Actions** (`'use server'`).
-4.  **Verification Check:** Ensure `npm run build` completely strips Firebase dependencies from the client bundle to allow static compiling.
+4.  **Static Export Prohibition:** You MUST remove `output: 'export'` from the `next.config.mjs` or `next.config.js` file. The Yandex VM will run a live, dynamic Node process (via PM2) to evaluate Server Actions and API routes. If left active, PM2 will loop a `502 Bad Gateway` crash with the error: *"next start does not work with output: export"*.
+5.  **Verification Check:** Ensure `npm run build` completely strips Firebase dependencies from the client bundle to allow static compiling.
 
 ### Phase 2: Solving the "Split-Brain" Execution Environment
 Cloud Functions (like Payment integrations or Telegram bots) are easily forgotten during database migrations.
@@ -98,3 +99,7 @@ Execute one-shot Node.js scripts to pull from Firebase and push to Yandex native
 ### D: Next.js Router Race Conditions
 *   **The Threat:** Post-authentication flow utilizing `router.push('/admin'); window.location.reload();` to force rehydration explicitly creates a race condition. The underlying client-side router transition is canceled by the reload, resulting in the manager staying stuck on the `/login` screen.
 *   **The Mitigation:** Eliminate React context router overrides during sensitive global state shifts. Force a hard OS redirect using `window.location.href = '/admin'`.
+
+### E: Next.js 'output: export' 502 PM2 Crash Loop
+*   **The Threat:** Firebase applications historically enforce `output: 'export'` inside `next.config.mjs` to generate flat HTML files for CDN delivery. Running `npm run start` on a static compilation will instigate a fatal crash blocking port traffic on the Yandex VM, resulting in a persistent Nginx 502 Bad Gateway error. 
+*   **The Mitigation:** Strip `output: 'export'` entirely before pushing to the `yandex` remote so Next.js utilizes the standard Node HTTP server pipeline natively. If you forget to remove it, you must delete the entire `.next` build folder on the Yandex machine before rebuilding to clear the stale static configuration.
