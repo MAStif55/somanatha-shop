@@ -11,8 +11,8 @@ This playbook is an authoritative, step-by-step guide crafted specifically for A
 *   **Authentication Key:** The global Yandex Cloud access file (`authorized_key.json`) **must** be located in the root directory of the application workspace.
 *   Agents must use this key to authenticate with Yandex CLI or Terraform tools if orchestrating infrastructure automatically. If managing storage natively via S3 APIs, traditional `ACCESS_KEY_ID` and `SECRET_ACCESS_KEY` environment variables are preferred.
 
-### B. Repository Segregation
-*   Before beginning any code changes, **you must create a new version control repository named identically after the project.** Do not destroy the existing Firebase deployment history. Track the split explicitly via Git so the project owner can roll back to the Firebase version instantly if catastrophe strikes.
+### B. Resource Isolation (Yandex Cloud Folder)
+*   Before spinning up any Virtual Machines or S3 Buckets, **you must create a new "Folder" (Каталог) within the Yandex Cloud Management Console named after the project.** Do not deploy multiple production sites into the same default Yandex Folder. This ensures clean separation of billing, networking, and security parameters across different websites.
 
 ---
 
