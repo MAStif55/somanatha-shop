@@ -13,10 +13,33 @@ This playbook is an authoritative, step-by-step guide crafted specifically for A
 
 ### B. Multi-Tenant Architecture (Same VM, Separate Folders)
 *   You do **not** necessarily need to spin up a brand new Virtual Machine for every single website. 
-*   **To save costs, you can host multiple websites on a single Yandex Virtual Machine.** To do this, simply create a new distinct folder inside `/var/www/` for the new project (e.g., `/var/www/project-b`).
-*   **PM2 & Ports:** Run the new Next.js application on a different internal port (e.g., `3001`, `3002`) using PM2.
-*   **Nginx Routing:** Create a new Nginx server block (`/etc/nginx/sites-available/project-b`) that listens for the new domain name and proxies traffic to the specific local port.
-*   **Database Isolation:** Use the exact same running MongoDB instance on the VM, but connect to a completely different database name in the connection string (e.g., `mongodb://.../project_b_data`).
+*   **To save costs, you will host multiple websites on a single Yandex Virtual Machine.** To do this, the projects are physically separated by distinct filesystem folders inside `/var/www/`.
+
+#### STRICT ARCHITECTURE MAPPING (DO NOT DEVIATE):
+When attempting to migrate or modify the other websites on this architecture, AI Agents **MUST** strictly adhere to the following mapping to prevent port collisions and database corruption:
+
+1.  **Somanatha Shop**
+    *   **Folder:** `/var/www/somanatha-shop`
+    *   **Git Repo:** `/var/repo/somanatha-shop.git`
+    *   **PM2 Port:** `3000`
+    *   **Database:** `somanatha_data`
+    *   **PM2 App Name:** `somanatha-shop`
+
+2.  **Dekorativ** (декоратив.рф)
+    *   **Folder:** `/var/www/dekorativ`
+    *   **Git Repo:** `/var/repo/dekorativ.git`
+    *   **PM2 Port:** `3001`
+    *   **Database:** `dekorativ_data`
+    *   **PM2 App Name:** `dekorativ`
+
+3.  **LevPrav**
+    *   **Folder:** `/var/www/levprav`
+    *   **Git Repo:** `/var/repo/levprav.git`
+    *   **PM2 Port:** `3002`
+    *   **Database:** `levprav_data`
+    *   **PM2 App Name:** `levprav`
+
+*   **Nginx Routing:** Create a new Nginx server block (`/etc/nginx/sites-available/[project-name]`) that listens for the specific domain name and proxies traffic to the assigned internal port mapping listed above.
 
 ---
 
