@@ -11,7 +11,8 @@
         "audit:secrets": "node scripts/audit-secrets.js",
         "backup:export": "node scripts/export-firestore.js",
         "backup:restore": "node scripts/restore-firestore.js",
-        "backup:restore:dry": "node scripts/restore-firestore.js --dry-run"
+        "backup:restore:dry": "node scripts/restore-firestore.js --dry-run",
+        "admin:users": "node scripts/manage-admins.js"
     },
     "dependencies": {
         "@aws-sdk/client-s3": "^3.1028.0",

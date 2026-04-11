@@ -1,0 +1,35 @@
+#!/bin/bash
+set -e
+
+TARGET=/var/www/somanatha-shop
+GIT_DIR=/var/repo/somanatha-shop.git
+BRANCH=main
+
+echo ""
+echo "============================================"
+echo "  Auto-Deploy: Received push"
+echo "============================================"
+
+while read oldrev newrev ref; do
+    if [[ $ref == refs/heads/$BRANCH ]]; then
+        echo ">>> Checking out latest code..."
+        git --work-tree=$TARGET --git-dir=$GIT_DIR checkout -f $BRANCH
+
+        echo ">>> Installing dependencies..."
+        cd $TARGET
+        
+        # Add .env file manually (simulating the secret injection via Github action, or relying on VM's local env config)
+        # Note: the .env is usually tracked manually or injected. Here we expect .env.local to be present or we pull it securely.
+        npm install
+
+        echo ">>> Building Next.js application..."
+        npm run build
+
+        echo ">>> Restarting application via PM2..."
+        pm2 reload somanatha-shop --update-env 2>/dev/null || pm2 start npm --name somanatha-shop -- start
+
+        echo ""
+        echo "Deploy complete! Site is live."
+        echo "============================================"
+    fi
+done

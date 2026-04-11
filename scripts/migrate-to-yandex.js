@@ -335,8 +335,8 @@ async function main() {
     ok(`S3 client initialized (bucket: ${S3_BUCKET})`);
 
     // 4. Migrate Data
-    const dataStats = await migrateData(firestoreDb, mongoDb);
-
+    // const dataStats = await migrateData(firestoreDb, mongoDb);
+    const dataStats = { products: 0, orders: 0 }; // Mock stats since data is already migrated
     // 5. Migrate Media (only if S3 credentials are provided)
     let mediaStats = { uploaded: 0, failed: 0, urlsRemapped: 0 };
     if (process.env.YC_S3_ACCESS_KEY_ID) {
