@@ -104,7 +104,7 @@ export async function POST(request: Request) {
                 notificationStatus.emailError = emailResult.reason?.message || 'Unknown error';
             }
             if (Object.keys(notificationStatus).length > 0) {
-                await OrderRepository.update(orderId, { notificationStatus });
+                await OrderRepository.update(orderId, { notificationStatus } as any);
             }
 
             return NextResponse.json({
