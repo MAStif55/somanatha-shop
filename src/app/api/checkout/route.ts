@@ -27,9 +27,25 @@ export async function POST(request: Request) {
         // Server-side price calculation (source of truth)
         const subtotal = orderItems.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
         const giftDiscount = calculateGiftDiscount(orderItems);
-        const total = Math.max(0, subtotal - giftDiscount);
+        let baseTotal = Math.max(0, subtotal - giftDiscount);
+
+        // Fetch settings for shipping calculations
+        const { SettingsRepository } = await import('@/lib/data');
+        const settings = await SettingsRepository.getSettings();
+        const shippingCost = settings.shipping ? settings.shipping.price : 350;
+        const freeShippingThreshold = settings.shipping ? settings.shipping.freeThreshold : 3000;
+
+        if (baseTotal < freeShippingThreshold) {
+            baseTotal += shippingCost;
+        }
 
         const paymentMethod = customerInfo.paymentMethod; // 'card' or 'bank_transfer'
+        
+        let total = baseTotal;
+        if (paymentMethod === 'card') {
+            // Add 3.5% YooKassa fee
+            total = baseTotal + (baseTotal * 0.035);
+        }
         const contactPreferences = customerInfo.contactPreferences || null;
         const telegramHandle = contactPreferences?.telegramHandle || customerInfo.telegram || null;
 
