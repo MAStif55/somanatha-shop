@@ -70,7 +70,8 @@ ${escapeMarkdown(paymentMethodLabel)}
 ${escapeMarkdown(paymentStatusLabel)}
         `.trim();
 
-        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        const telegramApi = process.env.TELEGRAM_API_URL || 'https://api.telegram.org';
+        await fetch(`${telegramApi}/bot${botToken}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -102,7 +103,8 @@ ${data.telegram ? `💬 *Telegram:* ${escapeMarkdown(data.telegram)}` : ''}
 ${escapeMarkdown(data.message)}
         `.trim();
 
-        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        const telegramApi = process.env.TELEGRAM_API_URL || 'https://api.telegram.org';
+        await fetch(`${telegramApi}/bot${botToken}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
