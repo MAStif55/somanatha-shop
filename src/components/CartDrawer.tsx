@@ -23,7 +23,8 @@ export default function CartDrawer() {
         getDiscount,
         getFinalPrice,
         getTotalItems,
-        getShippingCost
+        getShippingCost,
+        setShippingConfig
     } = useCartStore();
     const { isDrawerOpen, closeDrawer } = useCartUIStore();
     const [mounted, setMounted] = useState(false);
