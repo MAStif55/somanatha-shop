@@ -7,6 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useCartStore } from '@/store/cart-store';
 import { useCartUIStore } from '@/store/cart-ui-store';
 import { formatPrice } from '@/utils/currency';
+import { useStoreSettings } from '@/hooks/useStoreSettings';
 
 export default function CartDrawer() {
     const { locale, t } = useLanguage();
@@ -26,6 +27,15 @@ export default function CartDrawer() {
     } = useCartStore();
     const { isDrawerOpen, closeDrawer } = useCartUIStore();
     const [mounted, setMounted] = useState(false);
+
+    const { settings } = useStoreSettings();
+
+    // Sync shipping config from Firestore settings into cart store
+    useEffect(() => {
+        if (settings.shipping) {
+            setShippingConfig(settings.shipping.price, settings.shipping.freeThreshold);
+        }
+    }, [settings.shipping, setShippingConfig]);
 
     // Hydration safety
     useEffect(() => {

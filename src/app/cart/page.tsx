@@ -8,6 +8,8 @@ import { formatPrice } from '@/utils/currency';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
+import { useStoreSettings } from '@/hooks/useStoreSettings';
+
 export default function CartPage() {
     const { locale, t } = useLanguage();
     const {
@@ -22,9 +24,18 @@ export default function CartPage() {
         getDiscount,
         getFinalPrice,
         getTotalItems,
-        getShippingCost
+        getShippingCost,
+        setShippingConfig
     } = useCartStore();
     const [mounted, setMounted] = useState(false);
+    const { settings } = useStoreSettings();
+
+    // Sync shipping config from Firestore settings into cart store
+    useEffect(() => {
+        if (settings.shipping) {
+            setShippingConfig(settings.shipping.price, settings.shipping.freeThreshold);
+        }
+    }, [settings.shipping, setShippingConfig]);
 
     // Hydration-safe: wait for client mount before rendering cart data
     useEffect(() => {
