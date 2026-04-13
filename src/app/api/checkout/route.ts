@@ -32,8 +32,8 @@ export async function POST(request: Request) {
         // Fetch settings for shipping calculations
         const { SettingsRepository } = await import('@/lib/data');
         const settings = await SettingsRepository.getSettings();
-        const shippingCost = settings.shipping ? settings.shipping.price : 350;
-        const freeShippingThreshold = settings.shipping ? settings.shipping.freeThreshold : 3000;
+        const shippingCost = settings.shipping?.price ?? 350;
+        const freeShippingThreshold = settings.shipping?.freeThreshold ?? 3000;
 
         if (baseTotal < freeShippingThreshold) {
             baseTotal += shippingCost;

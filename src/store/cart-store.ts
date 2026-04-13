@@ -122,12 +122,12 @@ export const useCartStore = create<CartState>()(
 
             getFreeShippingThreshold: () => {
                 const subtotal = get().getTotalPrice();
-                const threshold = (get() as any)._shippingFreeThreshold || 3000;
+                const threshold = (get() as any)._shippingFreeThreshold ?? 3000;
                 return Math.max(0, threshold - subtotal);
             },
 
             isFreeShippingEligible: () => {
-                const threshold = (get() as any)._shippingFreeThreshold || 3000;
+                const threshold = (get() as any)._shippingFreeThreshold ?? 3000;
                 return get().getTotalPrice() >= threshold;
             },
 
@@ -180,7 +180,7 @@ export const useCartStore = create<CartState>()(
             },
 
             getShippingCost: () => {
-                const price = (get() as any)._shippingPrice || 350;
+                const price = (get() as any)._shippingPrice ?? 350;
                 return get().isFreeShippingEligible() ? 0 : price;
             },
 
