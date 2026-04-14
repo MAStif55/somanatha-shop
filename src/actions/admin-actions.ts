@@ -34,6 +34,7 @@ export async function createProduct(data: Partial<Product>) {
     const result = await ProductRepository.create(data);
     revalidatePath('/');
     revalidatePath('/catalog');
+    revalidatePath('/product/[slug]', 'page');
     return result;
 }
 
@@ -41,6 +42,7 @@ export async function updateProduct(id: string, data: Partial<Product>) {
     const result = await ProductRepository.update(id, data);
     revalidatePath('/');
     revalidatePath('/catalog');
+    revalidatePath('/product/[slug]', 'page');
     return result;
 }
 
@@ -48,6 +50,7 @@ export async function deleteProduct(id: string) {
     const result = await ProductRepository.delete(id);
     revalidatePath('/');
     revalidatePath('/catalog');
+    revalidatePath('/product/[slug]', 'page');
     return result;
 }
 
@@ -55,6 +58,7 @@ export async function bulkUpdatePrices(ids: string[], price: number) {
     const result = await ProductRepository.bulkUpdatePrices(ids, price);
     revalidatePath('/');
     revalidatePath('/catalog');
+    revalidatePath('/product/[slug]', 'page');
     return result;
 }
 
