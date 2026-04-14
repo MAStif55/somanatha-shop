@@ -1,5 +1,6 @@
 'use strict';
 'use server';
+import { revalidatePath } from 'next/cache';
 
 import { 
     ProductRepository, 
@@ -30,19 +31,31 @@ export async function getProductById(id: string) {
 }
 
 export async function createProduct(data: Partial<Product>) {
-    return await ProductRepository.create(data);
+    const result = await ProductRepository.create(data);
+    revalidatePath('/');
+    revalidatePath('/catalog');
+    return result;
 }
 
 export async function updateProduct(id: string, data: Partial<Product>) {
-    return await ProductRepository.update(id, data);
+    const result = await ProductRepository.update(id, data);
+    revalidatePath('/');
+    revalidatePath('/catalog');
+    return result;
 }
 
 export async function deleteProduct(id: string) {
-    return await ProductRepository.delete(id);
+    const result = await ProductRepository.delete(id);
+    revalidatePath('/');
+    revalidatePath('/catalog');
+    return result;
 }
 
 export async function bulkUpdatePrices(ids: string[], price: number) {
-    return await ProductRepository.bulkUpdatePrices(ids, price);
+    const result = await ProductRepository.bulkUpdatePrices(ids, price);
+    revalidatePath('/');
+    revalidatePath('/catalog');
+    return result;
 }
 
 // ==========================================
