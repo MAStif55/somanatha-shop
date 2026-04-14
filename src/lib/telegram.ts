@@ -8,9 +8,9 @@ const CONTACT_METHOD_LABELS: Record<string, string> = {
     email: '📧 Email',
 };
 
-function escapeMarkdown(text: string | null | undefined): string {
+function escapeHtml(text: string | null | undefined): string {
     if (!text) return '';
-    return text.replace(/([_*\[\]()~`>#+=|{}.!\\-])/g, '\\$1');
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function formatContactPreferences(orderData: any): string {
@@ -37,7 +37,7 @@ export async function sendTelegramOrderNotification(orderData: any, orderId: str
         const itemsList = orderData.items
             .map(
                 (item: any) =>
-                    `  • ${escapeMarkdown(item.productTitle)} x${item.quantity} — ${item.price * item.quantity}₽`
+                    `  • ${escapeHtml(item.productTitle)} x${item.quantity} — ${item.price * item.quantity}₽`
             )
             .join('\n');
 
@@ -48,26 +48,26 @@ export async function sendTelegramOrderNotification(orderData: any, orderId: str
 
         const contactLines = formatContactPreferences(orderData);
         const contactSection = contactLines
-            ? `\n📞 *Способы связи:*\n${escapeMarkdown(contactLines)}`
+            ? `\n📞 <b>Способы связи:</b>\n${escapeHtml(contactLines)}`
             : '';
 
         const message = `
-🛒 *Новый заказ\\!*
+🛒 <b>Новый заказ!</b>
 
-📋 *Заказ \\#${orderId.slice(-8).toUpperCase()}*
+📋 <b>Заказ #${escapeHtml(orderId.slice(-8).toUpperCase())}</b>
 
-👤 *Клиент:* ${escapeMarkdown(orderData.customerName)}
-📧 *Email:* ${escapeMarkdown(orderData.email)}
-📱 *Телефон:* ${escapeMarkdown(orderData.phone)}
-📍 *Адрес:* ${escapeMarkdown(orderData.address)}
-${orderData.customerNotes ? `📝 *Комментарий:* ${escapeMarkdown(orderData.customerNotes)}` : ''}${contactSection}
+👤 <b>Клиент:</b> ${escapeHtml(orderData.customerName)}
+📧 <b>Email:</b> ${escapeHtml(orderData.email)}
+📱 <b>Телефон:</b> ${escapeHtml(orderData.phone)}
+📍 <b>Адрес:</b> ${escapeHtml(orderData.address)}
+${orderData.customerNotes ? `📝 <b>Комментарий:</b> ${escapeHtml(orderData.customerNotes)}` : ''}${contactSection}
 
-📦 *Товары:*
+📦 <b>Товары:</b>
 ${itemsList}
 
-💰 *Итого:* ${orderData.total}₽
-${escapeMarkdown(paymentMethodLabel)}
-${escapeMarkdown(paymentStatusLabel)}
+💰 <b>Итого:</b> ${orderData.total}₽
+${escapeHtml(paymentMethodLabel)}
+${escapeHtml(paymentStatusLabel)}
         `.trim();
 
         const telegramApi = process.env.TELEGRAM_API_URL || 'https://api.telegram.org';
@@ -77,7 +77,7 @@ ${escapeMarkdown(paymentStatusLabel)}
             body: JSON.stringify({
                 chat_id: chatId,
                 text: message,
-                parse_mode: 'MarkdownV2',
+                parse_mode: 'HTML',
             }),
         });
     } catch (e) {
@@ -94,13 +94,13 @@ export async function sendTelegramFeedbackNotification(data: any) {
 
     try {
         const message = `
-📩 *Новое сообщение с сайта\\!*
+📩 <b>Новое сообщение с сайта!</b>
 
-📱 *Телефон:* ${escapeMarkdown(data.phone)}
-${data.telegram ? `💬 *Telegram:* ${escapeMarkdown(data.telegram)}` : ''}
+📱 <b>Телефон:</b> ${escapeHtml(data.phone)}
+${data.telegram ? `💬 <b>Telegram:</b> ${escapeHtml(data.telegram)}` : ''}
 
-✉️ *Сообщение:*
-${escapeMarkdown(data.message)}
+✉️ <b>Сообщение:</b>
+${escapeHtml(data.message)}
         `.trim();
 
         const telegramApi = process.env.TELEGRAM_API_URL || 'https://api.telegram.org';
@@ -110,7 +110,7 @@ ${escapeMarkdown(data.message)}
             body: JSON.stringify({
                 chat_id: chatId,
                 text: message,
-                parse_mode: 'MarkdownV2',
+                parse_mode: 'HTML',
             }),
         });
     } catch (e) {
