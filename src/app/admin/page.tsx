@@ -116,18 +116,6 @@ export default function AdminDashboard() {
                         <Link href="/admin/products/new" className="block w-full text-center py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 font-medium hover:border-orange-400 hover:text-orange-600 transition-colors text-sm">
                             + {locale === 'ru' ? 'Добавить товар' : 'Add New Product'}
                         </Link>
-                        <div className="pt-3 border-t border-gray-100">
-                            <p className="text-xs text-gray-400 mb-2 font-semibold uppercase tracking-wider">
-                                {locale === 'ru' ? 'Деплой' : 'Deployment'}
-                            </p>
-                            <DeployButton />
-                        </div>
-                        <div className="pt-3 border-t border-gray-100">
-                            <p className="text-xs text-gray-400 mb-2 font-semibold uppercase tracking-wider">
-                                {locale === 'ru' ? 'Данные и резервные копии' : 'Data & Backup'}
-                            </p>
-                            <BackupButton />
-                        </div>
                     </div>
                 </div>
             </div>
