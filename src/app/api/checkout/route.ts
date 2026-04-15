@@ -54,6 +54,7 @@ export async function POST(request: Request) {
             email: customerInfo.email,
             phone: customerInfo.phone,
             address: customerInfo.address,
+            deliveryType: customerInfo.deliveryType || 'home_address',
             addressDetails: customerInfo.addressDetails || null,
             telegram: telegramHandle,
             contactPreferences: contactPreferences,

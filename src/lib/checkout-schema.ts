@@ -10,6 +10,7 @@ import { z } from 'zod';
 const phoneRegex = /^(\+7|8)?[\s-]?\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}$/;
 
 const contactMethodValues = ['telegram', 'max', 'phone_call', 'sms', 'email'] as const;
+const deliveryTypeValues = ['pickup_ozon', 'pickup_yandex', 'home_address'] as const;
 
 export const checkoutSchema = z.object({
     customerName: z
@@ -53,6 +54,9 @@ export const checkoutSchema = z.object({
             });
         }
     }),
+    deliveryType: z.enum(deliveryTypeValues, {
+        message: 'Please select a delivery method',
+    }),
     notes: z
         .string()
         .max(1000, { message: 'Note must be less than 1000 characters' })
@@ -81,6 +85,7 @@ export const getLocalizedSchema = (locale: 'en' | 'ru') => {
             telegramRequired: 'Telegram handle is required',
             telegramFormat: 'Telegram username should start with @',
             maxRequired: 'MAX ID / Phone is required',
+            deliveryTypeRequired: 'Please select a delivery method',
         },
         ru: {
             nameMin: 'Имя должно содержать минимум 2 символа',
@@ -93,6 +98,7 @@ export const getLocalizedSchema = (locale: 'en' | 'ru') => {
             telegramRequired: 'Укажите Telegram имя пользователя',
             telegramFormat: 'Telegram никнейм должен начинаться с @',
             maxRequired: 'Укажите MAX ID / Телефон',
+            deliveryTypeRequired: 'Выберите способ получения заказа',
         },
     };
 
@@ -139,6 +145,9 @@ export const getLocalizedSchema = (locale: 'en' | 'ru') => {
                     path: ['maxId'],
                 });
             }
+        }),
+        deliveryType: z.enum(deliveryTypeValues, {
+            message: m.deliveryTypeRequired,
         }),
         notes: z
             .string()

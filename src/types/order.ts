@@ -23,6 +23,8 @@ export interface OrderItem {
 
 export type ContactMethod = 'telegram' | 'max' | 'phone_call' | 'sms' | 'email';
 
+export type DeliveryType = 'pickup_ozon' | 'pickup_yandex' | 'home_address';
+
 export interface ContactPreferences {
     methods: ContactMethod[];
     telegramHandle?: string;
@@ -35,6 +37,7 @@ export interface Order {
     email: string;
     phone: string;
     address: string;
+    deliveryType?: DeliveryType;
     telegram?: string; // Legacy — kept for backward compat
     contactPreferences?: ContactPreferences;
     items: OrderItem[];

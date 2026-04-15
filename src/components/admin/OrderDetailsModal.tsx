@@ -209,6 +209,22 @@ export default function OrderDetailsModal({ order, isOpen, onClose, onUpdate }: 
                                 <div className="flex items-start gap-2">
                                     <MapPin size={14} className="mt-1 text-gray-400" />
                                     <div>
+                                        <p className="text-gray-500 text-xs">{locale === 'ru' ? 'Доставка' : 'Delivery'}</p>
+                                        <p className="font-medium text-gray-900">
+                                            {(() => {
+                                                const labels: Record<string, string> = {
+                                                    pickup_ozon: locale === 'ru' ? '📦 ПВЗ Ozon' : '📦 Ozon Pickup',
+                                                    pickup_yandex: locale === 'ru' ? '📦 ПВЗ Яндекс Маркет' : '📦 Yandex Pickup',
+                                                    home_address: locale === 'ru' ? '🏠 Почтой на адрес' : '🏠 Postal Delivery',
+                                                };
+                                                return labels[(order as any).deliveryType] || (locale === 'ru' ? 'Не указан' : 'Not specified');
+                                            })()}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <MapPin size={14} className="mt-1 text-gray-400" />
+                                    <div>
                                         <p className="text-gray-500 text-xs">{locale === 'ru' ? 'Адрес' : 'Address'}</p>
                                         <p className="font-medium text-gray-900">{order.address}</p>
                                     </div>

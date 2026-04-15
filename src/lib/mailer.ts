@@ -27,6 +27,12 @@ const CONTACT_METHOD_LABELS: Record<string, string> = {
     email: '📧 Email',
 };
 
+const DELIVERY_TYPE_LABELS: Record<string, string> = {
+    pickup_ozon: '📦 ПВЗ Ozon',
+    pickup_yandex: '📦 ПВЗ Яндекс Маркет',
+    home_address: '🏠 Почтой на адрес',
+};
+
 function formatContactPreferencesHtml(orderData: any): string {
     const cp = orderData.contactPreferences;
     if (!cp || !cp.methods || cp.methods.length === 0) {
@@ -68,6 +74,7 @@ export async function sendEmailOrderNotification(orderData: any, orderId: string
             <p><strong>Клиент:</strong> ${orderData.customerName}</p>
             <p><strong>Email:</strong> ${orderData.email}</p>
             <p><strong>Телефон:</strong> ${orderData.phone}</p>
+            <p><strong>Доставка:</strong> ${DELIVERY_TYPE_LABELS[orderData.deliveryType] || 'Не указан'}</p>
             <p><strong>Адрес:</strong> ${orderData.address}</p>
             ${orderData.customerNotes ? `<p><strong>Комментарий:</strong> ${orderData.customerNotes}</p>` : ''}
             ${contactHtml ? `<p><strong>Способы связи:</strong><br>${contactHtml}</p>` : ''}

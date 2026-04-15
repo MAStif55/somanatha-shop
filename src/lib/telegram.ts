@@ -8,6 +8,12 @@ const CONTACT_METHOD_LABELS: Record<string, string> = {
     email: '📧 Email',
 };
 
+const DELIVERY_TYPE_LABELS: Record<string, string> = {
+    pickup_ozon: '📦 ПВЗ Ozon',
+    pickup_yandex: '📦 ПВЗ Яндекс Маркет',
+    home_address: '🏠 Почтой на адрес',
+};
+
 function escapeHtml(text: string | null | undefined): string {
     if (!text) return '';
     return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -59,6 +65,7 @@ export async function sendTelegramOrderNotification(orderData: any, orderId: str
 👤 <b>Клиент:</b> ${escapeHtml(orderData.customerName)}
 📧 <b>Email:</b> ${escapeHtml(orderData.email)}
 📱 <b>Телефон:</b> ${escapeHtml(orderData.phone)}
+📍 <b>Доставка:</b> ${escapeHtml(DELIVERY_TYPE_LABELS[orderData.deliveryType] || 'Не указан')}
 📍 <b>Адрес:</b> ${escapeHtml(orderData.address)}
 ${orderData.customerNotes ? `📝 <b>Комментарий:</b> ${escapeHtml(orderData.customerNotes)}` : ''}${contactSection}
 
