@@ -13,7 +13,7 @@ import { useStoreSettings } from '@/hooks/useStoreSettings';
 
 export default function CheckoutPage() {
     const { locale, t } = useLanguage();
-    const { items, getTotalPrice, getDiscount, getFinalPrice, getShippingCost, isFreeShippingEligible, setShippingConfig } = useCartStore();
+    const { items, getTotalPrice, getDiscount, getFinalPrice, getShippingCost, isFreeShippingEligible, setShippingConfig, removeItem, updateQuantity } = useCartStore();
     const router = useRouter();
     const [mounted, setMounted] = useState(false);
     const { settings } = useStoreSettings();
@@ -126,18 +126,49 @@ export default function CheckoutPage() {
                                         
                                         {/* Configuration details if selected */}
                                         {item.configuration && Object.keys(item.configuration).length > 0 && (
-                                            <div className="text-xs text-[#F5ECD7]/50 mt-1">
+                                            <div className="text-xs text-[#F5ECD7]/50 mt-1 mb-2">
                                                 {Object.values(item.configuration).join(', ')}
                                             </div>
                                         )}
-                                        <div className="text-sm text-[#F5ECD7]/50 mt-1">
-                                            {locale === 'ru' ? 'Кол-во: ' : 'Qty: '}{item.quantity}
+                                        
+                                        {/* Quantity Controls */}
+                                        <div className="flex items-center gap-4 mt-2">
+                                            <div className="flex items-center gap-2 bg-[#0D0A0B]/50 rounded-lg p-1 border border-[#C9A227]/20 w-fit">
+                                                <button
+                                                    onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                                                    className="w-6 h-6 flex flex-shrink-0 items-center justify-center rounded-md bg-[#2A2527] text-[#C9A227] hover:bg-[#C9A227] hover:text-[#0D0A0B] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                                    aria-label={locale === 'ru' ? 'Уменьшить количество' : 'Decrease quantity'}
+                                                    disabled={item.quantity <= 1}
+                                                >
+                                                    -
+                                                </button>
+                                                <span className="w-6 text-sm text-center font-bold text-[#F5ECD7] select-none">{item.quantity}</span>
+                                                <button
+                                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                    className="w-6 h-6 flex flex-shrink-0 items-center justify-center rounded-md bg-[#2A2527] text-[#C9A227] hover:bg-[#C9A227] hover:text-[#0D0A0B] transition-colors"
+                                                    aria-label={locale === 'ru' ? 'Увеличить количество' : 'Increase quantity'}
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+
+                                            {/* Remove Button */}
+                                            <button
+                                                onClick={() => removeItem(item.id)}
+                                                className="text-red-400 hover:text-red-300 transition-colors p-1.5 hover:bg-red-500/10 rounded-full flex-shrink-0"
+                                                title={t('cart.remove')}
+                                                aria-label={locale === 'ru' ? 'Удалить товар' : 'Remove item'}
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
                                         </div>
                                     </div>
                                     
                                     {/* Price */}
-                                    <div className="flex-shrink-0 text-right">
-                                        <div className="font-semibold text-[#C9A227] font-mono">
+                                    <div className="flex-shrink-0 text-right mt-1">
+                                        <div className="font-semibold text-[#C9A227] font-mono whitespace-nowrap">
                                             {formatPrice(item.price * item.quantity)}
                                         </div>
                                     </div>
