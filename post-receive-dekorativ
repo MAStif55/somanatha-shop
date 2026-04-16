@@ -1,0 +1,28 @@
+#!/bin/bash
+TARGET="/var/www/dekorativ"
+GIT_DIR="/var/repo/dekorativ.git"
+
+while read oldrev newrev ref; do
+    if [[ $ref = refs/heads/main ]]; then
+        echo "============================================"
+        echo "  Dekorativ Auto-Deploy: Received push"
+        echo "============================================"
+        
+        echo ">>> Checking out latest code..."
+        git --work-tree=$TARGET --git-dir=$GIT_DIR checkout -f main
+
+        echo ">>> Installing dependencies..."
+        cd $TARGET
+        npm ci
+
+        echo ">>> Building Next.js application..."
+        npm run build
+
+        echo ">>> Restarting PM2 instance on Port 3001..."
+        pm2 restart dekorativ || pm2 start npm --name dekorativ -- start -- -p 3001
+
+        echo "============================================"
+        echo "  Deployment Complete!"
+        echo "============================================"
+    fi
+done

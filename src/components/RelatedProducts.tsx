@@ -20,22 +20,33 @@ export default function RelatedProducts({ currentProductId, category }: RelatedP
     useEffect(() => {
         const fetchRelated = async () => {
             try {
-                // In a real app, we'd query by category limit 4. 
-                // For now, fetching all and filtering client side for simplicity given small dataset.
                 const all = await getAllProducts() as Product[];
-                const filtered = all
-                    .filter(p => p.id !== currentProductId && p.category === category)
-                    .slice(0, 4);
+                const others = all.filter(p => p.id !== currentProductId);
 
-                // Fallback: if no related in category, show random others
-                if (filtered.length === 0) {
-                    const random = all
-                        .filter(p => p.id !== currentProductId)
-                        .slice(0, 4);
-                    setRelated(random);
-                } else {
-                    setRelated(filtered);
+                // Get products from the same category
+                const sameCategory = others.filter(p => p.category === category);
+
+                // Shuffle helper
+                const shuffle = <T,>(arr: T[]): T[] => {
+                    const a = [...arr];
+                    for (let i = a.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [a[i], a[j]] = [a[j], a[i]];
+                    }
+                    return a;
+                };
+
+                let result = shuffle(sameCategory).slice(0, 4);
+
+                // If fewer than 4, fill from other categories
+                if (result.length < 4) {
+                    const remaining = 4 - result.length;
+                    const resultIds = new Set(result.map(p => p.id));
+                    const otherCategories = others.filter(p => p.category !== category && !resultIds.has(p.id));
+                    result = [...result, ...shuffle(otherCategories).slice(0, remaining)];
                 }
+
+                setRelated(result);
             } catch (error) {
                 console.error("Error fetching related:", error);
             }

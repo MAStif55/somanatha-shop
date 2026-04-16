@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
@@ -8,6 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useCartStore } from '@/store/cart-store';
 import { getLocalizedSchema, CheckoutFormData } from '@/lib/checkout-schema';
 import { AddressAutocomplete } from './AddressAutocomplete';
+import CheckoutProgress from './CheckoutProgress';
 import { formatPrice } from '@/utils/currency';
 import { API } from '@/lib/config';
 
@@ -55,7 +56,30 @@ export default function CheckoutForm() {
     const addressValue = watch('address') || '';
     const paymentMethodValue = watch('paymentMethod');
     const deliveryTypeValue = watch('deliveryType');
+    const customerNameValue = watch('customerName') || '';
+    const emailValue = watch('email') || '';
+    const phoneValue = watch('phone') || '';
     const selectedMethods = useWatch({ control, name: 'contactPreferences.methods' }) || [];
+
+    // Compute checkout progress step
+    const getCheckoutStep = (): number => {
+        const step1Done = customerNameValue.trim().length > 0 && emailValue.trim().length > 0 && phoneValue.trim().length > 0;
+        const step2Done = step1Done && !!deliveryTypeValue && addressValue.trim().length > 0;
+        if (step2Done && paymentMethodValue) return 3;
+        if (step1Done) return 2;
+        return 1;
+    };
+    const checkoutStep = getCheckoutStep();
+
+    // #10: Reset address when delivery type changes
+    const prevDeliveryType = useRef(deliveryTypeValue);
+    useEffect(() => {
+        if (prevDeliveryType.current && prevDeliveryType.current !== deliveryTypeValue) {
+            setValue('address', '', { shouldValidate: false });
+            setValue('addressDetails', undefined);
+        }
+        prevDeliveryType.current = deliveryTypeValue;
+    }, [deliveryTypeValue, setValue]);
 
     const handleAddressChange = (value: string) => {
         setValue('address', value, { shouldValidate: true });
@@ -115,6 +139,9 @@ export default function CheckoutForm() {
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Progress Indicator */}
+            <CheckoutProgress currentStep={checkoutStep} />
+
             {/* Customer Name */}
             <div>
                 <label className="block text-sm font-medium text-[#E8D48B] mb-2">

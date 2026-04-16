@@ -54,48 +54,110 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function ProductPage({ params }: { params: { slug: string } }) {
-    // Fetch product data for JSON-LD (server-side)
-    // We try to fetch it here to generate the JSON-LD script. 
-    // The client component will re-fetch or we could pass it down, 
-    // but to keep architecture simple for now we just fetch for SEO here.
     const product = await ProductRepository.getBySlug(params.slug) as Product | null;
 
-    let jsonLd = null;
-    if (product) {
-        const title = product.title?.en || 'Vedic Artifact';
-        const description = product.description?.en
-            ? product.description.en.replace(/<[^>]*>/g, '')
-            : 'Authentic Vedic Artifact';
+    const BASE_URL = 'https://somanatha.ru';
 
-        jsonLd = {
+    let productJsonLd = null;
+    let breadcrumbJsonLd = null;
+
+    if (product) {
+        const titleRu = product.title?.ru || 'Ведический артефакт';
+        const titleEn = product.title?.en || titleRu;
+        const descriptionRu = product.description?.ru
+            ? product.description.ru.replace(/<[^>]*>/g, '').replace(/\n/g, ' ').slice(0, 300)
+            : `${titleRu} — сакральный предмет для духовной практики.`;
+        const descriptionEn = product.description?.en
+            ? product.description.en.replace(/<[^>]*>/g, '').replace(/\n/g, ' ').slice(0, 300)
+            : descriptionRu;
+
+        // Full absolute image URLs
+        const imageUrls = (product.images || []).map((img: any) => {
+            const url = getImageUrl(img);
+            return url.startsWith('http') ? url : `${BASE_URL}${url}`;
+        });
+
+        const productUrl = `${BASE_URL}/product/${params.slug}`;
+
+        productJsonLd = {
             '@context': 'https://schema.org',
             '@type': 'Product',
-            name: title,
-            image: product.images || [],
-            description: description,
+            name: titleRu,
+            description: descriptionRu,
+            image: imageUrls,
             sku: product.id,
+            url: productUrl,
+            brand: {
+                '@type': 'Brand',
+                name: 'Somanatha',
+            },
             offers: {
                 '@type': 'Offer',
-                price: product.basePrice,
+                url: productUrl,
+                price: Number(product.basePrice) || 0,
                 priceCurrency: 'RUB',
                 availability: 'https://schema.org/InStock',
+                seller: {
+                    '@type': 'Organization',
+                    name: 'Somanatha',
+                    url: BASE_URL,
+                },
             },
+        };
+
+        // Category translation for breadcrumbs
+        const categoryLabels: Record<string, string> = {
+            'yantras': 'Янтры',
+            'kavacha': 'Кавача',
+        };
+        const categoryLabel = categoryLabels[product.category || ''] || product.category || '';
+
+        breadcrumbJsonLd = {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+                {
+                    '@type': 'ListItem',
+                    position: 1,
+                    name: 'Главная',
+                    item: BASE_URL,
+                },
+                {
+                    '@type': 'ListItem',
+                    position: 2,
+                    name: 'Каталог',
+                    item: `${BASE_URL}/catalog`,
+                },
+                ...(product.category ? [{
+                    '@type': 'ListItem',
+                    position: 3,
+                    name: categoryLabel,
+                    item: `${BASE_URL}/catalog/${product.category}`,
+                }] : []),
+                {
+                    '@type': 'ListItem',
+                    position: product.category ? 4 : 3,
+                    name: titleRu,
+                    item: productUrl,
+                },
+            ],
         };
     }
 
     return (
         <>
-            {jsonLd && (
+            {productJsonLd && (
                 <script
                     type="application/ld+json"
-                    dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
                 />
             )}
-            {/* 
-              We pass params to the client component. 
-              Ideally we should pass the initial data too to avoid double fetch,
-              but sticking to original plan of just adding SEO wrapper. 
-            */}
+            {breadcrumbJsonLd && (
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+                />
+            )}
             <ProductDetailsContent />
         </>
     );

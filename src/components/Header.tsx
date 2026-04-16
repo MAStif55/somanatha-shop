@@ -108,6 +108,7 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                         <button
                             onClick={openDrawer}
                             className={`flex items-center gap-2 font-medium transition-all duration-300 relative text-[#F5ECD7]/80 hover:text-[#E8D48B]`}
+                            aria-label={locale === 'ru' ? 'Открыть корзину' : 'Open cart'}
                         >
                             <div className="relative">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -138,7 +139,7 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                     {/* Mobile Menu Controls */}
                     <div className="md:hidden flex items-center gap-3">
                         {/* Cart Icon */}
-                        <button onClick={openDrawer} className="text-[#E8D48B] relative p-2">
+                        <button onClick={openDrawer} className="text-[#E8D48B] relative p-2" aria-label={locale === 'ru' ? 'Открыть корзину' : 'Open cart'}>
                             <div className="relative">
                                 <ShoppingBag className="w-6 h-6" />
                                 {totalItems > 0 && (

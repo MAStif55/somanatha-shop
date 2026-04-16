@@ -111,6 +111,7 @@ export default function CartDrawer() {
                     <button
                         onClick={closeDrawer}
                         className="p-2 rounded-lg hover:bg-[#C9A227]/20 text-[#F5ECD7]/60 hover:text-[#E8D48B] transition-colors"
+                        aria-label="Close cart"
                     >
                         <X size={24} />
                     </button>
@@ -179,7 +180,11 @@ export default function CartDrawer() {
                             >
                                 <div className="flex gap-3">
                                     {/* Image */}
-                                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-[#2A2527] flex-shrink-0 border border-[#C9A227]/20">
+                                    <Link
+                                        href={`/product/${item.productSlug || item.productId}`}
+                                        onClick={closeDrawer}
+                                        className="w-16 h-16 rounded-lg overflow-hidden bg-[#2A2527] flex-shrink-0 border border-[#C9A227]/20 hover:border-[#C9A227]/50 transition-colors"
+                                    >
                                         {item.productImage ? (
                                             <img
                                                 src={item.productImage}
@@ -191,15 +196,21 @@ export default function CartDrawer() {
                                                 🕉️
                                             </div>
                                         )}
-                                    </div>
+                                    </Link>
 
                                     {/* Info */}
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="text-sm font-bold text-[#E8D48B] truncate">
-                                            {typeof item.productTitle === 'object'
-                                                ? item.productTitle[locale]
-                                                : item.productTitle}
-                                        </h3>
+                                        <Link
+                                            href={`/product/${item.productSlug || item.productId}`}
+                                            onClick={closeDrawer}
+                                            className="block"
+                                        >
+                                            <h3 className="text-sm font-bold text-[#E8D48B] truncate hover:text-[#C9A227] transition-colors">
+                                                {typeof item.productTitle === 'object'
+                                                    ? item.productTitle[locale]
+                                                    : item.productTitle}
+                                            </h3>
+                                        </Link>
                                         {item.configuration && Object.keys(item.configuration).length > 0 && (
                                             <p className="text-xs text-[#F5ECD7]/50 truncate">
                                                 {Object.values(item.configuration).join(', ')}
@@ -214,6 +225,7 @@ export default function CartDrawer() {
                                     <button
                                         onClick={() => removeItem(item.id)}
                                         className="p-1.5 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors self-start top-0"
+                                        aria-label={locale === 'ru' ? 'Удалить товар' : 'Remove item'}
                                     >
                                         <Trash2 size={16} />
                                     </button>
@@ -225,6 +237,7 @@ export default function CartDrawer() {
                                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
                                         disabled={item.quantity <= 1}
                                         className="w-7 h-7 rounded-md bg-[#2A2527] text-[#C9A227] hover:bg-[#C9A227] hover:text-[#0D0A0B] transition-colors flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
+                                        aria-label={locale === 'ru' ? 'Уменьшить количество' : 'Decrease quantity'}
                                     >
                                         <Minus size={14} />
                                     </button>
@@ -234,6 +247,7 @@ export default function CartDrawer() {
                                     <button
                                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                         className="w-7 h-7 rounded-md bg-[#2A2527] text-[#C9A227] hover:bg-[#C9A227] hover:text-[#0D0A0B] transition-colors flex items-center justify-center"
+                                        aria-label={locale === 'ru' ? 'Увеличить количество' : 'Increase quantity'}
                                     >
                                         <Plus size={14} />
                                     </button>

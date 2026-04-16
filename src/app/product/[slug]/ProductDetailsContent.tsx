@@ -3,7 +3,7 @@
 import { getProductById, getVariations } from '@/actions/admin-actions';
 import { getProductBySlug } from '@/actions/catalog-actions';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -22,8 +22,12 @@ import { reachGoal } from '@/components/YandexMetrika';
 
 // New Components
 import RelatedProducts from '@/components/RelatedProducts';
+import RecentlyViewed from '@/components/RecentlyViewed';
+import ImageLightbox from '@/components/ImageLightbox';
+import StickyAddToCart from '@/components/StickyAddToCart';
 import VariationSelector from '@/components/VariationSelector';
 import { SelectedVariation } from '@/types/order';
+import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import Markdown from 'react-markdown';
 
 export default function ProductDetailsContent() {
@@ -47,6 +51,9 @@ export default function ProductDetailsContent() {
     const [variationDetails, setVariationDetails] = useState<SelectedVariation[]>([]);
     const [effectiveVariations, setEffectiveVariations] = useState<VariationGroup[]>([]);
     const [addedToCart, setAddedToCart] = useState(false);
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const addToCartRef = useRef<HTMLButtonElement>(null);
+    const { addProduct: addToRecentlyViewed } = useRecentlyViewed();
 
     useEffect(() => {
         if (!slug) return;
@@ -116,6 +123,20 @@ export default function ProductDetailsContent() {
         }
         loadProduct();
     }, [slug, locale]);
+
+    // Track recently viewed product
+    useEffect(() => {
+        if (product && slug) {
+            addToRecentlyViewed({
+                id: product.id,
+                slug: slug,
+                title: product.title,
+                image: product.images?.[0] ? getThumbImageUrl(product.images[0]) : '',
+                price: product.basePrice || 0,
+            });
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [product?.id]);
 
     if (loading) {
         return (
@@ -198,6 +219,7 @@ export default function ProductDetailsContent() {
 
         addToCart({
             productId: product.id,
+            productSlug: slug,
             productTitle: product.title,
             productImage: product.images?.[0] ? getThumbImageUrl(product.images[0]) : '',
             configuration,
@@ -260,8 +282,9 @@ export default function ProductDetailsContent() {
                         {/* Left: Images / Video */}
                         <div className="space-y-4 min-w-0">
                             <div
-                                className="aspect-square bg-[#0D0A0B] rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)] border border-[#C9A227]/20 relative group product-image-container w-full"
+                                className="aspect-square bg-[#0D0A0B] rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)] border border-[#C9A227]/20 relative group product-image-container w-full cursor-zoom-in"
                                 onContextMenu={(e) => e.preventDefault()}
+                                onClick={() => { if (selectedMedia >= 0 && product.images?.[selectedMedia]) setLightboxOpen(true); }}
                             >
                                 {hasMedia ? (
                                     selectedMedia === -1 && product.videoPreviewUrl ? (
@@ -394,6 +417,7 @@ export default function ProductDetailsContent() {
                             <div className="space-y-4 mt-6">
                                 <button
                                     onClick={handleAddToCart}
+                                    ref={addToCartRef}
                                     disabled={addedToCart}
                                     className={`w-full py-4 px-8 rounded-lg text-lg font-bold uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden group border-2 ${addedToCart
                                         ? 'bg-green-600 border-green-500 text-white cursor-default'
@@ -452,10 +476,35 @@ export default function ProductDetailsContent() {
                         <RelatedProducts currentProductId={product.id} category={product.category || 'general'} />
                     </div>
 
+                    {/* Recently Viewed */}
+                    <div className="min-w-0">
+                        <RecentlyViewed currentProductId={product.id} />
+                    </div>
+
                 </div>
             </div>
 
             <Footer />
+
+            {/* Sticky Add to Cart */}
+            <StickyAddToCart
+                productTitle={product.title[locale]}
+                productImage={product.images?.[0] ? getThumbImageUrl(product.images[0]) : ''}
+                totalPrice={totalPrice}
+                onAddToCart={handleAddToCart}
+                targetRef={addToCartRef}
+                addedToCart={addedToCart}
+            />
+
+            {/* Lightbox */}
+            {lightboxOpen && product.images && product.images.length > 0 && (
+                <ImageLightbox
+                    images={product.images}
+                    initialIndex={selectedMedia >= 0 ? selectedMedia : 0}
+                    onClose={() => setLightboxOpen(false)}
+                    getAlt={(img, idx) => getImageAlt(img, locale as 'en' | 'ru', product.title[locale])}
+                />
+            )}
         </main>
     );
 }

@@ -15,6 +15,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 export interface CartItem {
     id: string;                              // Unique cart entry ID
     productId: string;                       // Product ID from database
+    productSlug?: string;                    // Product URL slug for linking
     productTitle: { en: string; ru: string }; // Localized title snapshot
     productImage: string;                    // Image URL
     configuration?: Record<string, string>;  // Product-specific options

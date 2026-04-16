@@ -181,20 +181,25 @@ export default function CartPage() {
                                     className={`flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 sm:p-6 ${index !== items.length - 1 ? 'border-b border-[#C9A227]/10' : ''} hover:bg-[#C9A227]/5 transition-colors`}
                                 >
                                     {/* Product Image */}
-                                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#2A2527] rounded-lg flex items-center justify-center text-2xl sm:text-3xl overflow-hidden border border-[#C9A227]/20 flex-shrink-0">
+                                    <Link
+                                        href={`/product/${item.productSlug || item.productId}`}
+                                        className="w-16 h-16 sm:w-20 sm:h-20 bg-[#2A2527] rounded-lg flex items-center justify-center text-2xl sm:text-3xl overflow-hidden border border-[#C9A227]/20 hover:border-[#C9A227]/50 transition-colors flex-shrink-0"
+                                    >
                                         {item.productImage ? (
                                             <img src={item.productImage} alt={typeof item.productTitle === 'object' ? item.productTitle[locale] : item.productTitle} className="w-full h-full object-cover" />
                                         ) : (
                                             <span>🕉️</span>
                                         )}
-                                    </div>
+                                    </Link>
 
                                     {/* Product Info */}
                                     <div className="flex-1 min-w-0 w-full sm:w-auto">
                                         <h4 className="font-bold text-[#E8D48B] text-lg sm:text-xl pr-2">
-                                            {typeof item.productTitle === 'object'
-                                                ? item.productTitle[locale]
-                                                : item.productTitle}
+                                            <Link href={`/product/${item.productSlug || item.productId}`} className="hover:text-[#C9A227] transition-colors">
+                                                {typeof item.productTitle === 'object'
+                                                    ? item.productTitle[locale]
+                                                    : item.productTitle}
+                                            </Link>
                                             {item.configuration && Object.keys(item.configuration).length > 0 && (
                                                 <span className="text-[#F5ECD7]/60 font-normal text-base sm:text-lg ml-2">
                                                     ({Object.values(item.configuration).join(', ')})
@@ -213,6 +218,7 @@ export default function CartPage() {
                                             <button
                                                 onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
                                                 className="w-7 h-7 flex items-center justify-center rounded-md bg-[#2A2527] text-[#C9A227] hover:bg-[#C9A227] hover:text-[#0D0A0B] transition-colors"
+                                                aria-label={locale === 'ru' ? 'Уменьшить количество' : 'Decrease quantity'}
                                             >
                                                 -
                                             </button>
@@ -220,6 +226,7 @@ export default function CartPage() {
                                             <button
                                                 onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                                 className="w-7 h-7 flex items-center justify-center rounded-md bg-[#2A2527] text-[#C9A227] hover:bg-[#C9A227] hover:text-[#0D0A0B] transition-colors"
+                                                aria-label={locale === 'ru' ? 'Увеличить количество' : 'Increase quantity'}
                                             >
                                                 +
                                             </button>
@@ -230,6 +237,7 @@ export default function CartPage() {
                                             onClick={() => removeItem(item.id)}
                                             className="text-red-400 hover:text-red-300 transition-colors p-2 hover:bg-red-500/10 rounded-full"
                                             title={t('cart.remove')}
+                                            aria-label={locale === 'ru' ? 'Удалить товар' : 'Remove item'}
                                         >
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
