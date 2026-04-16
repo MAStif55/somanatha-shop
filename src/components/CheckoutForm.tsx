@@ -203,23 +203,28 @@ export default function CheckoutForm() {
                                         </p>
                                     </div>
                                 </label>
-                                {isSelected && (
-                                    <div className="px-4 pb-4 pt-3 bg-[#C9A227]/10 border border-t-0 border-[#C9A227]/60 rounded-b-xl ring-1 ring-[#C9A227] animate-in slide-in-from-top-1 duration-200">
-                                        <label className="block text-xs font-medium text-[#E8D48B]/80 mb-1.5">
-                                            {option.id === 'home_address'
-                                                ? (locale === 'ru' ? 'Адрес доставки' : 'Delivery Address')
-                                                : (locale === 'ru' ? 'Адрес пункта выдачи' : 'Pickup Point Address')}
-                                        </label>
-                                        <AddressAutocomplete
-                                            value={addressValue}
-                                            onChange={handleAddressChange}
-                                            onSelect={handleAddressSelect}
-                                            error={errors.address?.message}
-                                            locale={locale}
-                                            placeholder={placeholder}
-                                        />
+                                <div
+                                    className="grid transition-[grid-template-rows] duration-250 ease-out"
+                                    style={{ gridTemplateRows: isSelected ? '1fr' : '0fr' }}
+                                >
+                                    <div className="overflow-hidden min-h-0">
+                                        <div className={`px-4 pb-4 pt-3 bg-[#C9A227]/10 border border-t-0 border-[#C9A227]/60 rounded-b-xl ring-1 ring-[#C9A227] transition-opacity duration-250 ${isSelected ? 'opacity-100' : 'opacity-0'}`}>
+                                            <label className="block text-xs font-medium text-[#E8D48B]/80 mb-1.5">
+                                                {option.id === 'home_address'
+                                                    ? (locale === 'ru' ? 'Адрес доставки' : 'Delivery Address')
+                                                    : (locale === 'ru' ? 'Адрес пункта выдачи' : 'Pickup Point Address')}
+                                            </label>
+                                            <AddressAutocomplete
+                                                value={isSelected ? addressValue : ''}
+                                                onChange={handleAddressChange}
+                                                onSelect={handleAddressSelect}
+                                                error={isSelected ? errors.address?.message : undefined}
+                                                locale={locale}
+                                                placeholder={placeholder}
+                                            />
+                                        </div>
                                     </div>
-                                )}
+                                </div>
                             </div>
                         );
                     })}
