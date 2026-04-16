@@ -57,14 +57,24 @@ export const useCartStore = create<CartState>()(
             addItem: (newItem) => {
                 const { items } = get();
 
+                // Helper to deep equal two simple objects ignoring key order
+                const isConfigEqual = (a: any, b: any) => {
+                    const keysA = Object.keys(a || {}).sort();
+                    const keysB = Object.keys(b || {}).sort();
+                    if (keysA.length !== keysB.length) return false;
+                    for (let i = 0; i < keysA.length; i++) {
+                        if (keysA[i] !== keysB[i]) return false;
+                        if ((a || {})[keysA[i]] !== (b || {})[keysB[i]]) return false;
+                    }
+                    return true;
+                };
+
                 // Check if item with same productId and configuration already exists
                 const existingItemIndex = items.findIndex((item) => {
                     if (item.productId !== newItem.productId) return false;
 
-                    // Compare configurations (both must be equal or both undefined/empty)
-                    const existingConfig = JSON.stringify(item.configuration || {});
-                    const newConfig = JSON.stringify(newItem.configuration || {});
-                    return existingConfig === newConfig;
+                    // Compare configurations properly ignoring key order
+                    return isConfigEqual(item.configuration, newItem.configuration);
                 });
 
                 if (existingItemIndex !== -1) {
