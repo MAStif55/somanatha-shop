@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCartStore } from '@/store/cart-store';
 import Header from '@/components/Header';
@@ -92,17 +93,53 @@ export default function CheckoutPage() {
                         </h3>
                         <div className="bg-[#1A1517] border border-[#C9A227]/20 rounded-xl sm:rounded-2xl shadow-xl overflow-hidden p-4 sm:p-6 space-y-4">
                             {items.map((item, index) => (
-                                <div key={item.productId + index} className="flex justify-between items-center border-b border-[#C9A227]/10 pb-4 last:border-0 last:pb-0">
-                                    <div>
-                                        <div className="font-bold text-[#E8D48B]">
-                                            {typeof item.productTitle === 'object' ? item.productTitle[locale] : item.productTitle}
-                                        </div>
-                                        <div className="text-sm text-[#F5ECD7]/50">
-                                            x{item.quantity}
+                                <div key={item.id || item.productId + index} className="flex items-start gap-4 border-b border-[#C9A227]/10 pb-4 last:border-0 last:pb-0">
+                                    {/* Thumbnail Image */}
+                                    <Link
+                                        href={`/product/${item.productSlug || item.productId}`}
+                                        className="w-16 h-16 rounded-lg overflow-hidden bg-[#2A2527] flex-shrink-0 border border-[#C9A227]/20 hover:border-[#C9A227]/50 transition-colors"
+                                        aria-label={locale === 'ru' ? 'Перейти к товару' : 'Go to product'}
+                                    >
+                                        {item.productImage ? (
+                                            <img
+                                                src={item.productImage}
+                                                alt={typeof item.productTitle === 'object' ? item.productTitle[locale] : item.productTitle}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-2xl text-[#C9A227]/30">
+                                                🕉️
+                                            </div>
+                                        )}
+                                    </Link>
+                                    
+                                    {/* Info */}
+                                    <div className="flex-1 min-w-0">
+                                        <Link
+                                            href={`/product/${item.productSlug || item.productId}`}
+                                            className="block hover:text-[#C9A227] transition-colors"
+                                        >
+                                            <div className="font-bold text-[#E8D48B] truncate">
+                                                {typeof item.productTitle === 'object' ? item.productTitle[locale] : item.productTitle}
+                                            </div>
+                                        </Link>
+                                        
+                                        {/* Configuration details if selected */}
+                                        {item.configuration && Object.keys(item.configuration).length > 0 && (
+                                            <div className="text-xs text-[#F5ECD7]/50 mt-1">
+                                                {Object.values(item.configuration).join(', ')}
+                                            </div>
+                                        )}
+                                        <div className="text-sm text-[#F5ECD7]/50 mt-1">
+                                            {locale === 'ru' ? 'Кол-во: ' : 'Qty: '}{item.quantity}
                                         </div>
                                     </div>
-                                    <div className="font-semibold text-[#C9A227] font-mono">
-                                        {formatPrice(item.price * item.quantity)}
+                                    
+                                    {/* Price */}
+                                    <div className="flex-shrink-0 text-right">
+                                        <div className="font-semibold text-[#C9A227] font-mono">
+                                            {formatPrice(item.price * item.quantity)}
+                                        </div>
                                     </div>
                                 </div>
                             ))}
