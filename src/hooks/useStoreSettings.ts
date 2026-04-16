@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { StoreSettings, defaultSettings } from '@/types/settings';
 
 
-// Module-level cache so multiple components don't trigger redundant Firestore reads
+// Module-level cache so multiple components don't trigger redundant database reads
 let cachedSettings: StoreSettings | null = null;
 let fetchPromise: Promise<StoreSettings> | null = null;
 
@@ -41,7 +41,7 @@ function fetchSettings(): Promise<StoreSettings> {
 }
 
 /**
- * Hook to consume store settings from Firestore.
+ * Hook to consume store settings from the database.
  * Returns defaultSettings immediately, then resolves with live values.
  * Uses module-level caching to avoid redundant reads.
  */

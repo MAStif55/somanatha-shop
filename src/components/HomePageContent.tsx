@@ -26,7 +26,7 @@ export default function HomePageContent({ initialProducts }: HomePageContentProp
     const [products, setProducts] = useState<Product[]>(initialProducts);
 
     // Client-side fallback: if SSG didn't fetch products (e.g. missing Admin SDK credentials),
-    // load them client-side from Firestore so the section always appears
+    // load them client-side from the database so the section always appears
     useEffect(() => {
         if (initialProducts.length === 0) {
             getNewestProducts(4).then(data => setProducts(data as Product[])).catch(console.error);

@@ -107,15 +107,7 @@ export default function AdminOrdersPage() {
     const formatDate = (timestamp: any) => {
         if (!timestamp) return '';
 
-        let date: Date;
-
-        // Handle Firestore Timestamp object
-        if (typeof timestamp === 'object' && 'seconds' in timestamp) {
-            date = new Date(timestamp.seconds * 1000);
-        } else {
-            // Handle number timestamp
-            date = new Date(timestamp);
-        }
+        let date = new Date(timestamp);
 
         if (isNaN(date.getTime())) return 'Invalid Date';
 

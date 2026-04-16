@@ -18,7 +18,7 @@ export default function CheckoutPage() {
     const [mounted, setMounted] = useState(false);
     const { settings } = useStoreSettings();
 
-    // Sync shipping config from Firestore settings into cart store
+    // Sync shipping config from database settings into cart store
     useEffect(() => {
         if (settings.shipping) {
             setShippingConfig(settings.shipping.price, settings.shipping.freeThreshold);

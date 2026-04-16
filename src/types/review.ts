@@ -4,5 +4,5 @@ export interface Review {
     content: string;
     rating: number;
     sourceUrl?: string;
-    createdAt: any; // Using any for Firestore timestamp compatibility, can be refined
+    createdAt: any; // Using any for timestamp compatibility, can be refined
 }
