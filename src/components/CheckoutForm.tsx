@@ -163,7 +163,7 @@ export default function CheckoutForm() {
                 )}
             </div>
 
-            {/* Delivery Type */}
+            {/* Delivery Type with nested address input */}
             <div>
                 <label className="block text-sm font-medium text-[#E8D48B] mb-1">
                     {t('checkout.deliveryTypeLabel')}
@@ -174,32 +174,53 @@ export default function CheckoutForm() {
                 <div className="space-y-2">
                     {DELIVERY_OPTIONS.map((option) => {
                         const isSelected = deliveryTypeValue === option.id;
+                        const placeholder = option.id === 'home_address'
+                            ? (locale === 'ru' ? 'г. Москва, ул. Пушкина, д. 1, кв. 10' : '123 Main St, New York, NY')
+                            : (locale === 'ru' ? 'Начните вводить адрес пункта выдачи...' : 'Start typing pickup point address...');
                         return (
-                            <label
-                                key={option.id}
-                                className={`flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all ${isSelected
-                                    ? 'bg-[#C9A227]/10 border-[#C9A227]/60 shadow-[0_0_12px_rgba(201,162,39,0.15)] ring-1 ring-[#C9A227]'
-                                    : 'bg-[#0D0A0B] border-[#C9A227]/20 hover:border-[#C9A227]/40'
-                                    }`}
-                            >
-                                <input
-                                    type="radio"
-                                    value={option.id}
-                                    {...register('deliveryType')}
-                                    className="w-4 h-4 accent-[#C9A227]"
-                                />
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-lg">{option.icon}</span>
-                                        <span className="font-medium text-[#E8D48B]">
-                                            {t(`checkout.deliveryType_${option.id}`)}
-                                        </span>
+                            <div key={option.id}>
+                                <label
+                                    className={`flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all ${isSelected
+                                        ? 'bg-[#C9A227]/10 border-[#C9A227]/60 shadow-[0_0_12px_rgba(201,162,39,0.15)] ring-1 ring-[#C9A227]'
+                                        : 'bg-[#0D0A0B] border-[#C9A227]/20 hover:border-[#C9A227]/40'
+                                        } ${isSelected ? 'rounded-b-none border-b-0' : ''}`}
+                                >
+                                    <input
+                                        type="radio"
+                                        value={option.id}
+                                        {...register('deliveryType')}
+                                        className="w-4 h-4 accent-[#C9A227]"
+                                    />
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-lg">{option.icon}</span>
+                                            <span className="font-medium text-[#E8D48B]">
+                                                {t(`checkout.deliveryType_${option.id}`)}
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-[#F5ECD7]/50 mt-1">
+                                            {t(`checkout.deliveryType_${option.id}_desc`)}
+                                        </p>
                                     </div>
-                                    <p className="text-xs text-[#F5ECD7]/50 mt-1">
-                                        {t(`checkout.deliveryType_${option.id}_desc`)}
-                                    </p>
-                                </div>
-                            </label>
+                                </label>
+                                {isSelected && (
+                                    <div className="px-4 pb-4 pt-3 bg-[#C9A227]/10 border border-t-0 border-[#C9A227]/60 rounded-b-xl ring-1 ring-[#C9A227] animate-in slide-in-from-top-1 duration-200">
+                                        <label className="block text-xs font-medium text-[#E8D48B]/80 mb-1.5">
+                                            {option.id === 'home_address'
+                                                ? (locale === 'ru' ? 'Адрес доставки' : 'Delivery Address')
+                                                : (locale === 'ru' ? 'Адрес пункта выдачи' : 'Pickup Point Address')}
+                                        </label>
+                                        <AddressAutocomplete
+                                            value={addressValue}
+                                            onChange={handleAddressChange}
+                                            onSelect={handleAddressSelect}
+                                            error={errors.address?.message}
+                                            locale={locale}
+                                            placeholder={placeholder}
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         );
                     })}
                 </div>
@@ -207,40 +228,6 @@ export default function CheckoutForm() {
                     <p className="text-red-400 text-sm mt-2">{errors.deliveryType.message}</p>
                 )}
             </div>
-
-            {/* Address — conditional on delivery type */}
-            {deliveryTypeValue && (
-                <div className="animate-in slide-in-from-top-2 duration-300">
-                    <label className="block text-sm font-medium text-[#E8D48B] mb-2">
-                        {deliveryTypeValue === 'home_address'
-                            ? (locale === 'ru' ? 'Адрес доставки' : 'Delivery Address')
-                            : (locale === 'ru' ? 'Адрес пункта выдачи' : 'Pickup Point Address')}
-                    </label>
-                    {deliveryTypeValue === 'home_address' ? (
-                        <AddressAutocomplete
-                            value={addressValue}
-                            onChange={handleAddressChange}
-                            onSelect={handleAddressSelect}
-                            error={errors.address?.message}
-                            locale={locale}
-                            placeholder={locale === 'ru' ? 'г. Москва, ул. Пушкина, д. 1, кв. 10' : '123 Main St, New York, NY'}
-                        />
-                    ) : (
-                        <>
-                            <input
-                                type="text"
-                                value={addressValue}
-                                onChange={(e) => handleAddressChange(e.target.value)}
-                                className="w-full px-4 py-3 bg-[#0D0A0B] border border-[#C9A227]/30 rounded-lg text-[#F5ECD7] placeholder-[#F5ECD7]/40 focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] transition-colors"
-                                placeholder={t('checkout.pickupAddressPlaceholder')}
-                            />
-                            {errors.address && (
-                                <p className="text-red-400 text-sm mt-1">{errors.address.message}</p>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
 
             {/* Preferred Contact Methods */}
             <div>
