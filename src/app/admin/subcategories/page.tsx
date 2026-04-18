@@ -7,6 +7,8 @@ import { useTranslation } from '@/contexts/LanguageContext';
 import { CATEGORIES, CategorySlug, SubCategory } from '@/types/category';
 
 import { Plus, Trash2, Loader2, AlertCircle } from 'lucide-react';
+import ConfirmModal from '@/components/admin/ConfirmModal';
+import Breadcrumbs from '@/components/admin/Breadcrumbs';
 
 export default function SubcategoriesPage() {
     const { t, locale } = useTranslation();
@@ -20,6 +22,7 @@ export default function SubcategoriesPage() {
     const [newTitleEn, setNewTitleEn] = useState('');
     const [newSlug, setNewSlug] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
     useEffect(() => {
         loadSubcategories();
@@ -79,20 +82,23 @@ export default function SubcategoriesPage() {
         }
     }
 
-    async function handleDelete(id: string) {
-        if (!confirm(locale === 'ru' ? 'Вы уверены?' : 'Are you sure?')) return;
+    async function handleDelete() {
+        if (!deleteTarget) return;
 
         try {
-            await deleteSubcategory(id);
+            await deleteSubcategory(deleteTarget);
             await loadSubcategories();
         } catch (err) {
             console.error("Error deleting subcategory:", err);
-            alert(locale === 'ru' ? 'Ошибка удаления' : 'Error deleting');
+            setError(locale === 'ru' ? 'Ошибка удаления' : 'Error deleting');
+        } finally {
+            setDeleteTarget(null);
         }
     }
 
     return (
         <div className="max-w-4xl mx-auto">
+            <Breadcrumbs />
             <h1 className="text-2xl font-bold text-gray-900 mb-6">
                 {locale === 'ru' ? 'Управление подкатегориями' : 'Manage Subcategories'}
             </h1>
@@ -144,7 +150,7 @@ export default function SubcategoriesPage() {
                                         <div className="text-xs text-gray-500 font-mono">{sub.slug}</div>
                                     </div>
                                     <button
-                                        onClick={() => sub.id && handleDelete(sub.id)}
+                                        onClick={() => sub.id && setDeleteTarget(sub.id)}
                                         className="text-gray-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-colors"
                                     >
                                         <Trash2 size={16} />
@@ -220,6 +226,17 @@ export default function SubcategoriesPage() {
                     </form>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={!!deleteTarget}
+                title={locale === 'ru' ? 'Удалить подкатегорию?' : 'Delete Subcategory?'}
+                message={locale === 'ru' ? 'Это действие нельзя отменить.' : 'This action cannot be undone.'}
+                confirmLabel={locale === 'ru' ? 'Удалить' : 'Delete'}
+                cancelLabel={locale === 'ru' ? 'Отмена' : 'Cancel'}
+                variant="danger"
+                onConfirm={handleDelete}
+                onCancel={() => setDeleteTarget(null)}
+            />
         </div>
     );
 }

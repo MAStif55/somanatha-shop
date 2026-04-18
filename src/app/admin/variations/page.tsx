@@ -9,6 +9,8 @@ import { VariationGroup, Product } from '@/types/product';
 import { CATEGORIES } from '@/types/category';
 
 import VariationsEditor from '@/components/admin/VariationsEditor';
+import ConfirmModal from '@/components/admin/ConfirmModal';
+import Breadcrumbs from '@/components/admin/Breadcrumbs';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { Loader2, Save, Check, DollarSign } from 'lucide-react';
 
@@ -26,6 +28,8 @@ export default function VariationsPage() {
     const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
     const [bulkPrice, setBulkPrice] = useState<string>('');
     const [bulkUpdating, setBulkUpdating] = useState(false);
+    const [showBulkConfirm, setShowBulkConfirm] = useState(false);
+    const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
     useEffect(() => {
         async function loadVariations() {
@@ -67,10 +71,12 @@ export default function VariationsPage() {
             await saveVariations(categorySlug, variations[categorySlug] || []);
             setIsDirty(prev => ({ ...prev, [categorySlug]: false }));
             setSaved(true);
-            setTimeout(() => setSaved(false), 2000);
+            setSaveStatus('success');
+            setTimeout(() => { setSaved(false); setSaveStatus('idle'); }, 2000);
         } catch (error) {
             console.error('Error saving variations:', error);
-            alert(locale === 'ru' ? 'Ошибка сохранения' : 'Error saving');
+            setSaveStatus('error');
+            setTimeout(() => setSaveStatus('idle'), 3000);
         } finally {
             setSaving(false);
         }
@@ -78,13 +84,12 @@ export default function VariationsPage() {
 
     const handleBulkUpdate = async () => {
         if (!bulkPrice || isNaN(Number(bulkPrice)) || selectedProducts.size === 0) return;
+        setShowBulkConfirm(true);
+    };
 
+    const executeBulkUpdate = async () => {
+        setShowBulkConfirm(false);
         const price = Number(bulkPrice);
-        if (!confirm(locale === 'ru'
-            ? `Вы уверены, что хотите установить цену ${price} ₽ для ${selectedProducts.size} товаров?`
-            : `Are you sure you want to set price to ${price} for ${selectedProducts.size} products?`)) {
-            return;
-        }
 
         setBulkUpdating(true);
         try {
@@ -97,10 +102,12 @@ export default function VariationsPage() {
 
             setSelectedProducts(new Set());
             setBulkPrice('');
-            alert(locale === 'ru' ? 'Цены обновлены' : 'Prices updated');
+            setSaveStatus('success');
+            setTimeout(() => setSaveStatus('idle'), 2000);
         } catch (error) {
             console.error("Bulk update failed:", error);
-            alert(locale === 'ru' ? 'Ошибка обновления' : 'Update failed');
+            setSaveStatus('error');
+            setTimeout(() => setSaveStatus('idle'), 3000);
         } finally {
             setBulkUpdating(false);
         }
@@ -131,10 +138,18 @@ export default function VariationsPage() {
 
     return (
         <div className="max-w-5xl mx-auto">
+            <Breadcrumbs />
             <div className="flex items-center justify-between mb-8">
                 <h1 className="text-2xl font-bold text-gray-900">
                     {locale === 'ru' ? 'Вариации по категориям' : 'Category Variations'}
                 </h1>
+                {saveStatus !== 'idle' && (
+                    <span className={`admin-status-msg ${saveStatus}`}>
+                        {saveStatus === 'success'
+                            ? (locale === 'ru' ? '✓ Сохранено' : '✓ Saved')
+                            : (locale === 'ru' ? '✕ Ошибка' : '✕ Error')}
+                    </span>
+                )}
             </div>
 
             {/* Category Tabs */}
@@ -287,6 +302,19 @@ export default function VariationsPage() {
                     </div>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={showBulkConfirm}
+                title={locale === 'ru' ? 'Обновить цены?' : 'Update Prices?'}
+                message={locale === 'ru'
+                    ? `Установить цену ${bulkPrice} ₽ для ${selectedProducts.size} товаров?`
+                    : `Set price to ${bulkPrice} for ${selectedProducts.size} products?`}
+                confirmLabel={locale === 'ru' ? 'Обновить' : 'Update'}
+                cancelLabel={locale === 'ru' ? 'Отмена' : 'Cancel'}
+                variant="danger"
+                onConfirm={executeBulkUpdate}
+                onCancel={() => setShowBulkConfirm(false)}
+            />
         </div>
     );
 }

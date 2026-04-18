@@ -31,35 +31,35 @@ export default function AdminLoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-            <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
+        <div className="admin-login-bg">
+            <div className="admin-login-card">
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold text-gray-800">
+                    <h1>
                         {locale === 'ru' ? 'Вход в Админку' : 'Admin Login'}
                     </h1>
-                    <p className="text-gray-500 mt-2">Somanatha Shop</p>
+                    <p className="mt-2">Somanatha Shop</p>
                 </div>
 
                 {error && (
-                    <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 text-sm">
+                    <div className="admin-status-msg error mb-6 w-full justify-center">
                         {error}
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
+                            className="admin-login-input"
                             placeholder="admin@somanatha.com"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
                             {locale === 'ru' ? 'Пароль' : 'Password'}
                         </label>
                         <input
@@ -67,14 +67,14 @@ export default function AdminLoginPage() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
+                            className="admin-login-input"
                             placeholder="••••••••"
                         />
                     </div>
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50"
+                        className="admin-login-btn"
                     >
                         {loading ? (locale === 'ru' ? 'Вход...' : 'Logging in...') : (locale === 'ru' ? 'Войти' : 'Login')}
                     </button>

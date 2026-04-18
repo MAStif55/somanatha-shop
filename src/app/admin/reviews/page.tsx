@@ -6,6 +6,8 @@ import { getAllReviews, deleteReview } from '@/actions/admin-actions';
 import { Review } from '@/types/review';
 import { Plus, Pencil, Trash2, Star, ExternalLink } from 'lucide-react';
 import ReviewForm from '@/components/admin/ReviewForm';
+import ConfirmModal from '@/components/admin/ConfirmModal';
+import Breadcrumbs from '@/components/admin/Breadcrumbs';
 import { useTranslation } from "@/contexts/LanguageContext";
 
 export default function ReviewsPage() {
@@ -13,6 +15,7 @@ export default function ReviewsPage() {
     const [loading, setLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingReview, setEditingReview] = useState<Review | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const { locale } = useTranslation();
 
@@ -34,15 +37,16 @@ export default function ReviewsPage() {
         loadReviews();
     }, [loadReviews]);
 
-    const handleDelete = async (id: string) => {
-        if (confirm('Are you sure you want to delete this review?')) {
-            try {
-                await deleteReview(id);
-                loadReviews(); // Refresh the list
-            } catch (error) {
-                console.error('Error deleting review:', error);
-                alert('Error deleting review');
-            }
+    const handleDelete = async () => {
+        if (!deleteTarget) return;
+        try {
+            await deleteReview(deleteTarget);
+            loadReviews();
+        } catch (error) {
+            console.error('Error deleting review:', error);
+            setError(locale === 'ru' ? 'Ошибка удаления отзыва' : 'Error deleting review');
+        } finally {
+            setDeleteTarget(null);
         }
     };
 
@@ -83,6 +87,7 @@ export default function ReviewsPage() {
 
     return (
         <div className="space-y-6 text-gray-900">
+            <Breadcrumbs />
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-gray-900">
                     {t.title}
@@ -157,7 +162,7 @@ export default function ReviewsPage() {
                                                     <Pencil size={18} />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(review.id)}
+                                                    onClick={() => setDeleteTarget(review.id)}
                                                     className="p-1.5 hover:bg-red-50 rounded-md text-gray-600 hover:text-red-600 transition-colors"
                                                     title="Delete"
                                                 >
@@ -183,6 +188,17 @@ export default function ReviewsPage() {
                     }}
                 />
             )}
+
+            <ConfirmModal
+                isOpen={!!deleteTarget}
+                title={locale === 'ru' ? 'Удалить отзыв?' : 'Delete Review?'}
+                message={locale === 'ru' ? 'Это действие нельзя отменить.' : 'This action cannot be undone.'}
+                confirmLabel={locale === 'ru' ? 'Удалить' : 'Delete'}
+                cancelLabel={locale === 'ru' ? 'Отмена' : 'Cancel'}
+                variant="danger"
+                onConfirm={handleDelete}
+                onCancel={() => setDeleteTarget(null)}
+            />
         </div>
     );
 }

@@ -16,6 +16,7 @@ export default function AdminSettingsPage() {
     const [settings, setSettings] = useState<StoreSettings>(defaultSettings);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [activeTab, setActiveTab] = useState<'contact' | 'shipping' | 'notifications' | 'backup'>('contact');
 
     useEffect(() => {
@@ -34,10 +35,12 @@ export default function AdminSettingsPage() {
         try {
             await updateSettings(settings);
             invalidateSettingsCache();
-            alert(locale === 'ru' ? 'Настройки сохранены' : 'Settings saved');
+            setSaveStatus('success');
+            setTimeout(() => setSaveStatus('idle'), 2500);
         } catch (error) {
             console.error(error);
-            alert(locale === 'ru' ? 'Ошибка сохранения' : 'Error saving settings');
+            setSaveStatus('error');
+            setTimeout(() => setSaveStatus('idle'), 3000);
         } finally {
             setSaving(false);
         }
@@ -63,9 +66,12 @@ export default function AdminSettingsPage() {
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+            setSaveStatus('success');
+            setTimeout(() => setSaveStatus('idle'), 2500);
         } catch (error) {
             console.error("Backup failed", error);
-            alert("Backup failed to generate");
+            setSaveStatus('error');
+            setTimeout(() => setSaveStatus('idle'), 3000);
         }
     };
 
@@ -79,14 +85,23 @@ export default function AdminSettingsPage() {
                 <h1 className="text-2xl font-bold text-gray-900">
                     {locale === 'ru' ? 'Настройки магазина' : 'Store Settings'}
                 </h1>
-                <button
+                <div className="flex items-center gap-3">
+                    {saveStatus !== 'idle' && (
+                        <span className={`admin-status-msg ${saveStatus}`}>
+                            {saveStatus === 'success'
+                                ? (locale === 'ru' ? '✓ Сохранено' : '✓ Saved')
+                                : (locale === 'ru' ? '✕ Ошибка' : '✕ Error')}
+                        </span>
+                    )}
+                    <button
                     onClick={handleSave}
                     disabled={saving}
                     className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
                 >
                     <Save size={18} />
                     {saving ? (locale === 'ru' ? 'Сохранение...' : 'Saving...') : (locale === 'ru' ? 'Сохранить' : 'Save Changes')}
-                </button>
+                    </button>
+                </div>
             </div>
 
             <div className="flex flex-col md:flex-row gap-6">
