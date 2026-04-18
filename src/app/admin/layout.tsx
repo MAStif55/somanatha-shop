@@ -1,5 +1,6 @@
 'use client';
 
+import './admin.css';
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 
