@@ -79,6 +79,12 @@ export default function ProductCard({ product }: ProductCardProps) {
     // Fallback to product ID if slug is missing
     const productSlug = product.slug || product.id;
 
+    // A product has variations if it explicitly has custom variations 
+    // OR if it inherits category-level variations (like Yantras / Kavacha) and they aren't disabled
+    const hasVariations = 
+        (product.variations && product.variations.length > 0) || 
+        (product.variationOverrides?.useDefaults !== false && ['yantras', 'kavacha'].includes(product.category || ''));
+
     return (
         <Link
             href={`/product/${productSlug}`}
@@ -95,6 +101,13 @@ export default function ProductCard({ product }: ProductCardProps) {
                 className="relative aspect-square overflow-hidden bg-[#0D0A0B] product-image-container"
                 onContextMenu={(e) => e.preventDefault()}
             >
+                {/* Variations Badge */}
+                {hasVariations && (
+                    <div className="absolute top-3 left-3 z-30 bg-[#1A1517]/80 text-[#C9A227] px-2.5 py-1 rounded-md border border-[#C9A227]/30 backdrop-blur-md shadow-[0_0_10px_rgba(0,0,0,0.5)] font-medium text-[10px] sm:text-xs tracking-wider uppercase flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#E8D48B] animate-pulse"></span>
+                        {locale === 'ru' ? '+ Опции' : '+ Options'}
+                    </div>
+                )}
                 {product.images && product.images.length > 0 ? (
                     <img
                         src={getCardImageUrl(product.images[0])}
@@ -170,14 +183,20 @@ export default function ProductCard({ product }: ProductCardProps) {
                         <div className="w-full sm:flex-1 flex items-center justify-center h-10 sm:h-11 px-2 rounded-lg border border-[#C9A227]/40 text-[#C9A227] font-semibold font-elegant text-[11px] sm:text-xs lg:text-[13px] uppercase tracking-[0.05em] hover:bg-[#C9A227]/10 hover:border-[#C9A227] transition-all duration-200 text-center">
                             {locale === 'ru' ? 'Полное описание' : 'Details'}
                         </div>
-                        <button
-                            onClick={handleAddToCart}
-                            className="w-full sm:flex-1 flex items-center justify-center gap-2 h-10 sm:h-11 px-2 rounded-lg bg-gradient-to-r from-[#C9A227] to-[#8B6914] text-[#0D0A0B] font-semibold font-elegant text-[11px] sm:text-xs lg:text-[13px] uppercase tracking-[0.05em] hover:shadow-[0_0_20px_rgba(201,162,39,0.5)] hover:scale-105 transition-all duration-200 border border-[#C9A227]"
-                            title={t('product.addToCart')}
-                        >
-                            <ShoppingCart size={14} className="w-[14px] h-[14px] sm:w-4 sm:h-4 lg:w-[18px] lg:h-[18px] shrink-0" />
-                            <span className="truncate">{locale === 'ru' ? 'В корзину' : 'Add'}</span>
-                        </button>
+                        {hasVariations ? (
+                            <div className="w-full sm:flex-1 flex items-center justify-center gap-2 h-10 sm:h-11 px-2 rounded-lg bg-gradient-to-r from-[#C9A227] to-[#8B6914] text-[#0D0A0B] font-semibold font-elegant text-[11px] sm:text-xs lg:text-[13px] uppercase tracking-[0.05em] hover:shadow-[0_0_20px_rgba(201,162,39,0.5)] hover:scale-105 transition-all duration-200 border border-[#C9A227]">
+                                <span className="truncate">{locale === 'ru' ? 'Выбрать опции' : 'Options'}</span>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={handleAddToCart}
+                                className="w-full sm:flex-1 flex items-center justify-center gap-2 h-10 sm:h-11 px-2 rounded-lg bg-gradient-to-r from-[#C9A227] to-[#8B6914] text-[#0D0A0B] font-semibold font-elegant text-[11px] sm:text-xs lg:text-[13px] uppercase tracking-[0.05em] hover:shadow-[0_0_20px_rgba(201,162,39,0.5)] hover:scale-105 transition-all duration-200 border border-[#C9A227]"
+                                title={t('product.addToCart')}
+                            >
+                                <ShoppingCart size={14} className="w-[14px] h-[14px] sm:w-4 sm:h-4 lg:w-[18px] lg:h-[18px] shrink-0" />
+                                <span className="truncate">{locale === 'ru' ? 'В корзину' : 'Add'}</span>
+                            </button>
+                        )}
                     </div>
                     <div className="text-center w-full mt-4 sm:mt-5">
                         <span className="text-lg sm:text-xl font-bold text-[#C9A227]">

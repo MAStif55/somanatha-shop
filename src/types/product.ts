@@ -13,6 +13,8 @@ export interface VariationOption {
     label: { en: string; ru: string };
     description?: { en: string; ru: string };
     priceModifier: number; // Price change (can be positive/negative)
+    imageUrl?: string; // Optional thumbnail for visual selection (Legacy)
+    image?: import('./product').ProductImage; // Multi-resolution support
 }
 
 /**

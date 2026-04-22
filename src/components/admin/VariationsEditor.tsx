@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { VariationGroup, VariationOption } from '@/types/product';
 import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
+import VariationImageUpload from './VariationImageUpload';
 
 interface VariationsEditorProps {
     value: VariationGroup[];
@@ -139,56 +140,96 @@ export default function VariationsEditor({ value, onChange, locale }: Variations
                                     <div className="text-gray-400 pt-2 cursor-grab">
                                         <GripVertical size={16} />
                                     </div>
-                                    <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-3">
-                                        <div>
-                                            <label className="block text-xs text-gray-500 mb-1">ID</label>
-                                            <input
-                                                type="text"
-                                                value={option.id}
-                                                onChange={(e) => updateOption(group.id, option.id, { id: e.target.value })}
-                                                className="w-full px-3 py-1.5 border rounded text-sm text-gray-900 focus:ring-2 focus:ring-primary focus:outline-none font-mono"
-                                            />
+                                    <div className="flex-1 space-y-3">
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                            <div>
+                                                <label className="block text-xs text-gray-500 mb-1">ID</label>
+                                                <input
+                                                    type="text"
+                                                    value={option.id}
+                                                    onChange={(e) => updateOption(group.id, option.id, { id: e.target.value })}
+                                                    className="w-full px-3 py-1.5 border rounded text-sm text-gray-900 focus:ring-2 focus:ring-primary focus:outline-none font-mono"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-gray-500 mb-1">
+                                                    {locale === 'ru' ? 'Название (RU)' : 'Label (RU)'}
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={option.label.ru}
+                                                    onChange={(e) => updateOption(group.id, option.id, {
+                                                        label: { ...option.label, ru: e.target.value }
+                                                    })}
+                                                    placeholder={locale === 'ru' ? 'Медь 0.8мм' : 'Copper 0.8mm'}
+                                                    className="w-full px-3 py-1.5 border rounded text-sm text-gray-900 focus:ring-2 focus:ring-primary focus:outline-none"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-gray-500 mb-1">
+                                                    {locale === 'ru' ? 'Название (EN)' : 'Label (EN)'}
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={option.label.en}
+                                                    onChange={(e) => updateOption(group.id, option.id, {
+                                                        label: { ...option.label, en: e.target.value }
+                                                    })}
+                                                    placeholder="Copper 0.8mm"
+                                                    className="w-full px-3 py-1.5 border rounded text-sm text-gray-900 focus:ring-2 focus:ring-primary focus:outline-none"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-gray-500 mb-1">
+                                                    {locale === 'ru' ? 'Доплата (₽)' : 'Price modifier (₽)'}
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    value={option.priceModifier}
+                                                    onChange={(e) => updateOption(group.id, option.id, {
+                                                        priceModifier: Number(e.target.value)
+                                                    })}
+                                                    className="w-full px-3 py-1.5 border rounded text-sm text-gray-900 focus:ring-2 focus:ring-primary focus:outline-none"
+                                                />
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-xs text-gray-500 mb-1">
-                                                {locale === 'ru' ? 'Название (RU)' : 'Label (RU)'}
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={option.label.ru}
-                                                onChange={(e) => updateOption(group.id, option.id, {
-                                                    label: { ...option.label, ru: e.target.value }
-                                                })}
-                                                placeholder={locale === 'ru' ? 'Медь 0.8мм' : 'Copper 0.8mm'}
-                                                className="w-full px-3 py-1.5 border rounded text-sm text-gray-900 focus:ring-2 focus:ring-primary focus:outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs text-gray-500 mb-1">
-                                                {locale === 'ru' ? 'Название (EN)' : 'Label (EN)'}
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={option.label.en}
-                                                onChange={(e) => updateOption(group.id, option.id, {
-                                                    label: { ...option.label, en: e.target.value }
-                                                })}
-                                                placeholder="Copper 0.8mm"
-                                                className="w-full px-3 py-1.5 border rounded text-sm text-gray-900 focus:ring-2 focus:ring-primary focus:outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs text-gray-500 mb-1">
-                                                {locale === 'ru' ? 'Доплата (₽)' : 'Price modifier (₽)'}
-                                            </label>
-                                            <input
-                                                type="number"
-                                                value={option.priceModifier}
-                                                onChange={(e) => updateOption(group.id, option.id, {
-                                                    priceModifier: Number(e.target.value)
-                                                })}
-                                                className="w-full px-3 py-1.5 border rounded text-sm text-gray-900 focus:ring-2 focus:ring-primary focus:outline-none"
-                                            />
+                                        <div className="flex items-start gap-4">
+                                            <div className="w-48 shrink-0">
+                                                <label className="block text-xs font-semibold text-gray-600 mb-2">
+                                                    {locale === 'ru' ? 'Фото опции' : 'Option Photo'}
+                                                </label>
+                                                <VariationImageUpload
+                                                    onUploadComplete={(img) => updateOption(group.id, option.id, { image: img, imageUrl: img.url })}
+                                                />
+                                            </div>
+                                            {/* Unified Preview / Remove Logic */}
+                                            {(option.image || option.imageUrl) && (
+                                                <div className="flex-1 pt-6">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-12 h-12 rounded-full border border-gray-200 overflow-hidden shrink-0 bg-gray-50 shadow-sm">
+                                                            <img 
+                                                                src={option.image?.thumbUrl || option.image?.url || option.imageUrl} 
+                                                                alt={option.label.en} 
+                                                                className="w-full h-full object-cover" 
+                                                            />
+                                                        </div>
+                                                        <div className="flex flex-col flex-1 min-w-0">
+                                                            <span className="text-xs text-green-600 font-medium">
+                                                                {locale === 'ru' ? 'Загружено успешно' : 'Upload success'}
+                                                            </span>
+                                                            <span className="text-[10px] text-gray-400 truncate mt-0.5" title={option.image?.url || option.imageUrl}>
+                                                                {option.image?.url || option.imageUrl}
+                                                            </span>
+                                                            <button 
+                                                                onClick={() => updateOption(group.id, option.id, { image: undefined, imageUrl: undefined })}
+                                                                className="text-[10px] text-red-500 hover:text-red-700 hover:underline text-left mt-1 w-fit uppercase font-semibold"
+                                                            >
+                                                                {locale === 'ru' ? 'Удалить фото' : 'Remove Photo'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     <button
