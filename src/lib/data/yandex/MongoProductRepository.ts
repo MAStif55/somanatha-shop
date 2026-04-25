@@ -55,8 +55,16 @@ export class MongoProductRepository implements IProductRepository {
 
     async getBySlug(slug: string): Promise<Product | null> {
         const db = await getDb();
-        const doc = await db.collection('products').findOne({ slug });
-        return doc ? docToEntity<Product>(doc) : null;
+        const docs = await db.collection('products').find({ slug }).sort({ createdAt: -1 }).toArray();
+        
+        if (docs.length === 0) return null;
+        
+        // Prefer active products over hidden ones in case of duplicate slugs
+        const active = docs.find(d => d.status !== 'hidden');
+        if (active) return docToEntity<Product>(active);
+        
+        // Fallback to the newest one if all are hidden
+        return docToEntity<Product>(docs[0]);
     }
 
     async getById(id: string): Promise<Product | null> {
