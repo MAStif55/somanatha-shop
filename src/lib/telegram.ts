@@ -42,8 +42,13 @@ export async function sendTelegramOrderNotification(orderData: any, orderId: str
     try {
         const itemsList = orderData.items
             .map(
-                (item: any) =>
-                    `  • ${escapeHtml(item.productTitle)} x${item.quantity} — ${item.price * item.quantity}₽`
+                (item: any) => {
+                    let text = `  • ${escapeHtml(item.productTitle)} x${item.quantity} — ${item.price * item.quantity}₽`;
+                    if (item.configuration && Object.keys(item.configuration).length > 0) {
+                        text += `\n      <i>${escapeHtml(Object.values(item.configuration).join(', '))}</i>`;
+                    }
+                    return text;
+                }
             )
             .join('\n');
 

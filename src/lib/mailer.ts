@@ -54,8 +54,14 @@ export async function sendEmailOrderNotification(orderData: any, orderId: string
     try {
         const itemsHtml = orderData.items
             .map(
-                (item: any) =>
-                    `<li>${item.productTitle} x${item.quantity} — ${item.price * item.quantity}₽</li>`
+                (item: any) => {
+                    let html = `<li><strong>${item.productTitle}</strong> x${item.quantity} — ${item.price * item.quantity}₽`;
+                    if (item.configuration && Object.keys(item.configuration).length > 0) {
+                        html += `<br><span style="color: #666; font-size: 0.9em;"><em>${Object.values(item.configuration).join(', ')}</em></span>`;
+                    }
+                    html += `</li>`;
+                    return html;
+                }
             )
             .join('');
 
