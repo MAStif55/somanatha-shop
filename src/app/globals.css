@@ -350,6 +350,18 @@ h6 {
     }
 }
 
+@keyframes fab-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(201, 162, 39, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 15px rgba(201, 162, 39, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(201, 162, 39, 0);
+    }
+}
+
 
 .animate-float {
     animation: floating 6s ease-in-out infinite;

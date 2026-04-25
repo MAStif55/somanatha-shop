@@ -32,7 +32,7 @@ export default function UnderConstructionPopup() {
 
     /* ── Initialise on client only ── */
     useEffect(() => {
-        const wasDismissed = localStorage.getItem(STORAGE_KEY);
+        const wasDismissed = sessionStorage.getItem(STORAGE_KEY);
         if (wasDismissed) {
             setPhase('fab');
             entrancePlayed.current = true; // no entrance needed
@@ -69,7 +69,7 @@ export default function UnderConstructionPopup() {
     const dismiss = useCallback(() => {
         if (phase !== 'open') return;
         setPhase('closing');
-        localStorage.setItem(STORAGE_KEY, '1');
+        sessionStorage.setItem(STORAGE_KEY, '1');
 
         const modal = modalRef.current;
         const overlay = overlayRef.current;
@@ -262,7 +262,7 @@ export default function UnderConstructionPopup() {
                     className="fixed bottom-6 left-6 z-[90] w-14 h-14 rounded-full bg-gradient-to-br from-[#1A1517] to-[#0D0A0B] border border-[#C9A227]/40 shadow-lg shadow-black/30 flex items-center justify-center text-[#E8D48B] hover:border-[#C9A227] hover:text-[#C9A227] hover:shadow-[#C9A227]/20 hover:scale-110 active:scale-95 transition-all duration-200 group"
                     style={
                         phase === 'fab'
-                            ? { animation: 'fab-pop-in 300ms ease-out both' }
+                            ? { animation: 'fab-pop-in 300ms ease-out both, fab-pulse 2s infinite 300ms' }
                             : { opacity: 0, pointerEvents: 'none' as const }
                     }
                     aria-label={locale === 'ru' ? 'Связаться с нами' : 'Contact us'}
