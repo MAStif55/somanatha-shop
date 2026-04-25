@@ -22,6 +22,13 @@ export async function getNewestProducts(count: number = 4) {
     return await ProductRepository.getNewest(count);
 }
 
+export async function getPublicAllProducts() {
+    // Only fetches non-hidden products (enforced by the frontend logic or repository if updated)
+    // ProductRepository.getAll() fetches everything, so we should filter out hidden ones
+    const products = await ProductRepository.getAll();
+    return products.filter(p => p.status !== 'hidden');
+}
+
 export async function getProductsByCategory(categorySlug: string) {
     return await ProductRepository.getByCategory(categorySlug);
 }

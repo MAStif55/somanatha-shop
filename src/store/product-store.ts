@@ -1,4 +1,4 @@
-import { getAllProducts } from '@/actions/admin-actions';
+import { getPublicAllProducts } from '@/actions/catalog-actions';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Product } from '@/types/product';
@@ -14,8 +14,8 @@ interface ProductState {
     fetchProducts: (force?: boolean) => Promise<void>;
 }
 
-// 5 minutes cache duration
-const CACHE_DURATION = 5 * 60 * 1000;
+// 0 cache duration enables Stale-While-Revalidate: it immediately shows cached products but always fetches fresh ones in the background
+const CACHE_DURATION = 0;
 
 export const useProductStore = create<ProductState>()(
     persist(
@@ -42,7 +42,7 @@ export const useProductStore = create<ProductState>()(
                 set({ isLoading: true, error: null });
 
                 try {
-                    const fetchedProducts = await getAllProducts() as Product[];
+                    const fetchedProducts = await getPublicAllProducts() as Product[];
                     set({
                         products: fetchedProducts,
                         lastFetched: now,

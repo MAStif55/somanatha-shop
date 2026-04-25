@@ -79,11 +79,11 @@ export default function ProductCard({ product }: ProductCardProps) {
     // Fallback to product ID if slug is missing
     const productSlug = product.slug || product.id;
 
-    // A product has variations if it explicitly has custom variations 
-    // OR if it inherits category-level variations (like Yantras / Kavacha) and they aren't disabled
-    const hasVariations = 
-        (product.variations && product.variations.length > 0) || 
-        (product.variationOverrides?.useDefaults !== false && ['yantras', 'kavacha'].includes(product.category || ''));
+    // A product has custom variations only if they are explicitly set on the product level.
+    // For category-level variations, we don't have the data here in the card to know if they are enabled/configured.
+    // To avoid false positives (showing the badge when there are no options), we only show it if the product has custom variations,
+    // or if the variations were injected into the product object.
+    const hasVariations = product.variations && product.variations.length > 0;
 
     return (
         <Link
