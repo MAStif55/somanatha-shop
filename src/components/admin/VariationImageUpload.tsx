@@ -5,6 +5,7 @@ import { uploadFile } from '@/actions/admin-actions';
 import { Loader2, ImagePlus } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ProductImage } from '@/types/product';
+import ImageCropper from './ImageCropper';
 
 interface VariationImageUploadProps {
     onUploadComplete: (image: ProductImage) => void;
@@ -18,6 +19,8 @@ export default function VariationImageUpload({
     const { locale } = useLanguage();
     const [uploading, setUploading] = useState(false);
     const [dragOver, setDragOver] = useState(false);
+    const [imageSrc, setImageSrc] = useState<string | null>(null);
+    const [currentFileName, setCurrentFileName] = useState<string>('');
 
     // Variant definitions
     const VARIANTS = [
@@ -58,12 +61,18 @@ export default function VariationImageUpload({
         });
     };
 
-    const handleFile = async (file: File) => {
+    const handleFile = (file: File) => {
         if (!file.type.startsWith('image/')) return;
-        
+        setCurrentFileName(file.name);
+        setImageSrc(URL.createObjectURL(file));
+    };
+
+    const processCroppedImage = async (croppedBlob: Blob) => {
+        setImageSrc(null);
         setUploading(true);
         try {
-            const baseName = `${Date.now()}_${file.name.replace(/\.[^/.]+$/, '')}`;
+            const file = new File([croppedBlob], currentFileName || 'image.webp', { type: 'image/webp' });
+            const baseName = `${Date.now()}_${(currentFileName || 'image').replace(/\.[^/.]+$/, '')}`;
             
             const blobs = await Promise.all(
                 VARIANTS.map(v => generateVariant(file, v.maxDim, v.quality))
@@ -107,26 +116,36 @@ export default function VariationImageUpload({
     };
 
     return (
-        <label
-            onDrop={handleDrop}
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={(e) => { e.preventDefault(); setDragOver(false); }}
-            className={`flex items-center justify-center p-2 border-2 border-dashed rounded-lg transition-colors cursor-pointer min-h-[80px] w-full ${
-                dragOver ? 'border-[#C9A227] bg-[#C9A227]/10' : 'border-gray-300 hover:border-[#C9A227] hover:bg-[#C9A227]/5'
-            }`}
-            title={locale === 'ru' ? 'Нажмите или перетащите файл для загрузки' : 'Click or drop file to upload'}
-        >
-            {uploading ? (
-                <Loader2 className="animate-spin text-[#C9A227]" size={20} />
-            ) : (
-                <div className="flex flex-col items-center flex-1 text-center group">
-                    <ImagePlus className={`mb-1 ${dragOver ? 'text-[#C9A227]' : 'text-gray-400 group-hover:text-[#C9A227]'}`} size={20} />
-                    <span className="text-[10px] text-gray-500 font-medium whitespace-nowrap">
-                        {dragOver ? (locale === 'ru' ? 'Отпустите файл' : 'Drop file') : (locale === 'ru' ? 'Загрузить фото' : 'Upload photo')}
-                    </span>
-                </div>
+        <>
+            <label
+                onDrop={handleDrop}
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={(e) => { e.preventDefault(); setDragOver(false); }}
+                className={`flex items-center justify-center p-2 border-2 border-dashed rounded-lg transition-colors cursor-pointer min-h-[80px] w-full ${
+                    dragOver ? 'border-[#C9A227] bg-[#C9A227]/10' : 'border-gray-300 hover:border-[#C9A227] hover:bg-[#C9A227]/5'
+                }`}
+                title={locale === 'ru' ? 'Нажмите или перетащите файл для загрузки' : 'Click or drop file to upload'}
+            >
+                {uploading ? (
+                    <Loader2 className="animate-spin text-[#C9A227]" size={20} />
+                ) : (
+                    <div className="flex flex-col items-center flex-1 text-center group">
+                        <ImagePlus className={`mb-1 ${dragOver ? 'text-[#C9A227]' : 'text-gray-400 group-hover:text-[#C9A227]'}`} size={20} />
+                        <span className="text-[10px] text-gray-500 font-medium whitespace-nowrap">
+                            {dragOver ? (locale === 'ru' ? 'Отпустите файл' : 'Drop file') : (locale === 'ru' ? 'Загрузить фото' : 'Upload photo')}
+                        </span>
+                    </div>
+                )}
+                <input type="file" accept="image/*" className="hidden" onChange={handleChange} disabled={uploading} />
+            </label>
+
+            {imageSrc && (
+                <ImageCropper
+                    imageSrc={imageSrc}
+                    onCropComplete={processCroppedImage}
+                    onCancel={() => setImageSrc(null)}
+                />
             )}
-            <input type="file" accept="image/*" className="hidden" onChange={handleChange} disabled={uploading} />
-        </label>
+        </>
     );
 }
