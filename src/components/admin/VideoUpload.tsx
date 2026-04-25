@@ -302,7 +302,7 @@ export default function VideoUpload({
 
     const handleRemoveCurrent = async () => {
         if (value) {
-            // Delete old video from Firebase Storage to free up space
+            // Delete old video from S3 storage to free up space
             try {
                 await deleteFile(value);
             } catch (e) {

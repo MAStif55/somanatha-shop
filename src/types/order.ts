@@ -10,6 +10,7 @@ export interface SelectedVariation {
     optionId: string;
     optionLabel: string;
     priceModifier: number;
+    status?: import('./product').ProductStatus;
 }
 
 export interface OrderItem {

@@ -21,8 +21,8 @@ export async function POST(request: Request) {
             telegram: telegram ? telegram.trim() : null,
         };
 
-        // Send notifications in parallel
-        await Promise.all([
+        // Send notifications in parallel (resilient — one failing won't block the other)
+        await Promise.allSettled([
             sendTelegramFeedbackNotification(feedbackData),
             sendEmailFeedbackNotification(feedbackData),
         ]);

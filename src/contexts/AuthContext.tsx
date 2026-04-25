@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { login as loginAction, logout as logoutAction, getSession, AppUser } from '@/actions/auth-actions';
 
-import { useRouter } from 'next/navigation';
+
 
 // AppUser moved to auth-actions or keep here.
 // Re-export here for backward compatibility
@@ -38,13 +38,11 @@ export const AuthProvider = ({
 }: AuthProviderProps) => {
     const [user, setUser] = useState<AppUser | null>(null);
     const [loading, setLoading] = useState(true);
-    const router = useRouter();
 
     useEffect(() => {
         let mounted = true;
         getSession().then(session => {
             if (mounted) {
-                // @ts-ignore
                 setUser(session);
                 setLoading(false);
             }

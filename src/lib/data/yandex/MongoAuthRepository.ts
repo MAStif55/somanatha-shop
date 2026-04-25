@@ -1,15 +1,24 @@
 import { getDb } from './mongo-client';
 import { IAuthRepository } from '../interfaces';
+import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 
 // ============================================================================
-// SELF-HOSTED AUTH (MongoDB-backed, no Firebase dependency)
+// SELF-HOSTED AUTH (MongoDB-backed, fully sovereign)
 //
-// Uses a simple admin_users collection with hashed passwords.
+// Uses a simple admin_users collection with bcrypt-hashed passwords.
 // For a small admin-only shop, this is sufficient and fully sovereign.
+//
+// Migration: Existing SHA-256 hashes are auto-upgraded to bcrypt on login.
 // ============================================================================
 
-function hashPassword(password: string): string {
+const BCRYPT_ROUNDS = 12;
+
+/**
+ * Legacy SHA-256 hash for migration compatibility.
+ * New logins always use bcrypt.
+ */
+function sha256Hash(password: string): string {
     return crypto.createHash('sha256').update(password).digest('hex');
 }
 
@@ -35,14 +44,35 @@ export class MongoAuthRepository implements IAuthRepository {
 
     async signInWithEmail(email: string, pass: string): Promise<void> {
         const db = await getDb();
-        const hashedPass = hashPassword(pass);
-        const user = await db.collection('admin_users').findOne({
-            email: email,
-            passwordHash: hashedPass
-        });
+        const user = await db.collection('admin_users').findOne({ email });
 
         if (!user) {
             throw new Error('Invalid email or password');
+        }
+
+        const storedHash: string = user.passwordHash;
+
+        // Check if the stored hash is a bcrypt hash (starts with $2b$ or $2a$)
+        if (storedHash.startsWith('$2b$') || storedHash.startsWith('$2a$')) {
+            // Modern bcrypt comparison
+            const isValid = await bcrypt.compare(pass, storedHash);
+            if (!isValid) {
+                throw new Error('Invalid email or password');
+            }
+        } else {
+            // Legacy SHA-256 comparison — auto-upgrade to bcrypt on success
+            const legacyHash = sha256Hash(pass);
+            if (legacyHash !== storedHash) {
+                throw new Error('Invalid email or password');
+            }
+
+            // Auto-upgrade: replace SHA-256 hash with bcrypt
+            const bcryptHash = await bcrypt.hash(pass, BCRYPT_ROUNDS);
+            await db.collection('admin_users').updateOne(
+                { _id: user._id },
+                { $set: { passwordHash: bcryptHash } }
+            );
+            console.log(`[Auth] Upgraded password hash for ${email} from SHA-256 to bcrypt`);
         }
 
         currentUser = {

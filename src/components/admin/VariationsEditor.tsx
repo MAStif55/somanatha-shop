@@ -141,7 +141,7 @@ export default function VariationsEditor({ value, onChange, locale }: Variations
                                         <GripVertical size={16} />
                                     </div>
                                     <div className="flex-1 space-y-3">
-                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                        <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                                             <div>
                                                 <label className="block text-xs text-gray-500 mb-1">ID</label>
                                                 <input
@@ -191,6 +191,23 @@ export default function VariationsEditor({ value, onChange, locale }: Variations
                                                     })}
                                                     className="w-full px-3 py-1.5 border rounded text-sm text-gray-900 focus:ring-2 focus:ring-primary focus:outline-none"
                                                 />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-gray-500 mb-1">
+                                                    {locale === 'ru' ? 'Статус' : 'Status'}
+                                                </label>
+                                                <select
+                                                    value={option.status || 'available'}
+                                                    onChange={(e) => updateOption(group.id, option.id, {
+                                                        status: e.target.value as any
+                                                    })}
+                                                    className="w-full px-3 py-1.5 border rounded text-sm text-gray-900 focus:ring-2 focus:ring-primary focus:outline-none"
+                                                >
+                                                    <option value="available">{locale === 'ru' ? 'В наличии' : 'Available'}</option>
+                                                    <option value="out_of_stock">{locale === 'ru' ? 'Нет в наличии' : 'Out of Stock'}</option>
+                                                    <option value="coming_soon">{locale === 'ru' ? 'Скоро' : 'Coming Soon'}</option>
+                                                    <option value="hidden">{locale === 'ru' ? 'Скрыт' : 'Hidden'}</option>
+                                                </select>
                                             </div>
                                         </div>
                                         <div className="flex items-start gap-4">

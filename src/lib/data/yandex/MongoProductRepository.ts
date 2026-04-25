@@ -1,5 +1,5 @@
-import { ObjectId } from 'mongodb';
 import { getDb } from './mongo-client';
+import { toIdFilter, docToEntity } from './mongo-helpers';
 import { Product } from '@/types/product';
 import { IProductRepository } from '../interfaces';
 
@@ -25,54 +25,45 @@ export class MongoProductRepository implements IProductRepository {
             + '-' + Date.now().toString(36).slice(-4);
     }
 
-    private toProduct(doc: any): Product {
-        const { _id, ...rest } = doc;
-        return { id: _id.toString(), ...rest } as Product;
-    }
-
     async getAll(): Promise<Product[]> {
         const db = await getDb();
         const docs = await db.collection('products')
             .find()
             .sort({ createdAt: -1 })
             .toArray();
-        return docs.map(d => this.toProduct(d));
+        return docs.map(d => docToEntity<Product>(d));
     }
 
     async getNewest(count: number = 4): Promise<Product[]> {
         const db = await getDb();
         const docs = await db.collection('products')
-            .find()
+            .find({ status: { $ne: 'hidden' } })
             .sort({ createdAt: -1 })
             .limit(count)
             .toArray();
-        return docs.map(d => this.toProduct(d));
+        return docs.map(d => docToEntity<Product>(d));
     }
 
     async getByCategory(categorySlug: string): Promise<Product[]> {
         const db = await getDb();
         const docs = await db.collection('products')
-            .find({ category: categorySlug })
+            .find({ category: categorySlug, status: { $ne: 'hidden' } })
             .sort({ createdAt: -1 })
             .toArray();
-        return docs.map(d => this.toProduct(d));
+        return docs.map(d => docToEntity<Product>(d));
     }
 
     async getBySlug(slug: string): Promise<Product | null> {
         const db = await getDb();
         const doc = await db.collection('products').findOne({ slug });
-        return doc ? this.toProduct(doc) : null;
+        return doc ? docToEntity<Product>(doc) : null;
     }
 
     async getById(id: string): Promise<Product | null> {
         const db = await getDb();
-        // Support both ObjectId and string IDs (for migrated Firebase data)
-        const doc = await db.collection('products').findOne(
-            ObjectId.isValid(id) && id.length === 24
-                ? { _id: new ObjectId(id) }
-                : { _id: id as any }
-        );
-        return doc ? this.toProduct(doc) : null;
+        // Support both ObjectId and string IDs (for migrated data)
+        const doc = await db.collection('products').findOne(toIdFilter(id));
+        return doc ? docToEntity<Product>(doc) : null;
     }
 
     async create(product: Partial<Product>): Promise<string> {
@@ -92,26 +83,27 @@ export class MongoProductRepository implements IProductRepository {
 
     async update(id: string, data: Partial<Product>): Promise<void> {
         const db = await getDb();
-        const { id: _, ...updateData } = data as any;
+        const { id: _, ...updateData } = data as Record<string, unknown>;
         await db.collection('products').updateOne(
-            ObjectId.isValid(id) && id.length === 24
-                ? { _id: new ObjectId(id) }
-                : { _id: id as any },
+            toIdFilter(id),
             { $set: updateData }
         );
     }
 
     async delete(id: string): Promise<void> {
         const db = await getDb();
-        await db.collection('products').deleteOne(
-            ObjectId.isValid(id) && id.length === 24
-                ? { _id: new ObjectId(id) }
-                : { _id: id as any }
-        );
+        await db.collection('products').deleteOne(toIdFilter(id));
     }
 
     async bulkUpdatePrices(ids: string[], price: number): Promise<void> {
-        const updates = ids.map(id => this.update(id, { basePrice: price }));
-        await Promise.all(updates);
+        if (ids.length === 0) return;
+        const db = await getDb();
+        const operations = ids.map(id => ({
+            updateOne: {
+                filter: toIdFilter(id),
+                update: { $set: { basePrice: price } },
+            },
+        }));
+        await db.collection('products').bulkWrite(operations);
     }
 }

@@ -18,9 +18,12 @@ export class YandexFunctionsRepository implements IFunctionsRepository {
 
     async triggerBackup(): Promise<{ success: boolean; message?: string }> {
         // Backup on Yandex is done via a local script on the VM.
-        // We can call it via a local API route if needed in the future.
+        // Use absolute URL so this works from both client and server contexts.
         try {
-            const res = await fetch('/api/backup', { method: 'POST' });
+            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+                || process.env.VERCEL_URL
+                || 'http://localhost:3000';
+            const res = await fetch(`${baseUrl}/api/backup`, { method: 'POST' });
             if (res.ok) {
                 return { success: true, message: 'Backup initiated on the server.' };
             }

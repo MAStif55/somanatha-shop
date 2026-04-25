@@ -4,5 +4,5 @@ export interface Review {
     content: string;
     rating: number;
     sourceUrl?: string;
-    createdAt: any; // Using any for timestamp compatibility, can be refined
+    createdAt: number; // Unix timestamp (Date.now())
 }

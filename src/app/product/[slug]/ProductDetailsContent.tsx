@@ -69,6 +69,12 @@ export default function ProductDetailsContent() {
                     data = await getProductById(slug as string) as Product | null;
                 }
 
+                // If product is hidden, pretend it's not found
+                if (data?.status === 'hidden') {
+                    setProduct(null);
+                    return;
+                }
+
                 setProduct(data);
 
                 // If product has a video, maybe don't auto-select it or do auto-select
@@ -84,11 +90,14 @@ export default function ProductDetailsContent() {
 
                     variations = categoryVars.map(group => ({
                         ...group,
-                        options: group.options.filter(opt => !disabledOptions.includes(opt.id))
+                        options: group.options.filter(opt => !disabledOptions.includes(opt.id) && opt.status !== 'hidden')
                     })).filter(group => group.options.length > 0);
                 } else if (data?.variations) {
                     // Use custom variations
-                    variations = data.variations;
+                    variations = data.variations.map(group => ({
+                        ...group,
+                        options: group.options.filter(opt => opt.status !== 'hidden')
+                    })).filter(group => group.options.length > 0);
                 }
 
                 setEffectiveVariations(variations);
@@ -108,6 +117,7 @@ export default function ProductDetailsContent() {
                                 optionId: firstOption.id,
                                 optionLabel: firstOption.label[locale] || firstOption.label.ru,
                                 priceModifier: firstOption.priceModifier,
+                                status: firstOption.status,
                             });
                         }
                     });
@@ -207,6 +217,13 @@ export default function ProductDetailsContent() {
     // Calculate total price including variations
     const totalPriceModifier = variationDetails.reduce((sum, v) => sum + v.priceModifier, 0);
     const totalPrice = (product?.basePrice || 0) + totalPriceModifier;
+
+    const isVariationOutOfStock = variationDetails.some(v => v.status === 'out_of_stock');
+    const isVariationComingSoon = variationDetails.some(v => v.status === 'coming_soon');
+    
+    const effectiveStatus = product?.status === 'out_of_stock' || isVariationOutOfStock ? 'out_of_stock' 
+                          : product?.status === 'coming_soon' || isVariationComingSoon ? 'coming_soon' 
+                          : 'available';
 
     const handleAddToCart = () => {
         if (!product) return;
@@ -394,10 +411,22 @@ export default function ProductDetailsContent() {
                                         {formatPrice(totalPrice)}
                                     </span>
                                 </div>
-                                <span className="mb-2 px-3 py-1 bg-[#1A1517] border border-[#2E7D32]/50 text-[#4CAF50] rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 shadow-[0_0_10px_rgba(46,125,50,0.2)]">
-                                    <Check size={12} strokeWidth={3} />
-                                    {locale === 'ru' ? 'В наличии' : 'In Stock'}
-                                </span>
+                                {effectiveStatus === 'available' && (
+                                    <span className="mb-2 px-3 py-1 bg-[#1A1517] border border-[#2E7D32]/50 text-[#4CAF50] rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 shadow-[0_0_10px_rgba(46,125,50,0.2)]">
+                                        <Check size={12} strokeWidth={3} />
+                                        {locale === 'ru' ? 'В наличии' : 'In Stock'}
+                                    </span>
+                                )}
+                                {effectiveStatus === 'out_of_stock' && (
+                                    <span className="mb-2 px-3 py-1 bg-[#1A1517] border border-red-900/50 text-red-500 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 shadow-[0_0_10px_rgba(244,67,54,0.2)]">
+                                        {locale === 'ru' ? 'Нет в наличии' : 'Out of Stock'}
+                                    </span>
+                                )}
+                                {effectiveStatus === 'coming_soon' && (
+                                    <span className="mb-2 px-3 py-1 bg-[#1A1517] border border-orange-900/50 text-orange-500 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 shadow-[0_0_10px_rgba(255,152,0,0.2)]">
+                                        {locale === 'ru' ? 'Скоро' : 'Coming Soon'}
+                                    </span>
+                                )}
                             </div>
 
                             {/* Variations Selector */}
@@ -418,14 +447,16 @@ export default function ProductDetailsContent() {
                                 <button
                                     onClick={handleAddToCart}
                                     ref={addToCartRef}
-                                    disabled={addedToCart}
+                                    disabled={addedToCart || effectiveStatus !== 'available'}
                                     className={`w-full py-4 px-8 rounded-lg text-lg font-bold uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden group border-2 ${addedToCart
                                         ? 'bg-green-600 border-green-500 text-white cursor-default'
+                                        : effectiveStatus !== 'available'
+                                        ? 'bg-[#1A1517] border-[#3D2B2F] text-[#F5ECD7]/50 cursor-not-allowed opacity-70'
                                         : 'bg-gradient-to-r from-[#C9A227] via-[#E8D48B] to-[#C9A227] border-[#C9A227] text-[#0D0A0B] hover:shadow-[0_0_40px_rgba(201,162,39,0.5)] hover:scale-[1.02]'
                                         }`}
                                 >
                                     {/* Animated shimmer effect */}
-                                    {!addedToCart && (
+                                    {!addedToCart && effectiveStatus === 'available' && (
                                         <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out"></span>
                                     )}
                                     <span className="relative z-10 flex items-center gap-3">
@@ -434,6 +465,10 @@ export default function ProductDetailsContent() {
                                                 <Check size={22} />
                                                 <span>{locale === 'ru' ? 'Добавлено!' : 'Added!'}</span>
                                             </>
+                                        ) : effectiveStatus === 'out_of_stock' ? (
+                                            <span>{locale === 'ru' ? 'Нет в наличии' : 'Out of Stock'}</span>
+                                        ) : effectiveStatus === 'coming_soon' ? (
+                                            <span>{locale === 'ru' ? 'Скоро' : 'Coming Soon'}</span>
                                         ) : (
                                             <>
                                                 <ShoppingCart size={22} />

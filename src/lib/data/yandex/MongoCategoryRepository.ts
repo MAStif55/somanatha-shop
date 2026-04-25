@@ -1,8 +1,10 @@
+import { ObjectId } from 'mongodb';
 import { getDb } from './mongo-client';
+import { toIdFilter, docToEntity } from './mongo-helpers';
 import { VariationGroup } from '@/types/product';
 import { SubCategory } from '@/types/category';
 import { ICategoryRepository } from '../interfaces';
-import { ObjectId } from 'mongodb';
+import { CATEGORIES } from '@/types/category';
 
 export class MongoCategoryRepository implements ICategoryRepository {
 
@@ -13,7 +15,9 @@ export class MongoCategoryRepository implements ICategoryRepository {
     async getVariations(categorySlug: string): Promise<VariationGroup[]> {
         try {
             const db = await getDb();
-            const doc = await db.collection('categoryVariations').findOne({ _id: categorySlug as any });
+            const doc = await db.collection('categoryVariations').findOne(
+                { _id: categorySlug as unknown as ObjectId }
+            );
             return doc?.variations || [];
         } catch (error) {
             console.error('Error getting category variations:', error);
@@ -25,7 +29,7 @@ export class MongoCategoryRepository implements ICategoryRepository {
         try {
             const db = await getDb();
             await db.collection('categoryVariations').updateOne(
-                { _id: categorySlug as any },
+                { _id: categorySlug as unknown as ObjectId },
                 { $set: { categorySlug, variations, updatedAt: Date.now() } },
                 { upsert: true }
             );
@@ -36,10 +40,11 @@ export class MongoCategoryRepository implements ICategoryRepository {
     }
 
     async getAllVariations(): Promise<Record<string, VariationGroup[]>> {
-        const categories = ['yantras', 'kavacha'];
+        // Derive category list from canonical source instead of hardcoding
+        const categorySlugs = CATEGORIES.map(c => c.slug);
         const result: Record<string, VariationGroup[]> = {};
 
-        for (const cat of categories) {
+        for (const cat of categorySlugs) {
             result[cat] = await this.getVariations(cat);
         }
 
@@ -55,10 +60,7 @@ export class MongoCategoryRepository implements ICategoryRepository {
         const docs = await db.collection('subcategories')
             .find({ parentCategory: categorySlug })
             .toArray();
-        return docs.map(d => {
-            const { _id, ...rest } = d;
-            return { id: _id.toString(), ...rest } as SubCategory;
-        });
+        return docs.map(d => docToEntity<SubCategory>(d));
     }
 
     async createSubcategory(data: Omit<SubCategory, 'id'>): Promise<string> {
@@ -72,10 +74,6 @@ export class MongoCategoryRepository implements ICategoryRepository {
 
     async deleteSubcategory(id: string): Promise<void> {
         const db = await getDb();
-        await db.collection('subcategories').deleteOne(
-            ObjectId.isValid(id) && id.length === 24
-                ? { _id: new ObjectId(id) }
-                : { _id: id as any }
-        );
+        await db.collection('subcategories').deleteOne(toIdFilter(id));
     }
 }

@@ -45,6 +45,25 @@ export function AdminProductCard({
 
             {/* Image Area */}
             <div className="relative aspect-square w-full overflow-hidden rounded-t-xl bg-gray-100">
+                {product.status && product.status !== 'available' && (
+                    <div className="absolute top-3 right-3 z-10">
+                        {product.status === 'hidden' && (
+                            <span className="bg-gray-800 text-white text-[10px] font-bold uppercase px-2 py-1 rounded shadow-sm flex items-center gap-1">
+                                {locale === 'ru' ? 'Скрыт' : 'Hidden'}
+                            </span>
+                        )}
+                        {product.status === 'out_of_stock' && (
+                            <span className="bg-red-600 text-white text-[10px] font-bold uppercase px-2 py-1 rounded shadow-sm">
+                                {locale === 'ru' ? 'Нет в наличии' : 'Out of Stock'}
+                            </span>
+                        )}
+                        {product.status === 'coming_soon' && (
+                            <span className="bg-orange-500 text-white text-[10px] font-bold uppercase px-2 py-1 rounded shadow-sm">
+                                {locale === 'ru' ? 'Скоро' : 'Coming Soon'}
+                            </span>
+                        )}
+                    </div>
+                )}
                 {product.images?.[0] ? (
                     <img
                         src={getCardImageUrl(product.images[0])}

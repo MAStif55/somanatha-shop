@@ -6,6 +6,11 @@
  */
 
 /**
+ * Product Status types
+ */
+export type ProductStatus = 'available' | 'out_of_stock' | 'coming_soon' | 'hidden';
+
+/**
  * Variation Option - single selectable option within a group
  */
 export interface VariationOption {
@@ -14,7 +19,8 @@ export interface VariationOption {
     description?: { en: string; ru: string };
     priceModifier: number; // Price change (can be positive/negative)
     imageUrl?: string; // Optional thumbnail for visual selection (Legacy)
-    image?: import('./product').ProductImage; // Multi-resolution support
+    image?: ProductImage; // Multi-resolution support
+    status?: ProductStatus; // Option availability
 }
 
 /**
@@ -121,6 +127,7 @@ export interface Product {
     tags?: string[];
     variations?: VariationGroup[]; // Custom variations (when not using defaults)
     variationOverrides?: VariationOverrides; // Category default controls
+    status?: ProductStatus; // Product availability
     createdAt?: number; // timestamp
     order?: number; // for manual sorting
 }

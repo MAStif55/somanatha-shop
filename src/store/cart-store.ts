@@ -25,6 +25,8 @@ export interface CartItem {
 
 interface CartState {
     items: CartItem[];
+    _shippingPrice: number;
+    _shippingFreeThreshold: number;
     addItem: (item: Omit<CartItem, 'id'>) => void;
     removeItem: (itemId: string) => void;
     updateQuantity: (itemId: string, quantity: number) => void;
@@ -133,12 +135,12 @@ export const useCartStore = create<CartState>()(
 
             getFreeShippingThreshold: () => {
                 const subtotal = get().getTotalPrice();
-                const threshold = (get() as any)._shippingFreeThreshold ?? 3000;
+                const threshold = get()._shippingFreeThreshold;
                 return Math.max(0, threshold - subtotal);
             },
 
             isFreeShippingEligible: () => {
-                const threshold = (get() as any)._shippingFreeThreshold ?? 3000;
+                const threshold = get()._shippingFreeThreshold;
                 return get().getTotalPrice() >= threshold;
             },
 
@@ -191,7 +193,7 @@ export const useCartStore = create<CartState>()(
             },
 
             getShippingCost: () => {
-                const price = (get() as any)._shippingPrice ?? 350;
+                const price = get()._shippingPrice;
                 return get().isFreeShippingEligible() ? 0 : price;
             },
 
@@ -203,7 +205,7 @@ export const useCartStore = create<CartState>()(
             },
 
             setShippingConfig: (price: number, freeThreshold: number) => {
-                set({ _shippingPrice: price, _shippingFreeThreshold: freeThreshold } as any);
+                set({ _shippingPrice: price, _shippingFreeThreshold: freeThreshold });
             }
         }),
         {

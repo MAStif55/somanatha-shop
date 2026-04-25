@@ -169,7 +169,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
 
             <div className="space-y-6">
                 {/* Basic Info */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div>
                         <label className="block text-sm font-semibold text-gray-900 mb-1">Slug (URL)</label>
                         <input
@@ -192,6 +192,22 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                             required
                             className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-gray-900"
                         />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-900 mb-1">
+                            {locale === 'ru' ? 'Статус' : 'Status'}
+                        </label>
+                        <select
+                            name="status"
+                            value={formData.status || 'available'}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-gray-900"
+                        >
+                            <option value="available">{locale === 'ru' ? 'В наличии' : 'Available'}</option>
+                            <option value="out_of_stock">{locale === 'ru' ? 'Нет в наличии' : 'Out of Stock'}</option>
+                            <option value="coming_soon">{locale === 'ru' ? 'Скоро' : 'Coming Soon'}</option>
+                            <option value="hidden">{locale === 'ru' ? 'Скрыт' : 'Hidden'}</option>
+                        </select>
                     </div>
                     <div>
                         <label className="block text-sm font-semibold text-gray-900 mb-1">

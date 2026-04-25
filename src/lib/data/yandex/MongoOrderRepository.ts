@@ -1,14 +1,9 @@
-import { ObjectId } from 'mongodb';
 import { getDb } from './mongo-client';
+import { toIdFilter, docToEntity } from './mongo-helpers';
 import { Order } from '@/types/order';
 import { IOrderRepository } from '../interfaces';
 
 export class MongoOrderRepository implements IOrderRepository {
-
-    private toOrder(doc: any): Order {
-        const { _id, ...rest } = doc;
-        return { id: _id.toString(), ...rest } as Order;
-    }
 
     async getAll(): Promise<Order[]> {
         const db = await getDb();
@@ -16,17 +11,13 @@ export class MongoOrderRepository implements IOrderRepository {
             .find()
             .sort({ createdAt: -1 })
             .toArray();
-        return docs.map(d => this.toOrder(d));
+        return docs.map(d => docToEntity<Order>(d));
     }
 
     async getById(id: string): Promise<Order | null> {
         const db = await getDb();
-        const doc = await db.collection('orders').findOne(
-            ObjectId.isValid(id) && id.length === 24
-                ? { _id: new ObjectId(id) }
-                : { _id: id as any }
-        );
-        return doc ? this.toOrder(doc) : null;
+        const doc = await db.collection('orders').findOne(toIdFilter(id));
+        return doc ? docToEntity<Order>(doc) : null;
     }
 
     async create(order: Omit<Order, 'id' | 'createdAt' | 'status'>): Promise<string> {
@@ -41,21 +32,15 @@ export class MongoOrderRepository implements IOrderRepository {
 
     async update(id: string, data: Partial<Order>): Promise<void> {
         const db = await getDb();
-        const { id: _, ...updateData } = data as any;
+        const { id: _, ...updateData } = data as Record<string, unknown>;
         await db.collection('orders').updateOne(
-            ObjectId.isValid(id) && id.length === 24
-                ? { _id: new ObjectId(id) }
-                : { _id: id as any },
+            toIdFilter(id),
             { $set: updateData }
         );
     }
 
     async delete(id: string): Promise<void> {
         const db = await getDb();
-        await db.collection('orders').deleteOne(
-            ObjectId.isValid(id) && id.length === 24
-                ? { _id: new ObjectId(id) }
-                : { _id: id as any }
-        );
+        await db.collection('orders').deleteOne(toIdFilter(id));
     }
 }

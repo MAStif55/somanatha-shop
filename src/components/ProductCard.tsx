@@ -101,6 +101,24 @@ export default function ProductCard({ product }: ProductCardProps) {
                 className="relative aspect-square overflow-hidden bg-[#0D0A0B] product-image-container"
                 onContextMenu={(e) => e.preventDefault()}
             >
+                {/* Status Badges */}
+                {product.status === 'out_of_stock' && (
+                    <div className="absolute top-3 left-3 z-30 bg-red-900/80 text-white px-2.5 py-1 rounded-md border border-red-500/50 backdrop-blur-md shadow-[0_0_10px_rgba(244,67,54,0.3)] font-medium text-[10px] sm:text-xs tracking-wider uppercase">
+                        {locale === 'ru' ? 'Нет в наличии' : 'Out of Stock'}
+                    </div>
+                )}
+                {product.status === 'coming_soon' && (
+                    <div className="absolute top-3 left-3 z-30 bg-orange-900/80 text-white px-2.5 py-1 rounded-md border border-orange-500/50 backdrop-blur-md shadow-[0_0_10px_rgba(255,152,0,0.3)] font-medium text-[10px] sm:text-xs tracking-wider uppercase">
+                        {locale === 'ru' ? 'Скоро' : 'Coming Soon'}
+                    </div>
+                )}
+                {/* Variations Badge - Shift down if status badge exists */}
+                {hasVariations && (
+                    <div className={`absolute ${product.status && product.status !== 'available' ? 'top-10' : 'top-3'} left-3 z-30 bg-[#1A1517]/80 text-[#C9A227] px-2.5 py-1 rounded-md border border-[#C9A227]/30 backdrop-blur-md shadow-[0_0_10px_rgba(0,0,0,0.5)] font-medium text-[10px] sm:text-xs tracking-wider uppercase flex items-center gap-1.5 transition-all`}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#E8D48B] animate-pulse"></span>
+                        {locale === 'ru' ? '+ Опции' : '+ Options'}
+                    </div>
+                )}
                 {product.images && product.images.length > 0 ? (
                     <img
                         src={getCardImageUrl(product.images[0])}
@@ -189,6 +207,14 @@ export default function ProductCard({ product }: ProductCardProps) {
                                         <span>Options</span>
                                     </>
                                 )}
+                            </div>
+                        ) : product.status === 'out_of_stock' ? (
+                            <div className="w-full sm:flex-1 flex items-center justify-center gap-2 h-10 sm:h-11 px-2 rounded-lg bg-[#1A1517] text-[#F5ECD7]/50 font-semibold font-elegant text-[11px] sm:text-xs lg:text-[13px] uppercase tracking-[0.05em] border border-[#3D2B2F] cursor-not-allowed">
+                                <span className="truncate">{locale === 'ru' ? 'Нет в наличии' : 'Out of Stock'}</span>
+                            </div>
+                        ) : product.status === 'coming_soon' ? (
+                            <div className="w-full sm:flex-1 flex items-center justify-center gap-2 h-10 sm:h-11 px-2 rounded-lg bg-[#1A1517] text-[#F5ECD7]/50 font-semibold font-elegant text-[11px] sm:text-xs lg:text-[13px] uppercase tracking-[0.05em] border border-[#3D2B2F] cursor-not-allowed">
+                                <span className="truncate">{locale === 'ru' ? 'Скоро' : 'Coming Soon'}</span>
                             </div>
                         ) : (
                             <button

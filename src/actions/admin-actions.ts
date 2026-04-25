@@ -1,4 +1,3 @@
-'use strict';
 'use server';
 import { revalidatePath } from 'next/cache';
 import { getSession } from './auth-actions';
@@ -31,10 +30,12 @@ import { VariationGroup } from '@/types/product';
 // ==========================================
 
 export async function getAllProducts() {
+    await requireAuth();
     return await ProductRepository.getAll();
 }
 
 export async function getProductById(id: string) {
+    await requireAuth();
     return await ProductRepository.getById(id);
 }
 
@@ -79,6 +80,7 @@ export async function bulkUpdatePrices(ids: string[], price: number) {
 // ==========================================
 
 export async function getSubcategories(categorySlug: string) {
+    await requireAuth();
     return await CategoryRepository.getSubcategories(categorySlug);
 }
 
@@ -93,6 +95,7 @@ export async function deleteSubcategory(id: string) {
 }
 
 export async function getVariations(categorySlug: string) {
+    await requireAuth();
     return await CategoryRepository.getVariations(categorySlug);
 }
 
@@ -102,6 +105,7 @@ export async function saveVariations(categorySlug: string, variations: Variation
 }
 
 export async function getAllVariations() {
+    await requireAuth();
     return await CategoryRepository.getAllVariations();
 }
 
@@ -125,6 +129,7 @@ export async function deleteOrder(id: string) {
 }
 
 export async function getOrderById(id: string) {
+    await requireAuth();
     return await OrderRepository.getById(id);
 }
 
@@ -133,6 +138,7 @@ export async function getOrderById(id: string) {
 // ==========================================
 
 export async function getAllReviews() {
+    await requireAuth();
     return await ReviewRepository.getAll();
 }
 
@@ -156,6 +162,7 @@ export async function deleteReview(id: string) {
 // ==========================================
 
 export async function getSettings() {
+    await requireAuth();
     return await SettingsRepository.getSettings();
 }
 

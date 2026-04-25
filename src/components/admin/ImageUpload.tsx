@@ -15,7 +15,7 @@ import ImageCropper from './ImageCropper';
  * - Automatic image optimization (resize + WebP conversion)
  * - Alt text and keywords editing for SEO
  * - Preview with download and remove buttons
- * - Firebase Storage integration
+ * - S3-compatible storage integration (Yandex Object Storage)
  * - Backwards compatible with string URLs
  */
 
