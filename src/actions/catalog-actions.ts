@@ -1,6 +1,6 @@
 'use server';
 
-import { ProductRepository, ReviewRepository, OrderRepository, SettingsRepository } from '@/lib/data';
+import { ProductRepository, ReviewRepository, OrderRepository, SettingsRepository, CategoryRepository } from '@/lib/data';
 
 // ==========================================
 // CATALOG (PUBLIC FACING)
@@ -14,6 +14,10 @@ export async function getPublicSettings() {
     return await SettingsRepository.getSettings();
 }
 
+export async function getPublicVariations(categorySlug: string) {
+    return await CategoryRepository.getVariations(categorySlug);
+}
+
 export async function getNewestProducts(count: number = 4) {
     return await ProductRepository.getNewest(count);
 }
@@ -24,6 +28,10 @@ export async function getProductsByCategory(categorySlug: string) {
 
 export async function getProductBySlug(slug: string) {
     return await ProductRepository.getBySlug(slug);
+}
+
+export async function getPublicProductById(id: string) {
+    return await ProductRepository.getById(id);
 }
 
 export async function getLatestReviews(count: number = 10) {

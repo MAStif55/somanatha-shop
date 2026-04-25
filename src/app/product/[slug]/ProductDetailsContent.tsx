@@ -1,7 +1,6 @@
 'use client';
 
-import { getProductById, getVariations } from '@/actions/admin-actions';
-import { getProductBySlug } from '@/actions/catalog-actions';
+import { getProductBySlug, getPublicVariations, getPublicProductById } from '@/actions/catalog-actions';
 
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -66,7 +65,7 @@ export default function ProductDetailsContent() {
 
                 // If not found by slug, try by ID (fallback for products without slugs)
                 if (!data) {
-                    data = await getProductById(slug as string) as Product | null;
+                    data = await getPublicProductById(slug as string) as Product | null;
                 }
 
                 // If product is hidden, pretend it's not found
@@ -85,7 +84,7 @@ export default function ProductDetailsContent() {
 
                 if (data?.variationOverrides?.useDefaults !== false && data?.category) {
                     // Use category defaults, filter out disabled options
-                    const categoryVars = await getVariations(data.category);
+                    const categoryVars = await getPublicVariations(data.category);
                     const disabledOptions = data.variationOverrides?.disabledOptions || [];
 
                     variations = categoryVars.map(group => ({
