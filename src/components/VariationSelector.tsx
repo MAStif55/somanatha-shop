@@ -77,7 +77,7 @@ export default function VariationSelector({
                                             <div className="absolute bottom-[calc(100%+12px)] left-1/2 -translate-x-1/2 opacity-0 pointer-events-none xl:group-hover/option:opacity-100 transition-all duration-300 transform translate-y-2 xl:group-hover/option:translate-y-0 z-[100] flex flex-col items-center hidden sm:flex">
                                                 <div className="w-48 aspect-square rounded-xl overflow-hidden border-2 border-[#C9A227] shadow-[0_15px_40px_rgba(0,0,0,0.8)] relative bg-[#0D0A0B]">
                                                     <img 
-                                                        src={option.image?.url || option.imageUrl} 
+                                                        src={option.image?.thumbUrl || option.image?.url || option.imageUrl} 
                                                         alt={option.label[locale]} 
                                                         className="w-full h-full object-cover"
                                                     />
