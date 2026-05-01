@@ -1,7 +1,7 @@
 'use client';
 
-import { bulkUpdatePrices, getVariations, saveVariations } from '@/actions/admin-actions';
-import { getProductsByCategory, getSubcategories } from '@/actions/catalog-actions';
+import { bulkUpdatePrices, getVariations, saveVariations, getSubcategories } from '@/actions/admin-actions';
+import { getProductsByCategory } from '@/actions/catalog-actions';
 
 import { useState, useEffect } from 'react';
 import { VariationGroup, Product } from '@/types/product';
