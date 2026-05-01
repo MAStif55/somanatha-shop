@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { VariationGroup, VariationOption } from '@/types/product';
+import { SubCategory } from '@/types/category';
 import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import VariationImageUpload from './VariationImageUpload';
 
@@ -9,6 +10,7 @@ interface VariationsEditorProps {
     value: VariationGroup[];
     onChange: (variations: VariationGroup[]) => void;
     locale: 'en' | 'ru';
+    availableSubcategories?: SubCategory[];
 }
 
 const generateId = () => Math.random().toString(36).substring(2, 9);
@@ -25,7 +27,7 @@ const defaultGroup = (): VariationGroup => ({
     options: [defaultOption()],
 });
 
-export default function VariationsEditor({ value, onChange, locale }: VariationsEditorProps) {
+export default function VariationsEditor({ value, onChange, locale, availableSubcategories }: VariationsEditorProps) {
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(value.map(g => g.id)));
 
     const toggleGroup = (groupId: string) => {
@@ -54,6 +56,14 @@ export default function VariationsEditor({ value, onChange, locale }: Variations
         onChange(value.map(g =>
             g.id === groupId
                 ? { ...g, name: { ...g.name, [lang]: name } }
+                : g
+        ));
+    };
+
+    const updateGroupSubcategories = (groupId: string, subcategories: string[]) => {
+        onChange(value.map(g =>
+            g.id === groupId
+                ? { ...g, subcategories }
                 : g
         ));
     };
@@ -135,6 +145,34 @@ export default function VariationsEditor({ value, onChange, locale }: Variations
                     {/* Group Content */}
                     {expandedGroups.has(group.id) && (
                         <div className="p-4 space-y-3">
+                            {/* Subcategories selector */}
+                            {availableSubcategories && availableSubcategories.length > 0 && (
+                                <div className="mb-4 bg-white p-3 rounded-lg border">
+                                    <label className="block text-xs font-semibold text-gray-700 mb-2">
+                                        {locale === 'ru' ? 'Применять к подкатегориям (оставьте пустым для всех)' : 'Apply to subcategories (leave empty for all)'}
+                                    </label>
+                                    <div className="flex flex-wrap gap-3">
+                                        {availableSubcategories.map(sub => (
+                                            <label key={sub.slug} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 px-2 py-1 rounded transition-colors">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={group.subcategories?.includes(sub.slug) || false}
+                                                    onChange={(e) => {
+                                                        const current = group.subcategories || [];
+                                                        const next = e.target.checked 
+                                                            ? [...current, sub.slug]
+                                                            : current.filter(s => s !== sub.slug);
+                                                        updateGroupSubcategories(group.id, next);
+                                                    }}
+                                                    className="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary"
+                                                />
+                                                <span className="text-gray-700">{sub.title[locale]}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            
                             {group.options.map((option, optionIndex) => (
                                 <div key={option.id} className="flex items-start gap-3 p-3 bg-white rounded-lg border">
                                     <div className="text-gray-400 pt-2 cursor-grab">

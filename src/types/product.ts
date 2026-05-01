@@ -30,6 +30,7 @@ export interface VariationGroup {
     id: string;
     name: { en: string; ru: string };
     options: VariationOption[];
+    subcategories?: string[]; // Array of subcategory slugs this group applies to. Empty means all.
 }
 
 /**

@@ -1,12 +1,12 @@
 'use client';
 
 import { bulkUpdatePrices, getVariations, saveVariations } from '@/actions/admin-actions';
-import { getProductsByCategory } from '@/actions/catalog-actions';
+import { getProductsByCategory, getSubcategories } from '@/actions/catalog-actions';
 
 import { useState, useEffect } from 'react';
 import { VariationGroup, Product } from '@/types/product';
 
-import { CATEGORIES } from '@/types/category';
+import { CATEGORIES, SubCategory } from '@/types/category';
 
 import VariationsEditor from '@/components/admin/VariationsEditor';
 import ConfirmModal from '@/components/admin/ConfirmModal';
@@ -22,6 +22,7 @@ export default function VariationsPage() {
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [isDirty, setIsDirty] = useState<Record<string, boolean>>({});
+    const [subcategories, setSubcategories] = useState<SubCategory[]>([]);
 
     // Bulk Price Update State
     const [products, setProducts] = useState<Product[]>([]);
@@ -44,19 +45,24 @@ export default function VariationsPage() {
         loadVariations();
     }, []);
 
-    // Fetch products when category changes
+    // Fetch products and subcategories when category changes
     useEffect(() => {
-        async function loadProducts() {
+        async function loadData() {
             try {
-                const data = await getProductsByCategory(activeCategory) as Product[];
-                setProducts(data);
+                const [productsData, subcatsData] = await Promise.all([
+                    getProductsByCategory(activeCategory),
+                    getSubcategories(activeCategory)
+                ]);
+                
+                setProducts(productsData as Product[]);
+                setSubcategories(subcatsData as SubCategory[]);
                 setSelectedProducts(new Set()); // Reset selection
                 setBulkPrice('');
             } catch (error) {
-                console.error("Error loading products:", error);
+                console.error("Error loading category data:", error);
             }
         }
-        loadProducts();
+        loadData();
     }, [activeCategory]);
 
     const handleVariationsChange = (categorySlug: string, newVariations: VariationGroup[]) => {
@@ -213,6 +219,7 @@ export default function VariationsPage() {
                     value={variations[activeCategory] || []}
                     onChange={(newVariations) => handleVariationsChange(activeCategory, newVariations)}
                     locale={locale as 'en' | 'ru'}
+                    availableSubcategories={subcategories}
                 />
             </div>
 

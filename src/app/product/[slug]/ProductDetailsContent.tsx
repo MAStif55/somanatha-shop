@@ -87,16 +87,20 @@ export default function ProductDetailsContent() {
                     const categoryVars = await getPublicVariations(data.category);
                     const disabledOptions = data.variationOverrides?.disabledOptions || [];
 
-                    variations = categoryVars.map(group => ({
-                        ...group,
-                        options: group.options.filter(opt => !disabledOptions.includes(opt.id) && opt.status !== 'hidden')
-                    })).filter(group => group.options.length > 0);
+                    variations = categoryVars
+                        .filter(group => !group.subcategories?.length || (data.subcategory && group.subcategories.includes(data.subcategory)))
+                        .map(group => ({
+                            ...group,
+                            options: group.options.filter(opt => !disabledOptions.includes(opt.id) && opt.status !== 'hidden')
+                        })).filter(group => group.options.length > 0);
                 } else if (data?.variations) {
                     // Use custom variations
-                    variations = data.variations.map(group => ({
-                        ...group,
-                        options: group.options.filter(opt => opt.status !== 'hidden')
-                    })).filter(group => group.options.length > 0);
+                    variations = data.variations
+                        .filter(group => !group.subcategories?.length || (data.subcategory && group.subcategories.includes(data.subcategory)))
+                        .map(group => ({
+                            ...group,
+                            options: group.options.filter(opt => opt.status !== 'hidden')
+                        })).filter(group => group.options.length > 0);
                 }
 
                 setEffectiveVariations(variations);

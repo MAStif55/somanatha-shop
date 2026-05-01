@@ -428,7 +428,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                     <h4 className="text-sm font-semibold text-gray-700">
                                         {locale === 'ru' ? 'Унаследованные вариации (отключите ненужные)' : 'Inherited variations (disable unwanted)'}
                                     </h4>
-                                    {categoryVariations.map(group => (
+                                    {categoryVariations.filter(group => !group.subcategories?.length || (formData.subcategory && group.subcategories.includes(formData.subcategory))).map(group => (
                                         <div key={group.id} className="bg-gray-50 border rounded-lg p-4">
                                             <h5 className="font-medium text-gray-900 mb-3">{group.name[locale as 'en' | 'ru']}</h5>
                                             <div className="flex flex-wrap gap-3">
