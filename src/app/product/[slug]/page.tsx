@@ -1,6 +1,7 @@
 import { ProductRepository } from '@/lib/data';
 import type { Metadata } from 'next';
 import ProductDetailsContent from './ProductDetailsContent';
+import JsonLd from '@/components/JsonLd';
 
 import { Product, getImageUrl } from '@/types/product';
 
@@ -146,17 +147,11 @@ export default async function ProductPage({ params }: { params: { slug: string }
 
     return (
         <>
-            {productJsonLd && (
-                <script
-                    type="application/ld+json"
-                    dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
-                />
-            )}
-            {breadcrumbJsonLd && (
-                <script
-                    type="application/ld+json"
-                    dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-                />
+            {product && (
+                <>
+                    <JsonLd schema={productJsonLd} />
+                    <JsonLd schema={breadcrumbJsonLd} />
+                </>
             )}
             <ProductDetailsContent />
         </>

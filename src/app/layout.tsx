@@ -7,6 +7,47 @@ import ToastContainer from '@/components/Toast';
 import CartDrawer from '@/components/CartDrawer';
 import dynamic from 'next/dynamic';
 import YandexMetrika from '@/components/YandexMetrika';
+import JsonLd from '@/components/JsonLd';
+
+const BASE_URL = 'https://somanatha.ru';
+
+const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': `${BASE_URL}/#organization`,
+    name: 'Соманатха | Somanatha',
+    url: BASE_URL,
+    logo: `${BASE_URL}/logo.png`,
+    image: `${BASE_URL}/og-default.png`,
+    description: 'Ведический магазин сакральных артефактов, янтр и кавач.',
+    address: {
+        '@type': 'PostalAddress',
+        addressCountry: 'RU',
+    },
+    sameAs: [
+        // Add social links here when available
+    ],
+};
+
+const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': `${BASE_URL}/#website`,
+    url: BASE_URL,
+    name: 'Somanatha',
+    publisher: {
+        '@id': `${BASE_URL}/#organization`,
+    },
+    potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${BASE_URL}/catalog?q={search_term_string}`,
+        },
+        'query-input': 'required name=search_term_string',
+    },
+};
+
 
 const UnderConstructionPopup = dynamic(
     () => import('@/components/UnderConstructionPopup'),
@@ -41,7 +82,16 @@ export const metadata: Metadata = {
         template: '%s | Somanatha',
     },
     description:
-        'Священные Янтры и Кавача — Sacred Yantras and Kavacha. Authentic Vedic items for spiritual practice.',
+        'Священные Янтры и Кавача — эксклюзивные артефакты для духовной практики, защиты и гармонии. Authentic Vedic items for spiritual practice, protection and well-being.',
+    icons: {
+        icon: [
+            { url: '/logo.png', sizes: '32x32', type: 'image/png' },
+            { url: '/logo.png', sizes: '192x192', type: 'image/png' },
+        ],
+        apple: [
+            { url: '/logo.png', sizes: '180x180', type: 'image/png' },
+        ],
+    },
     openGraph: {
         type: 'website',
         locale: 'ru_RU',
@@ -60,6 +110,8 @@ export default function RootLayout({
             <body className={openSans.className}>
                 <LanguageProvider>
                     <LiveVideoProvider>
+                        <JsonLd schema={organizationSchema} />
+                        <JsonLd schema={websiteSchema} />
                         {children}
                         <UnderConstructionPopup />
                         <CartDrawer />

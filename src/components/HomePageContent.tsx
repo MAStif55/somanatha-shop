@@ -35,6 +35,20 @@ export default function HomePageContent({ initialProducts }: HomePageContentProp
 
     return (
         <main className="min-h-screen bg-[#0D0A0B]">
+            {/* SEO Assist - Hidden text for search engines to prioritize over product cards */}
+            <div className="sr-only">
+                <h1>Соманатха — Магазин Ведических Артефактов</h1>
+                <p>
+                    Добро пожаловать в Соманатху. Мы предлагаем священные Янтры, Кавача и другие артефакты для духовной практики, защиты и благополучия. 
+                    Наши изделия создаются с соблюдением древних традиций для гармонизации пространства и внутреннего состояния.
+                </p>
+                <h2>Somanatha — Vedic Artifacts Store</h2>
+                <p>
+                    Welcome to Somanatha. We offer sacred Yantras, Kavachas, and other artifacts for spiritual practice, protection, and well-being. 
+                    Our items are crafted following ancient traditions to harmonize your space and inner state.
+                </p>
+            </div>
+
             {/* ================================================================
                 HERO SECTION - 70vh Premium Design
                 ================================================================ */}
