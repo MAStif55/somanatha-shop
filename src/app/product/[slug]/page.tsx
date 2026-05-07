@@ -147,7 +147,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
 
     return (
         <>
-            {product && (
+            {product && productJsonLd && breadcrumbJsonLd && (
                 <>
                     <JsonLd schema={productJsonLd} />
                     <JsonLd schema={breadcrumbJsonLd} />
