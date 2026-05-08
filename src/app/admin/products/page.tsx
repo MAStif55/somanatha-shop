@@ -321,10 +321,11 @@ export default function AdminProductsPage() {
     };
 
     return (
-        <div>
+        <div className="relative">
+            <div className="sticky top-[-2rem] z-30 pt-4 pb-2 mb-6 -mx-8 px-8 border-b border-gray-200" style={{ backgroundColor: 'var(--admin-content-bg, #f8f7f5)' }}>
             <Breadcrumbs />
 
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
                 <h1 className="text-2xl font-bold text-gray-900">{t('admin.product_management')}</h1>
                 <div className="flex space-x-2 w-full sm:w-auto">
                     {isReordering ? (
@@ -369,11 +370,11 @@ export default function AdminProductsPage() {
                         </>
                     )}
                 </div>
-            </div>
+
 
             {/* Filters (Hide in Reorder Mode) */}
             {!isReordering && (
-                <div className="mb-6 sticky top-0 z-20 pb-2 pt-2 -mt-2" style={{ backgroundColor: 'var(--admin-content-bg, #f8f7f5)' }}>
+                <div>
                     {/* Search + controls row */}
                     <div className="flex flex-wrap items-center gap-3 mb-3">
                         <div className="relative flex-1 min-w-[200px] max-w-md">
@@ -514,6 +515,8 @@ export default function AdminProductsPage() {
                     )}
                 </div>
             )}
+                </div>
+            </div>
 
             {loading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
