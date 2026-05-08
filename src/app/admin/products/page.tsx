@@ -373,7 +373,7 @@ export default function AdminProductsPage() {
 
             {/* Filters (Hide in Reorder Mode) */}
             {!isReordering && (
-                <div className="mb-6">
+                <div className="mb-6 sticky top-0 z-20 pb-2 pt-2 -mt-2" style={{ backgroundColor: 'var(--admin-content-bg, #f8f7f5)' }}>
                     {/* Search + controls row */}
                     <div className="flex flex-wrap items-center gap-3 mb-3">
                         <div className="relative flex-1 min-w-[200px] max-w-md">

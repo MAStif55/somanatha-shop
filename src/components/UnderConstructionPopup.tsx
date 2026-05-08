@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { X, MessageCircle } from 'lucide-react';
@@ -21,6 +22,7 @@ type Phase = 'hidden' | 'opening' | 'open' | 'closing' | 'fab';
 
 export default function UnderConstructionPopup() {
     const { locale } = useLanguage();
+    const pathname = usePathname();
     const [phase, setPhase] = useState<Phase>('hidden');
     const [mounted, setMounted] = useState(false);
     const { settings } = useStoreSettings();
@@ -29,6 +31,7 @@ export default function UnderConstructionPopup() {
     const overlayRef = useRef<HTMLDivElement>(null);
     const fabRef = useRef<HTMLButtonElement>(null);
     const entrancePlayed = useRef(false);
+    const isAdmin = pathname?.startsWith('/admin');
 
     /* ── Initialise on client only ── */
     useEffect(() => {
@@ -145,7 +148,8 @@ export default function UnderConstructionPopup() {
     const showModal = phase === 'opening' || phase === 'open' || phase === 'closing';
 
     // Don't render anything until client-side localStorage check is done
-    if (!mounted) return null;
+    // Don't render on admin pages
+    if (!mounted || isAdmin) return null;
 
     return (
         <>
