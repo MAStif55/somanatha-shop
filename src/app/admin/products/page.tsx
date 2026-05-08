@@ -300,7 +300,7 @@ export default function AdminProductsPage() {
         <div>
             {/* ── Sticky header ── */}
             <div
-                className="sticky top-0 z-30 -mx-8 px-8 pt-4 pb-3 mb-4 border-b border-gray-200 shadow-sm"
+                className="sticky top-0 z-30 px-8 pt-4 pb-3 mb-4 border-b border-gray-200 shadow-sm"
                 style={{ backgroundColor: 'var(--admin-content-bg, #f8f7f5)' }}
             >
                 <Breadcrumbs />

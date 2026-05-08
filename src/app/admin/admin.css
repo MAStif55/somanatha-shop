@@ -482,7 +482,7 @@
 
 .admin-main {
     flex: 1;
-    padding: 2rem;
+    padding: 0 2rem 2rem 2rem;
     overflow-y: auto;
     background-color: var(--admin-content-bg);
     height: 100vh;
