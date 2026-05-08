@@ -50,7 +50,8 @@
     color: var(--admin-text);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background-color: var(--admin-content-bg);
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
 }
 
 /* Override heading fonts inside admin */
@@ -484,7 +485,7 @@
     padding: 2rem;
     overflow-y: auto;
     background-color: var(--admin-content-bg);
-    min-height: 100vh;
+    height: 100vh;
 }
 
 
