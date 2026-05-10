@@ -18,14 +18,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
 
     const productUrls = uniqueProducts.map((product) => ({
-        url: `${BASE_URL}/product/${product.slug}/`,
+        url: `${BASE_URL}/product/${product.slug}`,
         lastModified: new Date(), // Ideally this would come from the product updated_at
         changeFrequency: 'weekly' as const,
         priority: 0.8,
     }));
 
     const categoryUrls = CATEGORIES.map((cat) => ({
-        url: `${BASE_URL}/catalog/${cat.slug}/`,
+        url: `${BASE_URL}/catalog/${cat.slug}`,
         lastModified: new Date(),
         changeFrequency: 'weekly' as const,
         priority: 0.85,
@@ -33,37 +33,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     return [
         {
-            url: `${BASE_URL}/`,
+            url: `${BASE_URL}`,
             lastModified: new Date(),
             changeFrequency: 'daily',
             priority: 1,
         },
         {
-            url: `${BASE_URL}/catalog/`,
+            url: `${BASE_URL}/catalog`,
             lastModified: new Date(),
             changeFrequency: 'daily',
             priority: 0.9,
         },
         {
-            url: `${BASE_URL}/about/`,
+            url: `${BASE_URL}/about`,
             lastModified: new Date(),
             changeFrequency: 'monthly',
             priority: 0.5,
         },
         {
-            url: `${BASE_URL}/contact/`,
+            url: `${BASE_URL}/contact`,
             lastModified: new Date(),
             changeFrequency: 'yearly',
             priority: 0.5,
         },
         {
-            url: `${BASE_URL}/shipping/`,
+            url: `${BASE_URL}/shipping`,
             lastModified: new Date(),
             changeFrequency: 'yearly',
             priority: 0.5,
         },
         {
-            url: `${BASE_URL}/faq/`,
+            url: `${BASE_URL}/faq`,
             lastModified: new Date(),
             changeFrequency: 'monthly',
             priority: 0.5,
