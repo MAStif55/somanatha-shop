@@ -29,6 +29,9 @@ interface OzonOrder {
     deliveringDate: string;
     products: OzonProduct[];
     total: number;
+    payout: number;
+    commissionAmount: number;
+    commissionPercent: number;
     deliveryMethod: { name: string; warehouse: string; tplProvider: string } | null;
     addressee: { name: string; phone: string } | null;
     customer: { name: string | null; phone: string; address: string | null; city: string | null } | null;
@@ -46,11 +49,13 @@ const STATUS_FILTERS = [
 ];
 
 const PERIOD_OPTIONS = [
-    { value: 7, label: '7 дней', labelEn: '7 days' },
-    { value: 14, label: '14 дней', labelEn: '14 days' },
-    { value: 30, label: '30 дней', labelEn: '30 days' },
-    { value: 90, label: '90 дней', labelEn: '90 days' },
-    { value: 180, label: '180 дней', labelEn: '180 days' },
+    { value: 1, label: 'Сегодня', labelEn: 'Today' },
+    { value: 2, label: 'Вчера + сегодня', labelEn: 'Yesterday + today' },
+    { value: 3, label: '3 дня', labelEn: '3 days' },
+    { value: 7, label: 'Неделя', labelEn: 'Week' },
+    { value: 14, label: '2 недели', labelEn: '2 weeks' },
+    { value: 30, label: 'Месяц', labelEn: 'Month' },
+    { value: 90, label: '3 месяца', labelEn: '3 months' },
 ];
 
 const PAGE_SIZE = 30;
@@ -61,7 +66,7 @@ export default function OzonOrdersPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [statusFilter, setStatusFilter] = useState('all');
-    const [days, setDays] = useState(30);
+    const [days, setDays] = useState(7);
     const [searchTerm, setSearchTerm] = useState('');
     const [expandedRow, setExpandedRow] = useState<string | null>(null);
     const [offset, setOffset] = useState(0);
@@ -262,7 +267,10 @@ export default function OzonOrdersPage() {
                                     {locale === 'ru' ? 'Товары' : 'Products'}
                                 </th>
                                 <th className="text-right px-4 py-3">
-                                    {locale === 'ru' ? 'Сумма' : 'Total'}
+                                    {locale === 'ru' ? 'Продажа' : 'Sale'}
+                                </th>
+                                <th className="text-right px-4 py-3 hidden md:table-cell">
+                                    {locale === 'ru' ? 'К выплате' : 'Payout'}
                                 </th>
                                 <th className="text-left px-4 py-3">
                                     {locale === 'ru' ? 'Статус' : 'Status'}
@@ -426,6 +434,13 @@ function OzonOrderRow({ order, isExpanded, onToggle, formatDate, formatPrice, lo
                 <td className="px-4 py-3 text-right font-semibold text-gray-900 whitespace-nowrap">
                     {formatPrice(order.total)}
                 </td>
+                <td className="px-4 py-3 text-right hidden md:table-cell whitespace-nowrap">
+                    {order.payout > 0 ? (
+                        <span className="font-semibold text-green-700">{formatPrice(order.payout)}</span>
+                    ) : (
+                        <span className="text-gray-400 text-xs">—</span>
+                    )}
+                </td>
                 <td className="px-4 py-3">
                     <span
                         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap"
@@ -449,7 +464,7 @@ function OzonOrderRow({ order, isExpanded, onToggle, formatDate, formatPrice, lo
             {/* Expanded details */}
             {isExpanded && (
                 <tr className="bg-gray-50/50">
-                    <td colSpan={7} className="px-4 py-4">
+                    <td colSpan={8} className="px-4 py-4">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {/* Products list */}
                             <div className="md:col-span-2">
@@ -509,6 +524,32 @@ function OzonOrderRow({ order, isExpanded, onToggle, formatDate, formatPrice, lo
                                         </div>
                                     )}
                                 </div>
+
+                                {/* Financial summary */}
+                                {order.payout > 0 && (
+                                    <div className="bg-green-50 rounded-lg p-3 border border-green-100 space-y-1.5 text-xs">
+                                        <div className="text-[10px] font-semibold text-green-800 uppercase tracking-wide mb-1">
+                                            {locale === 'ru' ? 'Финансы' : 'Financials'}
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">{locale === 'ru' ? 'Продажа' : 'Sale'}:</span>
+                                            <span className="font-semibold text-gray-800">{formatPrice(order.total)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">{locale === 'ru' ? 'Комиссия Ozon' : 'Ozon Fee'}:</span>
+                                            <span className="font-medium text-red-600">
+                                                −{formatPrice(order.commissionAmount)}
+                                                {order.commissionPercent > 0 && (
+                                                    <span className="text-gray-400 ml-1">({order.commissionPercent.toFixed(1)}%)</span>
+                                                )}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between pt-1.5 border-t border-green-200">
+                                            <span className="font-semibold text-green-800">{locale === 'ru' ? 'К выплате' : 'Payout'}:</span>
+                                            <span className="font-bold text-green-700">{formatPrice(order.payout)}</span>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Actions */}
                                 <div className="flex flex-col gap-2">

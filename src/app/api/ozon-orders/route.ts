@@ -102,19 +102,32 @@ export async function GET(request: NextRequest) {
                 currencyCode: p.currency_code,
             }));
 
-            // Calculate total from financial data or products
-            let total = 0;
-            if (posting.financial_data?.products) {
-                total = posting.financial_data.products.reduce(
-                    (sum: number, fp: any) => sum + (parseFloat(fp.product_id ? fp.price : '0') || 0) * (fp.quantity || 1),
+            // Calculate total from product prices
+            const total = products.reduce(
+                (sum: number, p: any) => sum + (parseFloat(p.price) || 0) * (p.quantity || 1),
+                0
+            );
+
+            // Extract payout (what seller receives) and commission from financial_data
+            let payout = 0;
+            let commissionAmount = 0;
+            let commissionPercent = 0;
+            if (posting.financial_data?.products && posting.financial_data.products.length > 0) {
+                payout = posting.financial_data.products.reduce(
+                    (sum: number, fp: any) => sum + (parseFloat(fp.payout) || 0),
                     0
                 );
-            }
-            if (total === 0) {
-                total = products.reduce(
-                    (sum: number, p: any) => sum + (parseFloat(p.price) || 0) * (p.quantity || 1),
+                commissionAmount = posting.financial_data.products.reduce(
+                    (sum: number, fp: any) => sum + (parseFloat(fp.commission_amount) || 0),
                     0
                 );
+                // Average commission percent
+                const percents = posting.financial_data.products
+                    .map((fp: any) => parseFloat(fp.commission_percent) || 0)
+                    .filter((p: number) => p > 0);
+                commissionPercent = percents.length > 0
+                    ? percents.reduce((a: number, b: number) => a + b, 0) / percents.length
+                    : 0;
             }
 
             return {
@@ -132,6 +145,9 @@ export async function GET(request: NextRequest) {
                 deliveringDate: posting.delivering_date,
                 products,
                 total,
+                payout,
+                commissionAmount,
+                commissionPercent,
                 // Delivery info
                 deliveryMethod: posting.delivery_method ? {
                     name: posting.delivery_method.name,
