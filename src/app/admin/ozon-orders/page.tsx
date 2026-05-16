@@ -446,14 +446,14 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
             const res = await fetch(`/api/ozon-label?posting=${encodeURIComponent(order.postingNumber)}`);
             if (!res.ok) {
                 const errData = await res.json().catch(() => ({}));
-                throw new Error(errData.error || \`HTTP \${res.status}\`);
+                throw new Error(errData.error || `HTTP ${res.status}`);
             }
             const data = await res.json();
             const url = data.url;
             const printWindow = window.open('', '_blank');
             if (printWindow) {
-                printWindow.document.write(\`<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Этикетка \${order.postingNumber}</title>
+                printWindow.document.write(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Этикетка ${order.postingNumber}</title>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, 'Inter', sans-serif; background: #f5f5f5; }
@@ -468,11 +468,11 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
 <body>
     <div class="toolbar">
         <button onclick="try{document.getElementById('pdf').contentWindow.print()}catch(e){window.print()}">🖨️ Печать</button>
-        <span class="num">\${order.postingNumber}</span>
+        <span class="num">${order.postingNumber}</span>
         <span class="tip">💡 Выберите «По размеру страницы» в настройках печати</span>
     </div>
-    <iframe id="pdf" src="\${url}#view=Fit"></iframe>
-</body></html>\`);
+    <iframe id="pdf" src="${url}#view=Fit"></iframe>
+</body></html>`);
                 printWindow.document.close();
             }
         } catch (err: any) {
