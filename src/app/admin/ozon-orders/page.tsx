@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '@/contexts/LanguageContext';
 import Breadcrumbs from '@/components/admin/Breadcrumbs';
-import { RefreshCw, Search, ChevronDown, ChevronUp, ExternalLink, Package, ChevronLeft, ChevronRight } from 'lucide-react';
+import { RefreshCw, Search, ChevronDown, ChevronUp, ExternalLink, Package, ChevronLeft, ChevronRight, Printer } from 'lucide-react';
 
 interface OzonProduct {
     name: string;
@@ -305,6 +305,34 @@ function OzonOrderRow({ order, isExpanded, onToggle, formatDate, formatPrice, lo
     formatPrice: (n: number) => string;
     locale: string;
 }) {
+    const [labelLoading, setLabelLoading] = useState(false);
+    const [labelError, setLabelError] = useState<string | null>(null);
+
+    const handlePrintLabel = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setLabelLoading(true);
+        setLabelError(null);
+        try {
+            const res = await fetch(`/api/ozon-label?posting=${encodeURIComponent(order.postingNumber)}`);
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || `HTTP ${res.status}`);
+            }
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const printWindow = window.open(url, '_blank');
+            if (printWindow) {
+                printWindow.addEventListener('load', () => {
+                    printWindow.print();
+                });
+            }
+        } catch (err: any) {
+            setLabelError(err.message || 'Ошибка');
+            setTimeout(() => setLabelError(null), 5000);
+        } finally {
+            setLabelLoading(false);
+        }
+    };
     const productSummary = order.products.length === 1
         ? order.products[0].name
         : `${order.products.length} ${locale === 'ru' ? 'товаров' : 'items'}`;
@@ -418,16 +446,33 @@ function OzonOrderRow({ order, isExpanded, onToggle, formatDate, formatPrice, lo
                                     )}
                                 </div>
 
-                                {/* Link to Ozon */}
-                                <a
-                                    href={`https://seller.ozon.ru/app/postings/fbs?postingNumber=${order.postingNumber}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
-                                >
-                                    <ExternalLink size={12} />
-                                    {locale === 'ru' ? 'Открыть в Ozon Seller' : 'Open in Ozon Seller'}
-                                </a>
+                                {/* Actions */}
+                                <div className="flex flex-col gap-2">
+                                    <button
+                                        onClick={handlePrintLabel}
+                                        disabled={labelLoading}
+                                        className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-all"
+                                    >
+                                        {labelLoading ? (
+                                            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                        ) : (
+                                            <Printer size={13} />
+                                        )}
+                                        {locale === 'ru' ? 'Печать этикетки' : 'Print Label'}
+                                    </button>
+                                    {labelError && (
+                                        <span className="text-[11px] text-red-500">{labelError}</span>
+                                    )}
+                                    <a
+                                        href={`https://seller.ozon.ru/app/postings/fbs?postingNumber=${order.postingNumber}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
+                                    >
+                                        <ExternalLink size={12} />
+                                        {locale === 'ru' ? 'Открыть в Ozon Seller' : 'Open in Ozon Seller'}
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </td>
