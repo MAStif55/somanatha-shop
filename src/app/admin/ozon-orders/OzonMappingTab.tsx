@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { RefreshCw, Search, CheckCircle, Link as LinkIcon, Unlink } from 'lucide-react';
+import { RefreshCw, Search, CheckCircle, Link as LinkIcon, Unlink, ChevronDown } from 'lucide-react';
 import { useTranslation } from '@/contexts/LanguageContext';
 
 interface OzonProduct {
@@ -177,18 +177,12 @@ export default function OzonMappingTab() {
                                                 </div>
                                             )}
                                             <div className="flex items-center gap-2 w-full max-w-sm">
-                                                <select
-                                                    value={mappedLocal?.id || ''}
-                                                    onChange={e => handleMap(op.offerId, e.target.value)}
-                                                    className={`flex-1 p-2 border rounded-md text-sm ${mappedLocal ? 'bg-green-50 border-green-200 text-green-900' : 'bg-gray-50 border-gray-200'}`}
-                                                >
-                                                    <option value="">{locale === 'ru' ? '-- Не связан --' : '-- Not mapped --'}</option>
-                                                    {localProducts.map(lp => (
-                                                        <option key={lp.id} value={lp.id}>
-                                                            {lp.title.ru || lp.title.en} (URL: {lp.slug})
-                                                        </option>
-                                                    ))}
-                                                </select>
+                                                <SearchableSelect 
+                                                    localProducts={localProducts}
+                                                    mappedLocal={mappedLocal}
+                                                    onMap={(id) => handleMap(op.offerId, id)}
+                                                    locale={locale}
+                                                />
                                                 {mappedLocal && (
                                                     <button
                                                         onClick={() => handleMap('', mappedLocal.id)}
@@ -208,6 +202,82 @@ export default function OzonMappingTab() {
                     </table>
                 )}
             </div>
+        </div>
+    );
+}
+
+function SearchableSelect({ 
+    localProducts, 
+    mappedLocal, 
+    onMap, 
+    locale 
+}: { 
+    localProducts: LocalProduct[]; 
+    mappedLocal?: LocalProduct; 
+    onMap: (id: string) => void; 
+    locale: string; 
+}) {
+    const [open, setOpen] = useState(false);
+    const [search, setSearch] = useState('');
+
+    const selectedName = mappedLocal ? (mappedLocal.title.ru || mappedLocal.title.en) : '';
+    const filtered = localProducts.filter(lp => 
+        (lp.title.ru || lp.title.en || '').toLowerCase().includes(search.toLowerCase()) ||
+        (lp.slug || '').toLowerCase().includes(search.toLowerCase())
+    );
+
+    return (
+        <div className="relative flex-1">
+            {open && (
+                <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+            )}
+            <div 
+                className={`p-2 border rounded-md text-sm cursor-pointer flex justify-between items-center relative z-40 ${mappedLocal ? 'bg-green-50 border-green-200 text-green-900' : 'bg-gray-50 border-gray-200'}`}
+                onClick={() => setOpen(!open)}
+            >
+                <span className="truncate mr-2 block max-w-[200px] sm:max-w-[250px]">
+                    {selectedName || (locale === 'ru' ? '-- Не связан --' : '-- Not mapped --')}
+                </span>
+                <ChevronDown size={14} className="opacity-50 flex-shrink-0" />
+            </div>
+            
+            {open && (
+                <div className="absolute top-full left-0 min-w-full w-[350px] mt-1 bg-white border border-gray-200 rounded-md shadow-xl z-50">
+                    <div className="p-2 border-b bg-gray-50">
+                        <input 
+                            type="text" 
+                            autoFocus
+                            placeholder={locale === 'ru' ? 'Поиск товара...' : 'Search...'}
+                            className="w-full p-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                        />
+                    </div>
+                    <div className="max-h-60 overflow-y-auto">
+                        <div 
+                            className="p-2 text-sm hover:bg-gray-100 cursor-pointer text-gray-500 font-medium"
+                            onClick={() => { onMap(''); setOpen(false); setSearch(''); }}
+                        >
+                            {locale === 'ru' ? '-- Отвязать товар --' : '-- Unlink --'}
+                        </div>
+                        {filtered.length === 0 && (
+                            <div className="p-3 text-sm text-gray-400 text-center">
+                                {locale === 'ru' ? 'Ничего не найдено' : 'No results'}
+                            </div>
+                        )}
+                        {filtered.map(lp => (
+                            <div 
+                                key={lp.id}
+                                className="p-2 text-sm hover:bg-blue-50 cursor-pointer border-t border-gray-50"
+                                onClick={() => { onMap(lp.id); setOpen(false); setSearch(''); }}
+                            >
+                                <div className="font-medium text-gray-900">{lp.title.ru || lp.title.en}</div>
+                                <div className="text-xs text-gray-400 truncate">{lp.slug}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
