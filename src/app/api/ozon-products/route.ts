@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
     try {
         // Step 1: Get list of products
-        const listRes = await fetch(`${OZON_API_BASE}/v2/product/list`, {
+        const listRes = await fetch(`${OZON_API_BASE}/v3/product/list`, {
             method: 'POST',
             headers: {
                 'Client-Id': clientId,
