@@ -492,7 +492,7 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
                         {new Date(order.inProcessAt || order.createdAt).toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     </div>
                 </div>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap" style={{ backgroundColor: \`\${order.statusColor}15\`, color: order.statusColor, border: \`1px solid \${order.statusColor}30\` }}>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap" style={{ backgroundColor: `${order.statusColor}15`, color: order.statusColor, border: `1px solid ${order.statusColor}30` }}>
                     {order.statusEmoji} {locale === 'ru' ? order.statusLabel : order.statusLabelEn}
                 </span>
             </div>
