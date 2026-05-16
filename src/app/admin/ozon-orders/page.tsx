@@ -1,0 +1,438 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from '@/contexts/LanguageContext';
+import Breadcrumbs from '@/components/admin/Breadcrumbs';
+import { RefreshCw, Search, ChevronDown, ChevronUp, ExternalLink, Package, ChevronLeft, ChevronRight } from 'lucide-react';
+
+interface OzonProduct {
+    name: string;
+    sku: number;
+    quantity: number;
+    offerId: string;
+    price: string;
+    currencyCode: string;
+}
+
+interface OzonOrder {
+    postingNumber: string;
+    orderId: number;
+    orderNumber: string;
+    status: string;
+    statusLabel: string;
+    statusLabelEn: string;
+    statusColor: string;
+    statusEmoji: string;
+    createdAt: string;
+    inProcessAt: string;
+    shipmentDate: string;
+    deliveringDate: string;
+    products: OzonProduct[];
+    total: number;
+    deliveryMethod: { name: string; warehouse: string; tplProvider: string } | null;
+    addressee: { name: string; phone: string } | null;
+    customer: { name: string | null; phone: string; address: string | null; city: string | null } | null;
+    cancellation: { cancellationReason: string; cancellationType: string } | null;
+}
+
+const STATUS_FILTERS = [
+    { value: 'all', label: 'Все', labelEn: 'All' },
+    { value: 'awaiting_packaging', label: '⏳ Ожидает сборки', labelEn: '⏳ Awaiting Packaging' },
+    { value: 'awaiting_deliver', label: '📦 Готов к отгрузке', labelEn: '📦 Awaiting Delivery' },
+    { value: 'delivering', label: '🚚 Доставляется', labelEn: '🚚 Delivering' },
+    { value: 'delivered', label: '✅ Доставлен', labelEn: '✅ Delivered' },
+    { value: 'cancelled', label: '❌ Отменён', labelEn: '❌ Cancelled' },
+    { value: 'arbitration', label: '⚠️ Арбитраж', labelEn: '⚠️ Arbitration' },
+];
+
+const PERIOD_OPTIONS = [
+    { value: 7, label: '7 дней', labelEn: '7 days' },
+    { value: 14, label: '14 дней', labelEn: '14 days' },
+    { value: 30, label: '30 дней', labelEn: '30 days' },
+    { value: 90, label: '90 дней', labelEn: '90 days' },
+    { value: 180, label: '180 дней', labelEn: '180 days' },
+];
+
+const PAGE_SIZE = 30;
+
+export default function OzonOrdersPage() {
+    const { locale } = useTranslation();
+    const [orders, setOrders] = useState<OzonOrder[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [days, setDays] = useState(30);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [expandedRow, setExpandedRow] = useState<string | null>(null);
+    const [offset, setOffset] = useState(0);
+    const [hasNext, setHasNext] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+
+    const fetchOrders = useCallback(async (currentOffset = 0, isRefresh = false) => {
+        if (isRefresh) setRefreshing(true);
+        else setLoading(true);
+        setError(null);
+
+        try {
+            const params = new URLSearchParams({
+                status: statusFilter,
+                days: String(days),
+                offset: String(currentOffset),
+                limit: String(PAGE_SIZE),
+            });
+            const res = await fetch(`/api/ozon-orders?${params}`);
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || `HTTP ${res.status}`);
+            }
+            const data = await res.json();
+            setOrders(data.orders || []);
+            setHasNext(data.hasNext || false);
+            setOffset(currentOffset);
+        } catch (err: any) {
+            console.error('Failed to fetch Ozon orders:', err);
+            setError(err.message || 'Ошибка загрузки');
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    }, [statusFilter, days]);
+
+    useEffect(() => {
+        fetchOrders(0);
+    }, [fetchOrders]);
+
+    const filteredOrders = orders.filter(o => {
+        if (!searchTerm) return true;
+        const q = searchTerm.toLowerCase();
+        return (
+            o.postingNumber.toLowerCase().includes(q) ||
+            o.products.some(p => p.name.toLowerCase().includes(q) || p.offerId.toLowerCase().includes(q))
+        );
+    });
+
+    const formatDate = (dateStr: string) => {
+        if (!dateStr) return '—';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return '—';
+        return d.toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'en-US', {
+            day: 'numeric', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit',
+        });
+    };
+
+    const formatPrice = (val: number) => {
+        return new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(val);
+    };
+
+    // Stats
+    const statCounts: Record<string, number> = {};
+    orders.forEach(o => { statCounts[o.status] = (statCounts[o.status] || 0) + 1; });
+
+    return (
+        <div className="flex flex-col h-[calc(100vh-40px)]">
+            <Breadcrumbs />
+
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 gap-3 flex-shrink-0">
+                <div className="flex items-center gap-3">
+                    <h1 className="admin-page-title flex items-center gap-2">
+                        <span className="text-blue-600">OZON</span>
+                        <span>{locale === 'ru' ? 'Заказы' : 'Orders'}</span>
+                    </h1>
+                </div>
+                <button
+                    onClick={() => fetchOrders(offset, true)}
+                    disabled={refreshing}
+                    className="admin-btn-secondary"
+                >
+                    <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+                    {locale === 'ru' ? 'Обновить' : 'Refresh'}
+                </button>
+            </div>
+
+            {/* Filters */}
+            <div className="flex flex-wrap gap-3 mb-4 flex-shrink-0">
+                {/* Status filter */}
+                <select
+                    value={statusFilter}
+                    onChange={e => setStatusFilter(e.target.value)}
+                    className="px-3 py-2 border rounded-lg text-sm font-medium bg-white text-gray-800"
+                >
+                    {STATUS_FILTERS.map(sf => (
+                        <option key={sf.value} value={sf.value}>
+                            {locale === 'ru' ? sf.label : sf.labelEn}
+                        </option>
+                    ))}
+                </select>
+
+                {/* Period filter */}
+                <select
+                    value={days}
+                    onChange={e => setDays(Number(e.target.value))}
+                    className="px-3 py-2 border rounded-lg text-sm font-medium bg-white text-gray-800"
+                >
+                    {PERIOD_OPTIONS.map(po => (
+                        <option key={po.value} value={po.value}>
+                            {locale === 'ru' ? po.label : po.labelEn}
+                        </option>
+                    ))}
+                </select>
+
+                {/* Search */}
+                <div className="relative flex-1 min-w-[200px] max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <input
+                        type="text"
+                        placeholder={locale === 'ru' ? 'Поиск по номеру или товару...' : 'Search by number or product...'}
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm text-gray-900 placeholder-gray-500"
+                    />
+                </div>
+
+                {/* Stat badges */}
+                <div className="flex items-center gap-2 ml-auto">
+                    <span className="text-xs font-medium text-gray-500">
+                        {locale === 'ru' ? `Найдено: ${filteredOrders.length}` : `Found: ${filteredOrders.length}`}
+                    </span>
+                </div>
+            </div>
+
+            {/* Error */}
+            {error && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm flex-shrink-0">
+                    <strong>{locale === 'ru' ? 'Ошибка:' : 'Error:'}</strong> {error}
+                    <p className="text-xs text-red-600 mt-1">
+                        {locale === 'ru' ? 'Проверьте OZON_CLIENT_ID и OZON_API_KEY в настройках.' : 'Check OZON_CLIENT_ID and OZON_API_KEY in settings.'}
+                    </p>
+                </div>
+            )}
+
+            {/* Table */}
+            <div className="flex-1 overflow-auto rounded-xl border bg-white shadow-sm">
+                {loading ? (
+                    <div className="p-6 space-y-4">
+                        {[...Array(6)].map((_, i) => (
+                            <div key={i} className="h-14 bg-gray-100 rounded-lg animate-pulse" />
+                        ))}
+                    </div>
+                ) : filteredOrders.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                        <Package size={48} className="mb-3 opacity-50" />
+                        <p className="text-lg font-medium">{locale === 'ru' ? 'Заказов не найдено' : 'No orders found'}</p>
+                        <p className="text-sm mt-1">{locale === 'ru' ? 'Попробуйте изменить фильтры' : 'Try changing filters'}</p>
+                    </div>
+                ) : (
+                    <table className="w-full text-sm">
+                        <thead className="sticky top-0 z-10">
+                            <tr>
+                                <th className="text-left px-4 py-3">
+                                    {locale === 'ru' ? 'Отправление' : 'Posting'}
+                                </th>
+                                <th className="text-left px-4 py-3">
+                                    {locale === 'ru' ? 'Дата' : 'Date'}
+                                </th>
+                                <th className="text-left px-4 py-3">
+                                    {locale === 'ru' ? 'Товары' : 'Products'}
+                                </th>
+                                <th className="text-right px-4 py-3">
+                                    {locale === 'ru' ? 'Сумма' : 'Total'}
+                                </th>
+                                <th className="text-left px-4 py-3">
+                                    {locale === 'ru' ? 'Статус' : 'Status'}
+                                </th>
+                                <th className="text-left px-4 py-3 hidden lg:table-cell">
+                                    {locale === 'ru' ? 'Доставка' : 'Delivery'}
+                                </th>
+                                <th className="w-10 px-2"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredOrders.map(order => {
+                                const isExpanded = expandedRow === order.postingNumber;
+                                return (
+                                    <OzonOrderRow
+                                        key={order.postingNumber}
+                                        order={order}
+                                        isExpanded={isExpanded}
+                                        onToggle={() => setExpandedRow(isExpanded ? null : order.postingNumber)}
+                                        formatDate={formatDate}
+                                        formatPrice={formatPrice}
+                                        locale={locale}
+                                    />
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                )}
+            </div>
+
+            {/* Pagination */}
+            {!loading && (offset > 0 || hasNext) && (
+                <div className="flex justify-between items-center mt-3 flex-shrink-0 pb-2">
+                    <button
+                        onClick={() => fetchOrders(Math.max(0, offset - PAGE_SIZE))}
+                        disabled={offset === 0}
+                        className="admin-btn-secondary text-sm disabled:opacity-40"
+                    >
+                        <ChevronLeft size={16} />
+                        {locale === 'ru' ? 'Назад' : 'Previous'}
+                    </button>
+                    <span className="text-xs text-gray-500">
+                        {locale === 'ru' ? `Страница ${Math.floor(offset / PAGE_SIZE) + 1}` : `Page ${Math.floor(offset / PAGE_SIZE) + 1}`}
+                    </span>
+                    <button
+                        onClick={() => fetchOrders(offset + PAGE_SIZE)}
+                        disabled={!hasNext}
+                        className="admin-btn-secondary text-sm disabled:opacity-40"
+                    >
+                        {locale === 'ru' ? 'Далее' : 'Next'}
+                        <ChevronRight size={16} />
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+}
+
+/* ─── Order Row Component ─── */
+function OzonOrderRow({ order, isExpanded, onToggle, formatDate, formatPrice, locale }: {
+    order: OzonOrder;
+    isExpanded: boolean;
+    onToggle: () => void;
+    formatDate: (s: string) => string;
+    formatPrice: (n: number) => string;
+    locale: string;
+}) {
+    const productSummary = order.products.length === 1
+        ? order.products[0].name
+        : `${order.products.length} ${locale === 'ru' ? 'товаров' : 'items'}`;
+
+    return (
+        <>
+            <tr
+                onClick={onToggle}
+                className="cursor-pointer hover:bg-gray-50/80 transition-colors border-b border-gray-100"
+            >
+                <td className="px-4 py-3">
+                    <span className="font-mono text-xs font-semibold text-gray-700">{order.postingNumber}</span>
+                </td>
+                <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
+                    {formatDate(order.createdAt)}
+                </td>
+                <td className="px-4 py-3">
+                    <div className="text-sm text-gray-800 truncate max-w-[250px]" title={productSummary}>
+                        {productSummary}
+                    </div>
+                    {order.products.length === 1 && (
+                        <div className="text-[10px] text-gray-400 font-mono">
+                            SKU: {order.products[0].sku} × {order.products[0].quantity}
+                        </div>
+                    )}
+                </td>
+                <td className="px-4 py-3 text-right font-semibold text-gray-900 whitespace-nowrap">
+                    {formatPrice(order.total)}
+                </td>
+                <td className="px-4 py-3">
+                    <span
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap"
+                        style={{
+                            backgroundColor: `${order.statusColor}15`,
+                            color: order.statusColor,
+                            border: `1px solid ${order.statusColor}30`,
+                        }}
+                    >
+                        {order.statusEmoji} {locale === 'ru' ? order.statusLabel : order.statusLabelEn}
+                    </span>
+                </td>
+                <td className="px-4 py-3 hidden lg:table-cell text-xs text-gray-500">
+                    {order.customer?.city || order.deliveryMethod?.name || '—'}
+                </td>
+                <td className="px-2 py-3">
+                    {isExpanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+                </td>
+            </tr>
+
+            {/* Expanded details */}
+            {isExpanded && (
+                <tr className="bg-gray-50/50">
+                    <td colSpan={7} className="px-4 py-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Products list */}
+                            <div className="md:col-span-2">
+                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                    {locale === 'ru' ? 'Товары' : 'Products'}
+                                </h4>
+                                <div className="space-y-2">
+                                    {order.products.map((p, i) => (
+                                        <div key={i} className="flex justify-between items-start bg-white rounded-lg p-3 border border-gray-100">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-sm font-medium text-gray-800 truncate">{p.name}</div>
+                                                <div className="text-[11px] text-gray-400 font-mono mt-0.5">
+                                                    SKU: {p.sku} · Артикул: {p.offerId}
+                                                </div>
+                                            </div>
+                                            <div className="text-right ml-3 flex-shrink-0">
+                                                <div className="text-sm font-semibold text-gray-900">{formatPrice(parseFloat(p.price) * p.quantity)}</div>
+                                                <div className="text-[11px] text-gray-400">× {p.quantity}</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Order details */}
+                            <div className="space-y-3">
+                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                    {locale === 'ru' ? 'Детали' : 'Details'}
+                                </h4>
+                                <div className="bg-white rounded-lg p-3 border border-gray-100 space-y-2 text-xs">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">{locale === 'ru' ? 'Номер заказа' : 'Order ID'}:</span>
+                                        <span className="font-mono font-medium text-gray-700">{order.orderNumber || order.orderId}</span>
+                                    </div>
+                                    {order.shipmentDate && (
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-500">{locale === 'ru' ? 'Дата отгрузки' : 'Shipment'}:</span>
+                                            <span className="text-gray-700">{formatDate(order.shipmentDate)}</span>
+                                        </div>
+                                    )}
+                                    {order.deliveryMethod && (
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-500">{locale === 'ru' ? 'Способ' : 'Method'}:</span>
+                                            <span className="text-gray-700 text-right max-w-[150px] truncate">{order.deliveryMethod.name}</span>
+                                        </div>
+                                    )}
+                                    {order.customer?.city && (
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-500">{locale === 'ru' ? 'Город' : 'City'}:</span>
+                                            <span className="text-gray-700">{order.customer.city}</span>
+                                        </div>
+                                    )}
+                                    {order.cancellation && (
+                                        <div className="pt-2 border-t border-gray-100">
+                                            <div className="text-red-600 font-medium">{locale === 'ru' ? 'Причина отмены' : 'Cancel reason'}:</div>
+                                            <div className="text-red-500 mt-0.5">{order.cancellation.cancellationReason}</div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Link to Ozon */}
+                                <a
+                                    href={`https://seller.ozon.ru/app/postings/fbs?postingNumber=${order.postingNumber}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
+                                >
+                                    <ExternalLink size={12} />
+                                    {locale === 'ru' ? 'Открыть в Ozon Seller' : 'Open in Ozon Seller'}
+                                </a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            )}
+        </>
+    );
+}

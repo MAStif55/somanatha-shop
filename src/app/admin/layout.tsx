@@ -15,7 +15,8 @@ import {
     Settings,
     Users,
     Sliders,
-    Star
+    Star,
+    Store
 } from "lucide-react";
 import { useTranslation } from "@/contexts/LanguageContext";
 
@@ -33,6 +34,7 @@ const getNavGroups = (t: (key: string) => string, locale: string) => [
         label: locale === 'ru' ? 'Продажи' : 'Sales',
         items: [
             { href: '/admin/orders', label: t('admin.orders'), icon: ShoppingCart },
+            { href: '/admin/ozon-orders', label: locale === 'ru' ? 'Заказы Ozon' : 'Ozon Orders', icon: Store },
             { href: '/admin/customers', label: t('admin.customers') || 'Customers', icon: Users },
         ],
     },
