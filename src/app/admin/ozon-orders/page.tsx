@@ -448,8 +448,8 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
                 const errData = await res.json().catch(() => ({}));
                 throw new Error(errData.error || `HTTP ${res.status}`);
             }
-            const data = await res.json();
-            const url = data.url;
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
             const printWindow = window.open('', '_blank');
             if (printWindow) {
                 printWindow.document.write(`<!DOCTYPE html>
