@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '@/contexts/LanguageContext';
 import Breadcrumbs from '@/components/admin/Breadcrumbs';
-import { RefreshCw, Search, ChevronDown, ChevronUp, ExternalLink, Package, ChevronLeft, ChevronRight, Printer } from 'lucide-react';
+import { RefreshCw, Search, ChevronDown, ChevronUp, ExternalLink, Package, ChevronLeft, ChevronRight, Printer, LayoutList, LayoutGrid } from 'lucide-react';
 
 interface OzonProduct {
     name: string;
@@ -66,6 +66,7 @@ export default function OzonOrdersPage() {
     const [orders, setOrders] = useState<OzonOrder[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [viewMode, setViewMode] = useState<'simple' | 'advanced'>('simple');
     const [statusFilter, setStatusFilter] = useState('all');
     const [days, setDays] = useState(7);
     const [searchTerm, setSearchTerm] = useState('');
@@ -172,63 +173,82 @@ export default function OzonOrdersPage() {
                         <span>{locale === 'ru' ? 'Заказы' : 'Orders'}</span>
                     </h1>
                 </div>
-                <button
-                    onClick={() => fetchOrders(offset, true)}
-                    disabled={refreshing}
-                    className="admin-btn-secondary"
-                >
-                    <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
-                    {locale === 'ru' ? 'Обновить' : 'Refresh'}
-                </button>
-            </div>
+                <div className="flex items-center gap-2">
+                    <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200">
+                        <button
+                            onClick={() => setViewMode('simple')}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'simple' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            <LayoutGrid size={16} />
+                            <span className="hidden sm:inline">{locale === 'ru' ? 'Простой' : 'Simple'}</span>
+                        </button>
+                        <button
+                            onClick={() => setViewMode('advanced')}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'advanced' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            <LayoutList size={16} />
+                            <span className="hidden sm:inline">{locale === 'ru' ? 'Расширенный' : 'Advanced'}</span>
+                        </button>
+                    </div>
+                    <button
+                        onClick={() => fetchOrders(offset, true)}
+                        disabled={refreshing}
+                        className="admin-btn-secondary"
+                    >
+                        <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+                        {locale === 'ru' ? 'Обновить' : 'Refresh'}
+                    </button>
+                </div>
 
             {/* Filters */}
-            <div className="flex flex-wrap gap-3 mb-4 flex-shrink-0">
-                {/* Status filter */}
-                <select
-                    value={statusFilter}
-                    onChange={e => setStatusFilter(e.target.value)}
-                    className="px-3 py-2 border rounded-lg text-sm font-medium bg-white text-gray-800"
-                >
-                    {STATUS_FILTERS.map(sf => (
-                        <option key={sf.value} value={sf.value}>
-                            {locale === 'ru' ? sf.label : sf.labelEn}
-                        </option>
-                    ))}
-                </select>
+            {viewMode === 'advanced' && (
+                <div className="flex flex-wrap gap-3 mb-4 flex-shrink-0">
+                    {/* Status filter */}
+                    <select
+                        value={statusFilter}
+                        onChange={e => setStatusFilter(e.target.value)}
+                        className="px-3 py-2 border rounded-lg text-sm font-medium bg-white text-gray-800"
+                    >
+                        {STATUS_FILTERS.map(sf => (
+                            <option key={sf.value} value={sf.value}>
+                                {locale === 'ru' ? sf.label : sf.labelEn}
+                            </option>
+                        ))}
+                    </select>
 
-                {/* Period filter */}
-                <select
-                    value={days}
-                    onChange={e => setDays(Number(e.target.value))}
-                    className="px-3 py-2 border rounded-lg text-sm font-medium bg-white text-gray-800"
-                >
-                    {PERIOD_OPTIONS.map(po => (
-                        <option key={po.value} value={po.value}>
-                            {locale === 'ru' ? po.label : po.labelEn}
-                        </option>
-                    ))}
-                </select>
+                    {/* Period filter */}
+                    <select
+                        value={days}
+                        onChange={e => setDays(Number(e.target.value))}
+                        className="px-3 py-2 border rounded-lg text-sm font-medium bg-white text-gray-800"
+                    >
+                        {PERIOD_OPTIONS.map(po => (
+                            <option key={po.value} value={po.value}>
+                                {locale === 'ru' ? po.label : po.labelEn}
+                            </option>
+                        ))}
+                    </select>
 
-                {/* Search */}
-                <div className="relative flex-1 min-w-[200px] max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                    <input
-                        type="text"
-                        placeholder={locale === 'ru' ? 'Поиск по номеру или товару...' : 'Search by number or product...'}
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm text-gray-900 placeholder-gray-500"
-                    />
+                    {/* Search */}
+                    <div className="relative flex-1 min-w-[200px] max-w-md">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                        <input
+                            type="text"
+                            placeholder={locale === 'ru' ? 'Поиск по номеру или товару...' : 'Search by number or product...'}
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm text-gray-900 placeholder-gray-500"
+                        />
+                    </div>
+
+                    {/* Stat badges */}
+                    <div className="flex items-center gap-2 ml-auto">
+                        <span className="text-xs font-medium text-gray-500">
+                            {locale === 'ru' ? `Найдено: ${filteredOrders.length}` : `Found: ${filteredOrders.length}`}
+                        </span>
+                    </div>
                 </div>
-
-                {/* Stat badges */}
-                <div className="flex items-center gap-2 ml-auto">
-                    <span className="text-xs font-medium text-gray-500">
-                        {locale === 'ru' ? `Найдено: ${filteredOrders.length}` : `Found: ${filteredOrders.length}`}
-                    </span>
-                </div>
-            </div>
+            )}
 
             {/* Error */}
             {error && (
@@ -240,67 +260,95 @@ export default function OzonOrdersPage() {
                 </div>
             )}
 
-            {/* Table */}
-            <div className="flex-1 overflow-auto rounded-xl border bg-white shadow-sm">
-                {loading ? (
-                    <div className="p-6 space-y-4">
-                        {[...Array(6)].map((_, i) => (
-                            <div key={i} className="h-14 bg-gray-100 rounded-lg animate-pulse" />
-                        ))}
-                    </div>
-                ) : filteredOrders.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-                        <Package size={48} className="mb-3 opacity-50" />
-                        <p className="text-lg font-medium">{locale === 'ru' ? 'Заказов не найдено' : 'No orders found'}</p>
-                        <p className="text-sm mt-1">{locale === 'ru' ? 'Попробуйте изменить фильтры' : 'Try changing filters'}</p>
-                    </div>
-                ) : (
-                    <table className="w-full text-sm">
-                        <thead className="sticky top-0 z-10">
-                            <tr>
-                                <th className="text-left px-4 py-3">
-                                    {locale === 'ru' ? 'Отправление' : 'Posting'}
-                                </th>
-                                <th className="text-left px-4 py-3">
-                                    {locale === 'ru' ? 'Дата' : 'Date'}
-                                </th>
-                                <th className="text-left px-4 py-3">
-                                    {locale === 'ru' ? 'Товары' : 'Products'}
-                                </th>
-                                <th className="text-right px-4 py-3">
-                                    {locale === 'ru' ? 'Продажа' : 'Sale'}
-                                </th>
-                                <th className="text-right px-4 py-3 hidden md:table-cell">
-                                    {locale === 'ru' ? 'К выплате' : 'Payout'}
-                                </th>
-                                <th className="text-left px-4 py-3">
-                                    {locale === 'ru' ? 'Статус' : 'Status'}
-                                </th>
-                                <th className="text-left px-4 py-3 hidden lg:table-cell">
-                                    {locale === 'ru' ? 'Доставка' : 'Delivery'}
-                                </th>
-                                <th className="w-10 px-2"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredOrders.map(order => {
-                                const isExpanded = expandedRow === order.postingNumber;
-                                return (
-                                    <OzonOrderRow
-                                        key={order.postingNumber}
-                                        order={order}
-                                        isExpanded={isExpanded}
-                                        onToggle={() => setExpandedRow(isExpanded ? null : order.postingNumber)}
-                                        formatDate={formatDate}
-                                        formatPrice={formatPrice}
-                                        locale={locale}
-                                    />
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                )}
-            </div>
+            {/* Main Content Area */}
+            {viewMode === 'simple' ? (
+                <div className="flex-1 overflow-auto rounded-xl">
+                    {loading ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {[...Array(6)].map((_, i) => (
+                                <div key={i} className="h-64 bg-gray-100 rounded-xl animate-pulse border border-gray-200" />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-4">
+                            {filteredOrders
+                                .filter(o => ['awaiting_packaging', 'awaiting_deliver', 'awaiting_approve'].includes(o.status))
+                                .map(order => (
+                                    <SimpleOrderCard key={order.postingNumber} order={order} locale={locale} />
+                                ))
+                            }
+                            {filteredOrders.filter(o => ['awaiting_packaging', 'awaiting_deliver', 'awaiting_approve'].includes(o.status)).length === 0 && (
+                                <div className="col-span-full flex flex-col items-center justify-center py-20 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
+                                    <Package size={48} className="mb-3 opacity-50 text-green-500" />
+                                    <p className="text-lg font-medium">{locale === 'ru' ? 'Все заказы отправлены!' : 'All orders shipped!'}</p>
+                                    <p className="text-sm mt-1">{locale === 'ru' ? 'Нет заказов, ожидающих сборки или отгрузки.' : 'No orders awaiting packaging or delivery.'}</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <div className="flex-1 overflow-auto rounded-xl border bg-white shadow-sm">
+                    {loading ? (
+                        <div className="p-6 space-y-4">
+                            {[...Array(6)].map((_, i) => (
+                                <div key={i} className="h-14 bg-gray-100 rounded-lg animate-pulse" />
+                            ))}
+                        </div>
+                    ) : filteredOrders.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                            <Package size={48} className="mb-3 opacity-50" />
+                            <p className="text-lg font-medium">{locale === 'ru' ? 'Заказов не найдено' : 'No orders found'}</p>
+                            <p className="text-sm mt-1">{locale === 'ru' ? 'Попробуйте изменить фильтры' : 'Try changing filters'}</p>
+                        </div>
+                    ) : (
+                        <table className="w-full text-sm">
+                            <thead className="sticky top-0 z-10 bg-white shadow-sm">
+                                <tr>
+                                    <th className="text-left px-4 py-3">
+                                        {locale === 'ru' ? 'Отправление' : 'Posting'}
+                                    </th>
+                                    <th className="text-left px-4 py-3">
+                                        {locale === 'ru' ? 'Дата' : 'Date'}
+                                    </th>
+                                    <th className="text-left px-4 py-3">
+                                        {locale === 'ru' ? 'Товары' : 'Products'}
+                                    </th>
+                                    <th className="text-right px-4 py-3">
+                                        {locale === 'ru' ? 'Продажа' : 'Sale'}
+                                    </th>
+                                    <th className="text-right px-4 py-3 hidden md:table-cell">
+                                        {locale === 'ru' ? 'К выплате' : 'Payout'}
+                                    </th>
+                                    <th className="text-left px-4 py-3">
+                                        {locale === 'ru' ? 'Статус' : 'Status'}
+                                    </th>
+                                    <th className="text-left px-4 py-3 hidden lg:table-cell">
+                                        {locale === 'ru' ? 'Доставка' : 'Delivery'}
+                                    </th>
+                                    <th className="w-10 px-2"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredOrders.map(order => {
+                                    const isExpanded = expandedRow === order.postingNumber;
+                                    return (
+                                        <OzonOrderRow
+                                            key={order.postingNumber}
+                                            order={order}
+                                            isExpanded={isExpanded}
+                                            onToggle={() => setExpandedRow(isExpanded ? null : order.postingNumber)}
+                                            formatDate={formatDate}
+                                            formatPrice={formatPrice}
+                                            locale={locale}
+                                        />
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+            )}
 
             {/* Pagination */}
             {!loading && (offset > 0 || hasNext) && (
@@ -326,6 +374,168 @@ export default function OzonOrdersPage() {
                     </button>
                 </div>
             )}
+        </div>
+    );
+}
+
+/* ─── Shared Print Utility ─── */
+const handlePrintProductBarcode = (productName: string, barcode: string) => {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+        printWindow.document.write(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Штрихкод ${barcode}</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, 'Inter', sans-serif; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; }
+    .toolbar {
+        display: flex; align-items: center; justify-content: center; gap: 12px;
+        padding: 15px; background: #1e1d2b; color: white; width: 100%;
+        position: fixed; top: 0; z-index: 10;
+    }
+    .toolbar button {
+        padding: 8px 20px; background: #3b82f6; color: white;
+        border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px;
+    }
+    .toolbar button:hover { background: #2563eb; }
+    .content { margin-top: 80px; padding: 20px; max-width: 100%; display: flex; flex-direction: column; align-items: center; }
+    .product-name { font-size: 14px; color: #333; margin-bottom: 10px; max-width: 58mm; word-wrap: break-word; }
+    svg { max-width: 100%; height: auto; }
+    
+    @media print {
+        .toolbar { display: none !important; }
+        .content { margin-top: 0; padding: 0; }
+        @page { margin: 0; size: auto; }
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+</head>
+<body>
+    <div class="toolbar">
+        <button onclick="window.print()">🖨️ Печать</button>
+        <span style="font-size: 12px; color: #fbbf24; background: rgba(251,191,36,0.1); padding: 4px 8px; border-radius: 4px;">Формат: 58x40 (термо) или А4</span>
+    </div>
+    <div class="content">
+        <div class="product-name">${productName}</div>
+        <svg id="barcode"></svg>
+    </div>
+    <script>
+        JsBarcode("#barcode", "${barcode}", {
+            format: "CODE128",
+            displayValue: true,
+            fontSize: 16,
+            height: 60,
+            margin: 0
+        });
+    </script>
+</body></html>`);
+        printWindow.document.close();
+    }
+};
+
+/* ─── Simple Order Card Component ─── */
+function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }) {
+    const [labelLoading, setLabelLoading] = useState(false);
+    const [labelError, setLabelError] = useState<string | null>(null);
+
+    const handlePrintLabel = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setLabelLoading(true);
+        setLabelError(null);
+        try {
+            const res = await fetch(`/api/ozon-label?posting=${encodeURIComponent(order.postingNumber)}`);
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || \`HTTP \${res.status}\`);
+            }
+            const data = await res.json();
+            const url = data.url;
+            const printWindow = window.open('', '_blank');
+            if (printWindow) {
+                printWindow.document.write(\`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Этикетка \${order.postingNumber}</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, 'Inter', sans-serif; background: #f5f5f5; }
+    .toolbar { display: flex; align-items: center; gap: 12px; padding: 10px 20px; background: #1e1d2b; color: white; position: sticky; top: 0; z-index: 10; }
+    .toolbar button { padding: 8px 20px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+    .toolbar button:hover { background: #2563eb; }
+    .toolbar .num { font-size: 13px; font-family: monospace; color: #d1d5db; }
+    .tip { margin-left: auto; font-size: 11px; color: #fbbf24; background: rgba(251, 191, 36, 0.1); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(251, 191, 36, 0.2); }
+    iframe { width: 100%; height: calc(100vh - 50px); border: none; }
+    @media print { .toolbar { display: none !important; } iframe { height: 100vh; } }
+</style></head>
+<body>
+    <div class="toolbar">
+        <button onclick="try{document.getElementById('pdf').contentWindow.print()}catch(e){window.print()}">🖨️ Печать</button>
+        <span class="num">\${order.postingNumber}</span>
+        <span class="tip">💡 Выберите «По размеру страницы» в настройках печати</span>
+    </div>
+    <iframe id="pdf" src="\${url}#view=Fit"></iframe>
+</body></html>\`);
+                printWindow.document.close();
+            }
+        } catch (err: any) {
+            setLabelError(err.message || 'Ошибка');
+            setTimeout(() => setLabelError(null), 5000);
+        } finally {
+            setLabelLoading(false);
+        }
+    };
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-gray-100 flex justify-between items-start bg-gray-50/50">
+                <div>
+                    <div className="font-mono text-sm font-bold text-gray-800">{order.postingNumber}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">
+                        {new Date(order.inProcessAt || order.createdAt).toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                </div>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap" style={{ backgroundColor: \`\${order.statusColor}15\`, color: order.statusColor, border: \`1px solid \${order.statusColor}30\` }}>
+                    {order.statusEmoji} {locale === 'ru' ? order.statusLabel : order.statusLabelEn}
+                </span>
+            </div>
+            
+            <div className="p-4 flex-1 space-y-3">
+                {order.products.map((p, i) => (
+                    <div key={i} className="flex justify-between items-start">
+                        <div className="flex-1 min-w-0 pr-3">
+                            <div className="text-sm font-medium text-gray-800 line-clamp-2">{p.name}</div>
+                            <div className="mt-1.5">
+                                {p.barcode ? (
+                                    <button 
+                                        onClick={(e) => { e.preventDefault(); handlePrintProductBarcode(p.name, p.barcode!); }}
+                                        className="inline-flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-colors border border-blue-100 font-medium"
+                                    >
+                                        <Printer size={12} /> {locale === 'ru' ? 'Штрихкод' : 'Barcode'}: {p.barcode}
+                                    </button>
+                                ) : (
+                                    <span className="text-[11px] text-gray-400 font-mono">SKU: {p.sku}</span>
+                                )}
+                            </div>
+                        </div>
+                        <div className="text-right flex-shrink-0 bg-gray-50 px-2 py-1 rounded border border-gray-100">
+                            <div className="text-xs font-semibold text-gray-700">{p.quantity} шт</div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <div className="p-4 bg-gray-50 border-t border-gray-100 mt-auto">
+                {labelError && <div className="text-xs text-red-600 mb-2">{labelError}</div>}
+                <button
+                    onClick={handlePrintLabel}
+                    disabled={labelLoading}
+                    className="w-full flex justify-center items-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-70 shadow-sm"
+                >
+                    {labelLoading ? (
+                        <RefreshCw size={16} className="animate-spin" />
+                    ) : (
+                        <Printer size={16} />
+                    )}
+                    {locale === 'ru' ? 'Этикетка заказа' : 'Order Label'}
+                </button>
+            </div>
         </div>
     );
 }
@@ -406,59 +616,6 @@ function OzonOrderRow({ order, isExpanded, onToggle, formatDate, formatPrice, lo
             setLabelLoading(false);
         }
     };
-    const handlePrintProductBarcode = (productName: string, barcode: string) => {
-        const printWindow = window.open('', '_blank');
-        if (printWindow) {
-            printWindow.document.write(`<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Штрихкод ${barcode}</title>
-<style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, 'Inter', sans-serif; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; }
-    .toolbar {
-        display: flex; align-items: center; justify-content: center; gap: 12px;
-        padding: 15px; background: #1e1d2b; color: white; width: 100%;
-        position: fixed; top: 0; z-index: 10;
-    }
-    .toolbar button {
-        padding: 8px 20px; background: #3b82f6; color: white;
-        border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px;
-    }
-    .toolbar button:hover { background: #2563eb; }
-    .content { margin-top: 80px; padding: 20px; max-width: 100%; display: flex; flex-direction: column; align-items: center; }
-    .product-name { font-size: 14px; color: #333; margin-bottom: 10px; max-width: 58mm; word-wrap: break-word; }
-    svg { max-width: 100%; height: auto; }
-    
-    @media print {
-        .toolbar { display: none !important; }
-        .content { margin-top: 0; padding: 0; }
-        @page { margin: 0; size: auto; }
-    }
-</style>
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
-</head>
-<body>
-    <div class="toolbar">
-        <button onclick="window.print()">🖨️ Печать</button>
-        <span style="font-size: 12px; color: #fbbf24; background: rgba(251,191,36,0.1); padding: 4px 8px; border-radius: 4px;">Формат: 58x40 (термо) или А4</span>
-    </div>
-    <div class="content">
-        <div class="product-name">${productName}</div>
-        <svg id="barcode"></svg>
-    </div>
-    <script>
-        JsBarcode("#barcode", "${barcode}", {
-            format: "CODE128",
-            displayValue: true,
-            fontSize: 16,
-            height: 60,
-            margin: 0
-        });
-    </script>
-</body></html>`);
-            printWindow.document.close();
-        }
-    };
-
     const productSummary = order.products.length === 1
         ? order.products[0].name
         : `${order.products.length} ${locale === 'ru' ? 'товаров' : 'items'}`;
