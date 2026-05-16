@@ -90,6 +90,42 @@ export async function GET(request: NextRequest) {
         const postings = data.result?.postings || [];
         const hasNext = data.result?.has_next || false;
 
+        // Collect all unique offer_ids to fetch barcodes
+        const offerIds = new Set<string>();
+        postings.forEach((posting: any) => {
+            (posting.products || []).forEach((p: any) => {
+                if (p.offer_id) offerIds.add(p.offer_id);
+            });
+        });
+
+        // Fetch product info to get barcodes
+        const barcodeMap: Record<string, string> = {};
+        if (offerIds.size > 0) {
+            try {
+                const infoRes = await fetch(`${OZON_API_BASE}/v3/product/info/list`, {
+                    method: 'POST',
+                    headers: {
+                        'Client-Id': clientId,
+                        'Api-Key': apiKey,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ offer_id: Array.from(offerIds) }),
+                });
+                if (infoRes.ok) {
+                    const infoData = await infoRes.json();
+                    if (infoData.items) {
+                        infoData.items.forEach((item: any) => {
+                            if (item.offer_id && item.barcodes && item.barcodes.length > 0) {
+                                barcodeMap[item.offer_id] = item.barcodes[0];
+                            }
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to fetch product barcodes', err);
+            }
+        }
+
         // Transform postings into a simplified format
         const orders = postings.map((posting: any) => {
             const statusInfo = getStatusInfo(posting.status);
@@ -100,6 +136,7 @@ export async function GET(request: NextRequest) {
                 offerId: p.offer_id,
                 price: p.price,
                 currencyCode: p.currency_code,
+                barcode: barcodeMap[p.offer_id] || null,
             }));
 
             // Calculate total from product prices

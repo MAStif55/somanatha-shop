@@ -12,6 +12,7 @@ interface OzonProduct {
     offerId: string;
     price: string;
     currencyCode: string;
+    barcode?: string;
 }
 
 interface OzonOrder {
@@ -405,6 +406,59 @@ function OzonOrderRow({ order, isExpanded, onToggle, formatDate, formatPrice, lo
             setLabelLoading(false);
         }
     };
+    const handlePrintProductBarcode = (productName: string, barcode: string) => {
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+            printWindow.document.write(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Штрихкод ${barcode}</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, 'Inter', sans-serif; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; }
+    .toolbar {
+        display: flex; align-items: center; justify-content: center; gap: 12px;
+        padding: 15px; background: #1e1d2b; color: white; width: 100%;
+        position: fixed; top: 0; z-index: 10;
+    }
+    .toolbar button {
+        padding: 8px 20px; background: #3b82f6; color: white;
+        border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px;
+    }
+    .toolbar button:hover { background: #2563eb; }
+    .content { margin-top: 80px; padding: 20px; max-width: 100%; display: flex; flex-direction: column; align-items: center; }
+    .product-name { font-size: 14px; color: #333; margin-bottom: 10px; max-width: 58mm; word-wrap: break-word; }
+    svg { max-width: 100%; height: auto; }
+    
+    @media print {
+        .toolbar { display: none !important; }
+        .content { margin-top: 0; padding: 0; }
+        @page { margin: 0; size: auto; }
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+</head>
+<body>
+    <div class="toolbar">
+        <button onclick="window.print()">🖨️ Печать</button>
+        <span style="font-size: 12px; color: #fbbf24; background: rgba(251,191,36,0.1); padding: 4px 8px; border-radius: 4px;">Формат: 58x40 (термо) или А4</span>
+    </div>
+    <div class="content">
+        <div class="product-name">${productName}</div>
+        <svg id="barcode"></svg>
+    </div>
+    <script>
+        JsBarcode("#barcode", "${barcode}", {
+            format: "CODE128",
+            displayValue: true,
+            fontSize: 16,
+            height: 60,
+            margin: 0
+        });
+    </script>
+</body></html>`);
+            printWindow.document.close();
+        }
+    };
+
     const productSummary = order.products.length === 1
         ? order.products[0].name
         : `${order.products.length} ${locale === 'ru' ? 'товаров' : 'items'}`;
@@ -480,8 +534,14 @@ function OzonOrderRow({ order, isExpanded, onToggle, formatDate, formatPrice, lo
                                         <div key={i} className="flex justify-between items-start bg-white rounded-lg p-3 border border-gray-100">
                                             <div className="flex-1 min-w-0">
                                                 <div className="text-sm font-medium text-gray-800 truncate">{p.name}</div>
-                                                <div className="text-[11px] text-gray-400 font-mono mt-0.5">
-                                                    SKU: {p.sku} · Артикул: {p.offerId}
+                                                <div className="text-[11px] text-gray-400 font-mono mt-0.5 flex items-center gap-3">
+                                                    <span>SKU: {p.sku}</span>
+                                                    <span>Арт: {p.offerId}</span>
+                                                    {p.barcode && (
+                                                        <span className="flex items-center gap-1.5 text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded cursor-pointer hover:bg-blue-100 transition-colors" onClick={(e) => { e.stopPropagation(); handlePrintProductBarcode(p.name, p.barcode!); }} title="Печать штрихкода">
+                                                            <Printer size={10} /> {p.barcode}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="text-right ml-3 flex-shrink-0">
