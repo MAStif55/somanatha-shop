@@ -320,11 +320,50 @@ function OzonOrderRow({ order, isExpanded, onToggle, formatDate, formatPrice, lo
             }
             const blob = await res.blob();
             const url = URL.createObjectURL(blob);
-            const printWindow = window.open(url, '_blank');
+
+            // Open a wrapper page with the PDF in an iframe + print controls
+            const printWindow = window.open('', '_blank');
             if (printWindow) {
-                printWindow.addEventListener('load', () => {
-                    printWindow.print();
-                });
+                printWindow.document.write(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Этикетка ${order.postingNumber}</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, 'Inter', sans-serif; background: #f5f5f5; }
+    .toolbar {
+        display: flex; align-items: center; gap: 12px;
+        padding: 10px 20px; background: #1e1d2b; color: white;
+        position: sticky; top: 0; z-index: 10;
+    }
+    .toolbar button {
+        padding: 8px 20px; background: #3b82f6; color: white;
+        border: none; border-radius: 6px; font-weight: 700;
+        cursor: pointer; font-size: 14px; display: flex;
+        align-items: center; gap: 6px;
+    }
+    .toolbar button:hover { background: #2563eb; }
+    .toolbar .num { font-size: 13px; font-family: monospace; color: #d1d5db; }
+    .tip {
+        margin-left: auto; font-size: 11px; color: #fbbf24;
+        background: rgba(251, 191, 36, 0.1); padding: 6px 12px;
+        border-radius: 6px; border: 1px solid rgba(251, 191, 36, 0.2);
+    }
+    iframe { width: 100%; height: calc(100vh - 50px); border: none; }
+    @media print {
+        .toolbar { display: none !important; }
+        iframe { height: 100vh; }
+    }
+</style></head>
+<body>
+    <div class="toolbar">
+        <button onclick="try{document.getElementById('pdf').contentWindow.print()}catch(e){window.print()}">
+            🖨️ Печать
+        </button>
+        <span class="num">${order.postingNumber}</span>
+        <span class="tip">💡 Выберите «По размеру страницы» в настройках печати</span>
+    </div>
+    <iframe id="pdf" src="${url}#view=Fit"></iframe>
+</body></html>`);
+                printWindow.document.close();
             }
         } catch (err: any) {
             setLabelError(err.message || 'Ошибка');
