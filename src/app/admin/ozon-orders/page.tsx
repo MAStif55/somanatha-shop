@@ -419,7 +419,7 @@ function OzonOrderRow({ order, isExpanded, onToggle, formatDate, formatPrice, lo
                     <span className="font-mono text-xs font-semibold text-gray-700">{order.postingNumber}</span>
                 </td>
                 <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
-                    {formatDate(order.createdAt)}
+                    {formatDate(order.inProcessAt || order.createdAt)}
                 </td>
                 <td className="px-4 py-3">
                     <div className="text-sm text-gray-800 truncate max-w-[250px]" title={productSummary}>
@@ -437,6 +437,10 @@ function OzonOrderRow({ order, isExpanded, onToggle, formatDate, formatPrice, lo
                 <td className="px-4 py-3 text-right hidden md:table-cell whitespace-nowrap">
                     {order.payout > 0 ? (
                         <span className="font-semibold text-green-700">{formatPrice(order.payout)}</span>
+                    ) : order.total > 0 && order.status !== 'cancelled' ? (
+                        <span className="text-gray-400 text-xs italic" title={locale === 'ru' ? 'Рассчитается после доставки' : 'Calculated after delivery'}>
+                            ~{formatPrice(order.total * 0.8)}
+                        </span>
                     ) : (
                         <span className="text-gray-400 text-xs">—</span>
                     )}
