@@ -102,14 +102,39 @@ export default function OzonOrdersPage() {
         fetchOrders(0);
     }, [fetchOrders]);
 
-    const filteredOrders = orders.filter(o => {
-        if (!searchTerm) return true;
-        const q = searchTerm.toLowerCase();
-        return (
-            o.postingNumber.toLowerCase().includes(q) ||
-            o.products.some(p => p.name.toLowerCase().includes(q) || p.offerId.toLowerCase().includes(q))
-        );
-    });
+    // Priority: actionable statuses first, then in-transit, then completed/cancelled
+    const STATUS_PRIORITY: Record<string, number> = {
+        awaiting_packaging: 0,
+        awaiting_deliver: 1,
+        awaiting_approve: 2,
+        awaiting_registration: 3,
+        acceptance_in_progress: 4,
+        sent_by_seller: 5,
+        driver_pickup: 6,
+        delivering: 7,
+        delivered: 8,
+        arbitration: 9,
+        client_arbitration: 10,
+        cancelled: 11,
+        not_accepted: 12,
+    };
+
+    const filteredOrders = orders
+        .filter(o => {
+            if (!searchTerm) return true;
+            const q = searchTerm.toLowerCase();
+            return (
+                o.postingNumber.toLowerCase().includes(q) ||
+                o.products.some(p => p.name.toLowerCase().includes(q) || p.offerId.toLowerCase().includes(q))
+            );
+        })
+        .sort((a, b) => {
+            const pa = STATUS_PRIORITY[a.status] ?? 99;
+            const pb = STATUS_PRIORITY[b.status] ?? 99;
+            if (pa !== pb) return pa - pb;
+            // Within same priority, newest first
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
 
     const formatDate = (dateStr: string) => {
         if (!dateStr) return '—';
