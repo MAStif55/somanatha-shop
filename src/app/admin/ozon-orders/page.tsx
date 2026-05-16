@@ -199,6 +199,7 @@ export default function OzonOrdersPage() {
                         {locale === 'ru' ? 'Обновить' : 'Refresh'}
                     </button>
                 </div>
+            </div>
 
             {/* Filters */}
             {viewMode === 'advanced' && (
