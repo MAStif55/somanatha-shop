@@ -131,6 +131,7 @@ export interface Product {
     status?: ProductStatus; // Product availability
     createdAt?: number; // timestamp
     order?: number; // for manual sorting
+    ozonOfferId?: string; // Mapped Ozon Article/offer_id
 }
 
 /**

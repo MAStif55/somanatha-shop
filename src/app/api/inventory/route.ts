@@ -18,14 +18,15 @@ export async function GET(req: NextRequest) {
             const existingOfferIds = new Set(items.map(i => i.offerId));
             
             for (const p of products) {
-                // Assume slug is the default offerId if it doesn't exist in inventory yet
-                if (!existingOfferIds.has(p.slug)) {
+                // Assume ozonOfferId or slug is the offerId
+                const mappedOfferId = p.ozonOfferId || p.slug;
+                if (!existingOfferIds.has(mappedOfferId)) {
                     items.push({
-                        offerId: p.slug,
-                        name: p.title.ru || p.title.en || p.slug,
+                        offerId: mappedOfferId,
+                        name: p.title.ru || p.title.en || mappedOfferId,
                         stock: 0
                     });
-                    existingOfferIds.add(p.slug);
+                    existingOfferIds.add(mappedOfferId);
                 }
             }
         }

@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '@/contexts/LanguageContext';
 import Breadcrumbs from '@/components/admin/Breadcrumbs';
-import { RefreshCw, Search, ChevronDown, ChevronUp, ExternalLink, Package, ChevronLeft, ChevronRight, Printer, LayoutList, LayoutGrid, Archive } from 'lucide-react';
+import { RefreshCw, Search, ChevronDown, ChevronUp, ExternalLink, Package, ChevronLeft, ChevronRight, Printer, LayoutList, LayoutGrid, Archive, Link as LinkIcon } from 'lucide-react';
 import OzonInventoryTab from './OzonInventoryTab';
+import OzonMappingTab from './OzonMappingTab';
 
 interface OzonProduct {
     name: string;
@@ -76,7 +77,7 @@ export default function OzonOrdersPage() {
     const [offset, setOffset] = useState(0);
     const [hasNext, setHasNext] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
-    const [activeTab, setActiveTab] = useState<'orders' | 'inventory'>('orders');
+    const [activeTab, setActiveTab] = useState<'orders' | 'inventory' | 'mapping'>('orders');
 
     const fetchOrders = useCallback(async (currentOffset = 0, isRefresh = false) => {
         if (isRefresh) setRefreshing(true);
@@ -189,6 +190,13 @@ export default function OzonOrdersPage() {
                             <Archive size={16} />
                             <span className="hidden sm:inline">{locale === 'ru' ? 'Склад (Наличие)' : 'Inventory'}</span>
                         </button>
+                        <button
+                            onClick={() => setActiveTab('mapping')}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === 'mapping' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            <LinkIcon size={16} />
+                            <span className="hidden sm:inline">{locale === 'ru' ? 'Связка товаров' : 'Product Mapping'}</span>
+                        </button>
                     </div>
                 </div>
                 
@@ -222,7 +230,9 @@ export default function OzonOrdersPage() {
                 )}
             </div>
 
-            {activeTab === 'inventory' ? (
+            {activeTab === 'mapping' ? (
+                <OzonMappingTab />
+            ) : activeTab === 'inventory' ? (
                 <OzonInventoryTab />
             ) : (
                 <>
