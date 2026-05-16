@@ -69,3 +69,17 @@ export interface IFunctionsRepository {
     triggerDeploy(): Promise<void>;
     triggerBackup(): Promise<{ success: boolean; message?: string }>;
 }
+
+export interface InventoryItem {
+    offerId: string;
+    name: string;
+    stock: number;
+}
+
+export interface IInventoryRepository {
+    getAll(): Promise<InventoryItem[]>;
+    getByOfferId(offerId: string): Promise<InventoryItem | null>;
+    getByOfferIds(offerIds: string[]): Promise<InventoryItem[]>;
+    setStock(offerId: string, name: string, stock: number): Promise<void>;
+    deductStock(offerId: string, name: string, quantity: number): Promise<boolean>;
+}

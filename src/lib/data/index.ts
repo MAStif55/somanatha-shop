@@ -6,6 +6,7 @@ import { MongoSettingsRepository } from './yandex/MongoSettingsRepository';
 import { S3StorageRepository } from './yandex/S3StorageRepository';
 import { MongoAuthRepository } from './yandex/MongoAuthRepository';
 import { YandexFunctionsRepository } from './yandex/YandexFunctionsRepository';
+import { MongoInventoryRepository } from './yandex/MongoInventoryRepository';
 
 // ============================================================================
 // DATA ACCESS LAYER
@@ -20,3 +21,4 @@ export const SettingsRepository = new MongoSettingsRepository();
 export const StorageRepository = new S3StorageRepository();
 export const AuthRepository = new MongoAuthRepository();
 export const FunctionsRepository = new YandexFunctionsRepository();
+export const InventoryRepository = new MongoInventoryRepository();

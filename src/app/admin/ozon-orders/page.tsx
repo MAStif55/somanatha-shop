@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '@/contexts/LanguageContext';
 import Breadcrumbs from '@/components/admin/Breadcrumbs';
-import { RefreshCw, Search, ChevronDown, ChevronUp, ExternalLink, Package, ChevronLeft, ChevronRight, Printer, LayoutList, LayoutGrid } from 'lucide-react';
+import { RefreshCw, Search, ChevronDown, ChevronUp, ExternalLink, Package, ChevronLeft, ChevronRight, Printer, LayoutList, LayoutGrid, Archive } from 'lucide-react';
+import OzonInventoryTab from './OzonInventoryTab';
 
 interface OzonProduct {
     name: string;
@@ -13,6 +14,7 @@ interface OzonProduct {
     price: string;
     currencyCode: string;
     barcode?: string;
+    stockCount?: number;
 }
 
 interface OzonOrder {
@@ -74,6 +76,7 @@ export default function OzonOrdersPage() {
     const [offset, setOffset] = useState(0);
     const [hasNext, setHasNext] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [activeTab, setActiveTab] = useState<'orders' | 'inventory'>('orders');
 
     const fetchOrders = useCallback(async (currentOffset = 0, isRefresh = false) => {
         if (isRefresh) setRefreshing(true);
@@ -167,12 +170,29 @@ export default function OzonOrdersPage() {
 
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 gap-3 flex-shrink-0">
-                <div className="flex items-center gap-3">
-                    <h1 className="admin-page-title flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-4">
+                    <h1 className="admin-page-title flex items-center gap-2 mb-0">
                         <span className="text-blue-600">OZON</span>
-                        <span>{locale === 'ru' ? 'Заказы' : 'Orders'}</span>
                     </h1>
+                    <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200">
+                        <button
+                            onClick={() => setActiveTab('orders')}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === 'orders' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            <Package size={16} />
+                            <span className="hidden sm:inline">{locale === 'ru' ? 'Заказы' : 'Orders'}</span>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('inventory')}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === 'inventory' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            <Archive size={16} />
+                            <span className="hidden sm:inline">{locale === 'ru' ? 'Склад (Наличие)' : 'Inventory'}</span>
+                        </button>
+                    </div>
                 </div>
+                
+                {activeTab === 'orders' && (
                 <div className="flex items-center gap-2">
                     <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200">
                         <button
@@ -199,9 +219,14 @@ export default function OzonOrdersPage() {
                         {locale === 'ru' ? 'Обновить' : 'Refresh'}
                     </button>
                 </div>
+                )}
             </div>
 
-            {/* Filters */}
+            {activeTab === 'inventory' ? (
+                <OzonInventoryTab />
+            ) : (
+                <>
+                {/* Filters */}
             {viewMode === 'advanced' && (
                 <div className="flex flex-wrap gap-3 mb-4 flex-shrink-0">
                     {/* Status filter */}
@@ -375,6 +400,8 @@ export default function OzonOrdersPage() {
                     </button>
                 </div>
             )}
+            </>
+            )}
         </div>
     );
 }
@@ -437,6 +464,35 @@ const handlePrintProductBarcode = (productName: string, barcode: string) => {
 function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }) {
     const [labelLoading, setLabelLoading] = useState(false);
     const [labelError, setLabelError] = useState<string | null>(null);
+    const [deducting, setDeducting] = useState<Record<string, boolean>>({});
+    const [localStock, setLocalStock] = useState<Record<string, number>>(() => {
+        const initial: Record<string, number> = {};
+        order.products.forEach(p => {
+            initial[p.offerId] = p.stockCount || 0;
+        });
+        return initial;
+    });
+
+    const handleDeduct = async (e: React.MouseEvent, p: OzonProduct) => {
+        e.preventDefault();
+        setDeducting(prev => ({ ...prev, [p.offerId]: true }));
+        try {
+            const res = await fetch('/api/inventory/deduct', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ offerId: p.offerId, name: p.name, quantity: p.quantity })
+            });
+            if (res.ok) {
+                setLocalStock(prev => ({ ...prev, [p.offerId]: (prev[p.offerId] || 0) - p.quantity }));
+            } else {
+                alert('Недостаточно товара или ошибка списания');
+            }
+        } catch (error) {
+            console.error('Deduct error:', error);
+        } finally {
+            setDeducting(prev => ({ ...prev, [p.offerId]: false }));
+        }
+    };
 
     const handlePrintLabel = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -498,28 +554,52 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
             </div>
             
             <div className="p-4 flex-1 space-y-3">
-                {order.products.map((p, i) => (
-                    <div key={i} className="flex justify-between items-start">
-                        <div className="flex-1 min-w-0 pr-3">
-                            <div className="text-sm font-medium text-gray-800 line-clamp-2">{p.name}</div>
-                            <div className="mt-1.5">
-                                {p.barcode ? (
+                {order.products.map((p, i) => {
+                    const currentStock = localStock[p.offerId] || 0;
+                    const isReady = currentStock >= p.quantity;
+                    return (
+                        <div key={i} className="flex flex-col mb-4 last:mb-0 border-b border-gray-100 last:border-0 pb-3 last:pb-0">
+                            <div className="flex justify-between items-start mb-2">
+                                <div className="flex-1 min-w-0 pr-3">
+                                    <div className="text-sm font-medium text-gray-800 line-clamp-2">{p.name}</div>
+                                    <div className="mt-1.5 flex flex-wrap gap-2 items-center">
+                                        {p.barcode ? (
+                                            <button 
+                                                onClick={(e) => { e.preventDefault(); handlePrintProductBarcode(p.name, p.barcode!); }}
+                                                className="inline-flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-colors border border-blue-100 font-medium"
+                                            >
+                                                <Printer size={12} /> {locale === 'ru' ? 'Штрихкод' : 'Barcode'}: {p.barcode}
+                                            </button>
+                                        ) : (
+                                            <span className="text-[11px] text-gray-400 font-mono">SKU: {p.sku}</span>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="text-right flex-shrink-0 bg-gray-50 px-2 py-1 rounded border border-gray-100">
+                                    <div className="text-xs font-semibold text-gray-700">{p.quantity} шт</div>
+                                </div>
+                            </div>
+                            
+                            {/* Inventory Status */}
+                            <div className="flex items-center justify-between mt-1 bg-gray-50 rounded px-2 py-1.5">
+                                <span className={`text-[11px] font-medium flex items-center gap-1 ${isReady ? 'text-green-600' : 'text-amber-600'}`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${isReady ? 'bg-green-500' : 'bg-amber-500'}`}></span>
+                                    {isReady ? (locale === 'ru' ? `Готовый товар (${currentStock} шт)` : `Ready item (${currentStock} pcs)`) 
+                                             : (locale === 'ru' ? `Требуется изготовление (В наличии: ${currentStock})` : `Needs manufacturing (In stock: ${currentStock})`)}
+                                </span>
+                                {isReady && (
                                     <button 
-                                        onClick={(e) => { e.preventDefault(); handlePrintProductBarcode(p.name, p.barcode!); }}
-                                        className="inline-flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-colors border border-blue-100 font-medium"
+                                        onClick={(e) => handleDeduct(e, p)}
+                                        disabled={deducting[p.offerId]}
+                                        className="text-[11px] bg-green-100 text-green-700 hover:bg-green-200 px-2 py-0.5 rounded transition-colors disabled:opacity-50 border border-green-200 font-medium"
                                     >
-                                        <Printer size={12} /> {locale === 'ru' ? 'Штрихкод' : 'Barcode'}: {p.barcode}
+                                        {deducting[p.offerId] ? '...' : (locale === 'ru' ? 'Списать' : 'Deduct')}
                                     </button>
-                                ) : (
-                                    <span className="text-[11px] text-gray-400 font-mono">SKU: {p.sku}</span>
                                 )}
                             </div>
                         </div>
-                        <div className="text-right flex-shrink-0 bg-gray-50 px-2 py-1 rounded border border-gray-100">
-                            <div className="text-xs font-semibold text-gray-700">{p.quantity} шт</div>
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             <div className="p-4 bg-gray-50 border-t border-gray-100 mt-auto">
@@ -552,6 +632,35 @@ function OzonOrderRow({ order, isExpanded, onToggle, formatDate, formatPrice, lo
 }) {
     const [labelLoading, setLabelLoading] = useState(false);
     const [labelError, setLabelError] = useState<string | null>(null);
+    const [deducting, setDeducting] = useState<Record<string, boolean>>({});
+    const [localStock, setLocalStock] = useState<Record<string, number>>(() => {
+        const initial: Record<string, number> = {};
+        order.products.forEach(p => {
+            initial[p.offerId] = p.stockCount || 0;
+        });
+        return initial;
+    });
+
+    const handleDeduct = async (e: React.MouseEvent, p: OzonProduct) => {
+        e.preventDefault();
+        setDeducting(prev => ({ ...prev, [p.offerId]: true }));
+        try {
+            const res = await fetch('/api/inventory/deduct', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ offerId: p.offerId, name: p.name, quantity: p.quantity })
+            });
+            if (res.ok) {
+                setLocalStock(prev => ({ ...prev, [p.offerId]: (prev[p.offerId] || 0) - p.quantity }));
+            } else {
+                alert('Недостаточно товара или ошибка списания');
+            }
+        } catch (error) {
+            console.error('Deduct error:', error);
+        } finally {
+            setDeducting(prev => ({ ...prev, [p.offerId]: false }));
+        }
+    };
 
     const handlePrintLabel = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -688,26 +797,49 @@ function OzonOrderRow({ order, isExpanded, onToggle, formatDate, formatPrice, lo
                                     {locale === 'ru' ? 'Товары' : 'Products'}
                                 </h4>
                                 <div className="space-y-2">
-                                    {order.products.map((p, i) => (
-                                        <div key={i} className="flex justify-between items-start bg-white rounded-lg p-3 border border-gray-100">
-                                            <div className="flex-1 min-w-0">
-                                                <div className="text-sm font-medium text-gray-800 truncate">{p.name}</div>
-                                                <div className="text-[11px] text-gray-400 font-mono mt-0.5 flex items-center gap-3">
-                                                    <span>SKU: {p.sku}</span>
-                                                    <span>Арт: {p.offerId}</span>
-                                                    {p.barcode && (
-                                                        <span className="flex items-center gap-1.5 text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded cursor-pointer hover:bg-blue-100 transition-colors" onClick={(e) => { e.stopPropagation(); handlePrintProductBarcode(p.name, p.barcode!); }} title="Печать штрихкода">
-                                                            <Printer size={10} /> {p.barcode}
-                                                        </span>
-                                                    )}
+                                    {order.products.map((p, i) => {
+                                        const currentStock = localStock[p.offerId] || 0;
+                                        const isReady = currentStock >= p.quantity;
+                                        return (
+                                        <div key={i} className="flex flex-col bg-white rounded-lg p-3 border border-gray-100">
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-sm font-medium text-gray-800 truncate">{p.name}</div>
+                                                    <div className="text-[11px] text-gray-400 font-mono mt-0.5 flex flex-wrap items-center gap-3">
+                                                        <span>SKU: {p.sku}</span>
+                                                        <span>Арт: {p.offerId}</span>
+                                                        {p.barcode && (
+                                                            <span className="flex items-center gap-1.5 text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded cursor-pointer hover:bg-blue-100 transition-colors" onClick={(e) => { e.stopPropagation(); handlePrintProductBarcode(p.name, p.barcode!); }} title="Печать штрихкода">
+                                                                <Printer size={10} /> {p.barcode}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="text-right ml-3 flex-shrink-0">
+                                                    <div className="text-sm font-semibold text-gray-900">{formatPrice(parseFloat(p.price) * p.quantity)}</div>
+                                                    <div className="text-[11px] text-gray-400">× {p.quantity}</div>
                                                 </div>
                                             </div>
-                                            <div className="text-right ml-3 flex-shrink-0">
-                                                <div className="text-sm font-semibold text-gray-900">{formatPrice(parseFloat(p.price) * p.quantity)}</div>
-                                                <div className="text-[11px] text-gray-400">× {p.quantity}</div>
+                                            
+                                            {/* Inventory Status */}
+                                            <div className="flex items-center justify-between mt-2 bg-gray-50 rounded px-2 py-1.5">
+                                                <span className={`text-[11px] font-medium flex items-center gap-1 ${isReady ? 'text-green-600' : 'text-amber-600'}`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${isReady ? 'bg-green-500' : 'bg-amber-500'}`}></span>
+                                                    {isReady ? (locale === 'ru' ? `Готовый товар (${currentStock} шт)` : `Ready item (${currentStock} pcs)`) 
+                                                             : (locale === 'ru' ? `Требуется изготовление (В наличии: ${currentStock})` : `Needs manufacturing (In stock: ${currentStock})`)}
+                                                </span>
+                                                {isReady && (
+                                                    <button 
+                                                        onClick={(e) => handleDeduct(e, p)}
+                                                        disabled={deducting[p.offerId]}
+                                                        className="text-[11px] bg-green-100 text-green-700 hover:bg-green-200 px-2 py-0.5 rounded transition-colors disabled:opacity-50 border border-green-200 font-medium"
+                                                    >
+                                                        {deducting[p.offerId] ? '...' : (locale === 'ru' ? 'Списать' : 'Deduct')}
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
-                                    ))}
+                                    )})}
                                 </div>
                             </div>
 

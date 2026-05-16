@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
+import { InventoryRepository } from '@/lib/data';
 const OZON_API_BASE = 'https://api-seller.ozon.ru';
 
 // Human-readable status mapping
@@ -100,8 +100,10 @@ export async function GET(request: NextRequest) {
 
         // Fetch product info to get barcodes
         const barcodeMap: Record<string, string> = {};
+        const stockMap: Record<string, number> = {};
         if (offerIds.size > 0) {
             try {
+                // Fetch barcodes from Ozon
                 const infoRes = await fetch(`${OZON_API_BASE}/v3/product/info/list`, {
                     method: 'POST',
                     headers: {
@@ -121,8 +123,14 @@ export async function GET(request: NextRequest) {
                         });
                     }
                 }
+                
+                // Fetch local inventory stock
+                const inventoryItems = await InventoryRepository.getByOfferIds(Array.from(offerIds));
+                inventoryItems.forEach(item => {
+                    stockMap[item.offerId] = item.stock || 0;
+                });
             } catch (err) {
-                console.error('Failed to fetch product barcodes', err);
+                console.error('Failed to fetch product info/inventory', err);
             }
         }
 
@@ -137,6 +145,7 @@ export async function GET(request: NextRequest) {
                 price: p.price,
                 currencyCode: p.currency_code,
                 barcode: barcodeMap[p.offer_id] || null,
+                stockCount: stockMap[p.offer_id] || 0,
             }));
 
             // Calculate total from product prices
