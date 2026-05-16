@@ -16,11 +16,12 @@ export default function OzonInventoryTab() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [saving, setSaving] = useState<Record<string, boolean>>({});
+    const [activeTab, setActiveTab] = useState<'in_stock' | 'all'>('in_stock');
 
-    const fetchInventory = useCallback(async () => {
+    const fetchInventory = useCallback(async (includeSiteProducts = false) => {
         setLoading(true);
         try {
-            const res = await fetch('/api/inventory');
+            const res = await fetch(`/api/inventory${includeSiteProducts ? '?includeSiteProducts=true' : ''}`);
             if (res.ok) {
                 const data = await res.json();
                 setItems(data);
@@ -33,8 +34,8 @@ export default function OzonInventoryTab() {
     }, []);
 
     useEffect(() => {
-        fetchInventory();
-    }, [fetchInventory]);
+        fetchInventory(activeTab === 'all');
+    }, [fetchInventory, activeTab]);
 
     const handleStockChange = (offerId: string, val: string) => {
         const num = parseInt(val, 10);
@@ -58,15 +59,32 @@ export default function OzonInventoryTab() {
         }
     };
 
-    const filteredItems = items.filter(item => 
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        item.offerId.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredItems = items
+        .filter(item => activeTab === 'all' || item.stock > 0)
+        .filter(item => 
+            item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            item.offerId.toLowerCase().includes(searchTerm.toLowerCase())
+        );
 
     return (
         <div className="flex-1 overflow-auto rounded-xl border bg-white shadow-sm flex flex-col">
-            <div className="p-4 border-b border-gray-100 flex flex-wrap gap-3 items-center flex-shrink-0 bg-gray-50/50">
-                <div className="relative flex-1 min-w-[200px] max-w-md">
+            <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4 items-start sm:items-center flex-shrink-0 bg-gray-50/50">
+                <div className="flex bg-gray-200/50 p-1 rounded-lg border border-gray-200 w-full sm:w-auto">
+                    <button
+                        onClick={() => setActiveTab('in_stock')}
+                        className={`flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === 'in_stock' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                        {locale === 'ru' ? 'В наличии' : 'In Stock'}
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('all')}
+                        className={`flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === 'all' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                        {locale === 'ru' ? 'Все товары сайта' : 'All Products'}
+                    </button>
+                </div>
+                
+                <div className="relative flex-1 min-w-[200px] w-full sm:w-auto">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                     <input
                         type="text"
@@ -77,7 +95,7 @@ export default function OzonInventoryTab() {
                     />
                 </div>
                 <button
-                    onClick={fetchInventory}
+                    onClick={() => fetchInventory(activeTab === 'all')}
                     disabled={loading}
                     className="admin-btn-secondary"
                 >
