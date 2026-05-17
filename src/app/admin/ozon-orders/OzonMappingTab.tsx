@@ -141,7 +141,7 @@ export default function OzonMappingTab() {
                 </button>
             </div>
 
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 overflow-auto pb-64">
                 {loading ? (
                     <div className="p-6 space-y-4">
                         {[...Array(6)].map((_, i) => (
