@@ -171,8 +171,8 @@ export default function OzonMappingTab() {
                                                 {op.image ? (
                                                     <div className="relative group flex-shrink-0">
                                                         <img src={op.image} alt="" className="w-12 h-12 object-cover rounded-md border border-gray-200" />
-                                                        <div className="absolute left-full top-0 ml-4 z-[60] hidden group-hover:block bg-white p-2 rounded-xl shadow-2xl border border-gray-200 pointer-events-none">
-                                                            <img src={op.image} alt="" className="w-64 h-64 object-cover rounded-lg" />
+                                                        <div className="absolute left-full top-0 ml-4 z-[60] hidden group-hover:block bg-white p-2 rounded-xl shadow-2xl border border-gray-200 pointer-events-none w-[272px]">
+                                                            <img src={op.image} alt="" className="w-64 h-64 object-cover rounded-lg max-w-none" />
                                                         </div>
                                                     </div>
                                                 ) : (
@@ -257,8 +257,8 @@ function SearchableSelect({
                     {mappedLocal?.image && (
                         <div className="relative group flex-shrink-0 mr-2">
                             <img src={mappedLocal.image} alt="" className="w-6 h-6 object-cover rounded shadow-sm" />
-                            <div className="absolute right-full top-1/2 -translate-y-1/2 mr-3 z-[60] hidden group-hover:block bg-white p-2 rounded-xl shadow-2xl border border-gray-200 pointer-events-none">
-                                <img src={mappedLocal.image} alt="" className="w-64 h-64 object-cover rounded-lg" />
+                            <div className="absolute right-full top-1/2 -translate-y-1/2 mr-3 z-[60] hidden group-hover:block bg-white p-2 rounded-xl shadow-2xl border border-gray-200 pointer-events-none w-[272px]">
+                                <img src={mappedLocal.image} alt="" className="w-64 h-64 object-cover rounded-lg max-w-none" />
                             </div>
                         </div>
                     )}
@@ -302,8 +302,8 @@ function SearchableSelect({
                                 {lp.image ? (
                                     <div className="relative group flex-shrink-0">
                                         <img src={lp.image} alt="" className="w-8 h-8 object-cover rounded" />
-                                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 z-[60] hidden group-hover:block bg-white p-2 rounded-xl shadow-2xl border border-gray-200 pointer-events-none">
-                                            <img src={lp.image} alt="" className="w-64 h-64 object-cover rounded-lg" />
+                                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 z-[60] hidden group-hover:block bg-white p-2 rounded-xl shadow-2xl border border-gray-200 pointer-events-none w-[272px]">
+                                            <img src={lp.image} alt="" className="w-64 h-64 object-cover rounded-lg max-w-none" />
                                         </div>
                                     </div>
                                 ) : (
