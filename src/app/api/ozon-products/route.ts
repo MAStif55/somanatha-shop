@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 const OZON_API_BASE = 'https://api-seller.ozon.ru';
 
 export async function GET(request: NextRequest) {
