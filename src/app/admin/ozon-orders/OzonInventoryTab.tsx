@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { RefreshCw, Search, Save } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { RefreshCw, Search, CheckCircle } from 'lucide-react';
 import { useTranslation } from '@/contexts/LanguageContext';
 
 interface InventoryItem {
@@ -16,15 +16,21 @@ export default function OzonInventoryTab() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [saving, setSaving] = useState<Record<string, boolean>>({});
+    const [savedState, setSavedState] = useState<Record<string, boolean>>({});
     const [activeTab, setActiveTab] = useState<'in_stock' | 'all'>('in_stock');
+    const [initialVisibleIds, setInitialVisibleIds] = useState<Set<string>>(new Set());
+    const timeoutRefs = useRef<Record<string, NodeJS.Timeout>>({});
 
-    const fetchInventory = useCallback(async (includeSiteProducts = false) => {
+    const fetchInventory = useCallback(async (includeSiteProducts = false, isTabSwitch = false) => {
         setLoading(true);
         try {
             const res = await fetch(`/api/inventory${includeSiteProducts ? '?includeSiteProducts=true' : ''}`);
             if (res.ok) {
-                const data = await res.json();
+                const data: InventoryItem[] = await res.json();
                 setItems(data);
+                if (isTabSwitch || !includeSiteProducts) {
+                    setInitialVisibleIds(new Set(data.filter(i => i.stock > 0).map(i => i.offerId)));
+                }
             }
         } catch (err) {
             console.error('Failed to fetch inventory:', err);
@@ -34,33 +40,60 @@ export default function OzonInventoryTab() {
     }, []);
 
     useEffect(() => {
-        fetchInventory(activeTab === 'all');
+        fetchInventory(activeTab === 'all', true);
     }, [fetchInventory, activeTab]);
 
-    const handleStockChange = (offerId: string, val: string) => {
-        const num = parseInt(val, 10);
-        if (isNaN(num)) return;
-        setItems(prev => prev.map(item => item.offerId === offerId ? { ...item, stock: num } : item));
-    };
-
-    const saveStock = async (item: InventoryItem) => {
-        setSaving(prev => ({ ...prev, [item.offerId]: true }));
+    // We keep saveStock separate so it can be called inside timeout
+    const saveStock = async (itemToSave: InventoryItem) => {
+        setSaving(prev => ({ ...prev, [itemToSave.offerId]: true }));
+        setSavedState(prev => ({ ...prev, [itemToSave.offerId]: false }));
         try {
             const res = await fetch('/api/inventory', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(item),
+                body: JSON.stringify(itemToSave),
             });
             if (!res.ok) throw new Error('Failed to save');
+            
+            // Show success tick
+            setSavedState(prev => ({ ...prev, [itemToSave.offerId]: true }));
+            setTimeout(() => {
+                setSavedState(prev => ({ ...prev, [itemToSave.offerId]: false }));
+            }, 2000);
+            
         } catch (err) {
             alert(locale === 'ru' ? 'Ошибка сохранения' : 'Save error');
         } finally {
-            setSaving(prev => ({ ...prev, [item.offerId]: false }));
+            setSaving(prev => ({ ...prev, [itemToSave.offerId]: false }));
         }
     };
 
+    const handleStockChange = (offerId: string, val: string) => {
+        const num = parseInt(val, 10);
+        if (isNaN(num)) return;
+        
+        // Optimistic UI update
+        setItems(prev => prev.map(item => item.offerId === offerId ? { ...item, stock: num } : item));
+
+        // Auto-save logic (debounce)
+        if (timeoutRefs.current[offerId]) {
+            clearTimeout(timeoutRefs.current[offerId]);
+        }
+
+        timeoutRefs.current[offerId] = setTimeout(() => {
+            // Use setState callback to guarantee we read the latest state
+            setItems(currentItems => {
+                const updatedItem = currentItems.find(i => i.offerId === offerId);
+                if (updatedItem) {
+                    saveStock(updatedItem);
+                }
+                return currentItems;
+            });
+        }, 600);
+    };
+
     const filteredItems = items
-        .filter(item => activeTab === 'all' || item.stock > 0)
+        .filter(item => activeTab === 'all' || initialVisibleIds.has(item.offerId))
         .filter(item => 
             item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
             item.offerId.toLowerCase().includes(searchTerm.toLowerCase())
@@ -125,7 +158,7 @@ export default function OzonInventoryTab() {
                                 <th className="text-left px-4 py-3">{locale === 'ru' ? 'Артикул (offer_id)' : 'SKU (offer_id)'}</th>
                                 <th className="text-left px-4 py-3">{locale === 'ru' ? 'Название товара' : 'Product Name'}</th>
                                 <th className="text-center px-4 py-3 w-48">{locale === 'ru' ? 'В наличии (шт)' : 'In stock (pcs)'}</th>
-                                <th className="w-24"></th>
+                                <th className="w-16"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -138,19 +171,15 @@ export default function OzonInventoryTab() {
                                             type="number" 
                                             value={item.stock}
                                             onChange={e => handleStockChange(item.offerId, e.target.value)}
-                                            className="w-20 px-2 py-1 text-center border rounded-md"
+                                            className="w-20 px-2 py-1.5 text-center border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                                             min="0"
                                         />
                                     </td>
-                                    <td className="px-4 py-3 text-right">
-                                        <button 
-                                            onClick={() => saveStock(item)}
-                                            disabled={saving[item.offerId]}
-                                            className="text-blue-600 hover:text-blue-800 p-1.5 rounded-md hover:bg-blue-50 transition-colors disabled:opacity-50"
-                                            title={locale === 'ru' ? 'Сохранить' : 'Save'}
-                                        >
-                                            {saving[item.offerId] ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
-                                        </button>
+                                    <td className="px-4 py-3 text-center">
+                                        <div className="flex items-center justify-center w-6 h-6">
+                                            {saving[item.offerId] && <RefreshCw size={16} className="animate-spin text-blue-500" />}
+                                            {savedState[item.offerId] && <CheckCircle size={18} className="text-green-500" />}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
