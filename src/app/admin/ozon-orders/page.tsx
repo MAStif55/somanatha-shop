@@ -571,7 +571,9 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
                         <div key={i} className="flex flex-col mb-4 last:mb-0 border-b border-gray-100 last:border-0 pb-3 last:pb-0">
                             <div className="flex justify-between items-start mb-2">
                                 <div className="flex-1 min-w-0 pr-3">
-                                    <div className="text-sm font-medium text-gray-800 line-clamp-2">{p.name}</div>
+                                    <a href={`https://www.ozon.ru/context/detail/id/${p.sku}/`} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-gray-800 line-clamp-2 hover:text-blue-600 transition-colors">
+                                        {p.name}
+                                    </a>
                                     <div className="mt-1.5 flex flex-wrap gap-2 items-center">
                                         {p.barcode ? (
                                             <button 
@@ -814,7 +816,9 @@ function OzonOrderRow({ order, isExpanded, onToggle, formatDate, formatPrice, lo
                                         <div key={i} className="flex flex-col bg-white rounded-lg p-3 border border-gray-100">
                                             <div className="flex justify-between items-start">
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="text-sm font-medium text-gray-800 truncate">{p.name}</div>
+                                                    <a href={`https://www.ozon.ru/context/detail/id/${p.sku}/`} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-gray-800 truncate hover:text-blue-600 transition-colors block">
+                                                        {p.name}
+                                                    </a>
                                                     <div className="text-[11px] text-gray-400 font-mono mt-0.5 flex flex-wrap items-center gap-3">
                                                         <span>SKU: {p.sku}</span>
                                                         <span>Арт: {p.offerId}</span>

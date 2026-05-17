@@ -9,6 +9,7 @@ interface OzonProduct {
     name: string;
     sku: number;
     barcode: string | null;
+    image?: string | null;
 }
 
 interface LocalProduct {
@@ -16,6 +17,7 @@ interface LocalProduct {
     slug: string;
     title: { ru: string; en: string };
     ozonOfferId?: string;
+    image?: string | null;
 }
 
 export default function OzonMappingTab() {
@@ -165,9 +167,20 @@ export default function OzonMappingTab() {
                                 return (
                                     <tr key={op.offerId} className="border-b border-gray-50 hover:bg-gray-50/50">
                                         <td className="px-4 py-4">
-                                            <div className="font-medium text-gray-900 mb-1">{op.name}</div>
-                                            <div className="text-[11px] text-gray-500 font-mono bg-gray-100 inline-block px-1.5 py-0.5 rounded">
-                                                {locale === 'ru' ? 'Артикул:' : 'SKU:'} {op.offerId}
+                                            <div className="flex items-start gap-3">
+                                                {op.image ? (
+                                                    <img src={op.image} alt="" className="w-12 h-12 object-cover rounded-md border border-gray-200 flex-shrink-0" />
+                                                ) : (
+                                                    <div className="w-12 h-12 bg-gray-100 rounded-md border border-gray-200 flex-shrink-0 flex items-center justify-center text-gray-400 text-[10px]">Нет фото</div>
+                                                )}
+                                                <div>
+                                                    <a href={`https://www.ozon.ru/context/detail/id/${op.sku}/`} target="_blank" rel="noopener noreferrer" className="font-medium text-gray-900 hover:text-blue-600 transition-colors mb-1 block">
+                                                        {op.name}
+                                                    </a>
+                                                    <div className="text-[11px] text-gray-500 font-mono bg-gray-100 inline-block px-1.5 py-0.5 rounded">
+                                                        {locale === 'ru' ? 'Артикул:' : 'SKU:'} {op.offerId}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="px-4 py-4 relative">
@@ -235,9 +248,14 @@ function SearchableSelect({
                 className={`p-2 border rounded-md text-sm cursor-pointer flex justify-between items-center relative z-40 ${mappedLocal ? 'bg-green-50 border-green-200 text-green-900' : 'bg-gray-50 border-gray-200'}`}
                 onClick={() => setOpen(!open)}
             >
-                <span className="truncate mr-2 block max-w-[200px] sm:max-w-[250px]">
-                    {selectedName || (locale === 'ru' ? '-- Не связан --' : '-- Not mapped --')}
-                </span>
+                <div className="flex items-center flex-1 min-w-0 mr-2">
+                    {mappedLocal?.image && (
+                        <img src={mappedLocal.image} alt="" className="w-6 h-6 object-cover rounded shadow-sm mr-2 flex-shrink-0" />
+                    )}
+                    <span className="truncate block max-w-[200px] sm:max-w-[250px]">
+                        {selectedName || (locale === 'ru' ? '-- Не связан --' : '-- Not mapped --')}
+                    </span>
+                </div>
                 <ChevronDown size={14} className="opacity-50 flex-shrink-0" />
             </div>
             
@@ -268,11 +286,18 @@ function SearchableSelect({
                         {filtered.map(lp => (
                             <div 
                                 key={lp.id}
-                                className="p-2 text-sm hover:bg-blue-50 cursor-pointer border-t border-gray-50"
+                                className="p-2 text-sm hover:bg-blue-50 cursor-pointer border-t border-gray-50 flex items-center gap-3"
                                 onClick={() => { onMap(lp.id); setOpen(false); setSearch(''); }}
                             >
-                                <div className="font-medium text-gray-900">{lp.title.ru || lp.title.en}</div>
-                                <div className="text-xs text-gray-400 truncate">{lp.slug}</div>
+                                {lp.image ? (
+                                    <img src={lp.image} alt="" className="w-8 h-8 object-cover rounded flex-shrink-0" />
+                                ) : (
+                                    <div className="w-8 h-8 bg-gray-200 rounded flex-shrink-0" />
+                                )}
+                                <div className="min-w-0 flex-1">
+                                    <div className="font-medium text-gray-900 truncate">{lp.title.ru || lp.title.en}</div>
+                                    <div className="text-xs text-gray-400 truncate">{lp.slug}</div>
+                                </div>
                             </div>
                         ))}
                     </div>

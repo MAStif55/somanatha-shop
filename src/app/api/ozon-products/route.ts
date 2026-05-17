@@ -78,6 +78,7 @@ export async function GET(request: NextRequest) {
                 name: item.name,
                 sku: item.sku,
                 barcode: item.barcodes?.[0] || null,
+                image: item.primary_image || null,
             }));
             
             products.push(...chunkProducts);
