@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { X, ShoppingBag, Trash2, Plus, Minus } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCartStore } from '@/store/cart-store';
@@ -28,6 +29,7 @@ export default function CartDrawer() {
     } = useCartStore();
     const { isDrawerOpen, closeDrawer } = useCartUIStore();
     const [mounted, setMounted] = useState(false);
+    const pathname = usePathname();
 
     const { settings } = useStoreSettings();
 
@@ -65,6 +67,7 @@ export default function CartDrawer() {
     }, [closeDrawer]);
 
     if (!mounted) return null;
+    if (pathname?.startsWith('/admin')) return null;
 
     const isEmpty = items.length === 0;
     const subtotal = getTotalPrice();
