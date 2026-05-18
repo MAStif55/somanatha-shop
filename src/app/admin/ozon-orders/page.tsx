@@ -474,6 +474,7 @@ const handlePrintProductBarcode = (productName: string, barcode: string) => {
 function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }) {
     const [labelLoading, setLabelLoading] = useState(false);
     const [labelError, setLabelError] = useState<string | null>(null);
+    const [isPacked, setIsPacked] = useState(false);
     const [deducting, setDeducting] = useState<Record<string, boolean>>({});
     const [localStock, setLocalStock] = useState<Record<string, number>>(() => {
         const initial: Record<string, number> = {};
@@ -482,6 +483,20 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
         });
         return initial;
     });
+
+    useEffect(() => {
+        setIsPacked(localStorage.getItem(`ozon_packed_${order.postingNumber}`) === 'true');
+    }, [order.postingNumber]);
+
+    const togglePacked = () => {
+        const nextState = !isPacked;
+        setIsPacked(nextState);
+        if (nextState) {
+            localStorage.setItem(`ozon_packed_${order.postingNumber}`, 'true');
+        } else {
+            localStorage.removeItem(`ozon_packed_${order.postingNumber}`);
+        }
+    };
 
     const handleDeduct = async (e: React.MouseEvent, p: OzonProduct) => {
         e.preventDefault();
@@ -550,12 +565,21 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
     };
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-gray-100 flex justify-between items-start bg-gray-50/50">
-                <div>
-                    <div className="font-mono text-sm font-bold text-gray-800">{order.postingNumber}</div>
-                    <div className="text-xs text-gray-500 mt-0.5">
-                        {new Date(order.inProcessAt || order.createdAt).toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+        <div className={`rounded-xl shadow-sm border overflow-hidden flex flex-col transition-colors ${isPacked ? 'bg-green-50/40 border-green-200' : 'bg-white border-gray-200'}`}>
+            <div className={`p-4 border-b flex justify-between items-start ${isPacked ? 'bg-green-100/40 border-green-100' : 'border-gray-100 bg-gray-50/50'}`}>
+                <div className="flex items-start gap-3">
+                    <input 
+                        type="checkbox" 
+                        checked={isPacked} 
+                        onChange={togglePacked}
+                        className="mt-0.5 w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                        title={locale === 'ru' ? 'Отметить как собранный (для себя)' : 'Mark as packed (local)'}
+                    />
+                    <div>
+                        <div className="font-mono text-sm font-bold text-gray-800">{order.postingNumber}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">
+                            {new Date(order.inProcessAt || order.createdAt).toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        </div>
                     </div>
                 </div>
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap" style={{ backgroundColor: `${order.statusColor}15`, color: order.statusColor, border: `1px solid ${order.statusColor}30` }}>
