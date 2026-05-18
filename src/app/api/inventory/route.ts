@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { InventoryRepository } from '@/lib/data';
 
+export const dynamic = 'force-dynamic';
+
 // Add basic security (for example, require an admin secret if needed, or rely on middleware)
 
 import { ProductRepository } from '@/lib/data';

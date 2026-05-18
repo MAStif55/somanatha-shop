@@ -24,7 +24,7 @@ export default function OzonInventoryTab() {
     const fetchInventory = useCallback(async (includeSiteProducts = false, isTabSwitch = false) => {
         setLoading(true);
         try {
-            const res = await fetch(`/api/inventory${includeSiteProducts ? '?includeSiteProducts=true' : ''}`);
+            const res = await fetch(`/api/inventory${includeSiteProducts ? '?includeSiteProducts=true&' : '?'}t=${Date.now()}`, { cache: 'no-store' });
             if (res.ok) {
                 const data: InventoryItem[] = await res.json();
                 setItems(data);
