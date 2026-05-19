@@ -1,12 +1,11 @@
 'use client';
 
 import { getAllProducts, getAllOrders } from '@/actions/admin-actions';
-import { getCustomers } from '@/lib/customer-service';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from '@/contexts/LanguageContext';
 import Link from 'next/link';
-import { Package, ShoppingCart, Users, Settings } from 'lucide-react';
+import { Package, ShoppingCart, Settings, Box } from 'lucide-react';
 import DeployButton from '@/components/admin/DeployButton';
 import BackupButton from '@/components/admin/BackupButton';
 import { useEffect, useState } from 'react';
@@ -19,26 +18,31 @@ export default function AdminDashboard() {
     const [pendingCount, setPendingCount] = useState<number | null>(null);
     const [completedCount, setCompletedCount] = useState<number | null>(null);
     const [productCount, setProductCount] = useState<number | null>(null);
-    const [customerCount, setCustomerCount] = useState<number | null>(null);
+    const [ozonOrderCount, setOzonOrderCount] = useState<number | null>(null);
 
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const [orders, products, customers] = await Promise.all([
+                const [orders, products, ozonRes] = await Promise.all([
                     getAllOrders(),
                     getAllProducts(),
-                    getCustomers(),
+                    fetch('/api/ozon-orders?limit=100').then(res => res.json().catch(() => ({ orders: [] }))),
                 ]);
                 setPendingCount(orders.filter(o => o.status === 'pending').length);
                 setCompletedCount(orders.filter(o => o.status === 'completed').length);
                 setProductCount(products.length);
-                setCustomerCount(customers.length);
+                
+                let unfulfilledOzon = 0;
+                if (ozonRes?.orders) {
+                    unfulfilledOzon = ozonRes.orders.filter((o: any) => o.status === 'awaiting_packaging' || o.status === 'awaiting_deliver').length;
+                }
+                setOzonOrderCount(unfulfilledOzon);
             } catch (error) {
                 console.error("Error fetching stats:", error);
                 setPendingCount(0);
                 setCompletedCount(0);
                 setProductCount(0);
-                setCustomerCount(0);
+                setOzonOrderCount(0);
             }
         };
 
@@ -62,11 +66,11 @@ export default function AdminDashboard() {
             isOrders: true,
         },
         {
-            label: locale === 'ru' ? 'Клиенты' : 'Customers',
-            value: customerCount,
-            icon: Users,
-            href: '/admin/customers',
-            color: '#6366f1',
+            label: locale === 'ru' ? 'Заказы Ozon' : 'Ozon Orders',
+            value: ozonOrderCount,
+            icon: Box,
+            href: '/admin/ozon-orders',
+            color: '#0ea5e9',
         },
         {
             label: locale === 'ru' ? 'Настройки' : 'Settings',
