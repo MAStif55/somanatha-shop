@@ -126,10 +126,10 @@ export default function TimelineWidget({ panchanga, location }: TimelineWidgetPr
     <div className="relative rounded-2xl border border-[#C9A227]/15 p-6 md:p-8"
          style={{ background: 'linear-gradient(135deg, #1A1517 0%, #110D0F 100%)' }}>
       
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h3 className="text-[#E8D48B] font-semibold tracking-wider uppercase text-sm">Таймлайн Практик</h3>
-          <p className="text-[#F5ECD7]/40 text-xs mt-1">График мухурт на текущие сутки (местное время: {location.name})</p>
+          <h3 className="text-[#E8D48B] font-bold tracking-widest uppercase text-lg mb-1">Таймлайн Практик</h3>
+          <p className="text-[#F5ECD7]/50 text-sm mt-1">График мухурт на текущие сутки (местное время: {location.name})</p>
         </div>
       </div>
 

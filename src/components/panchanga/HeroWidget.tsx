@@ -12,7 +12,7 @@ interface HeroWidgetProps {
 }
 
 export default function HeroWidget({ panchanga, location }: HeroWidgetProps) {
-  const { tithi, nakshatra, pradosham, yoga, karana, vara, solarMonth, isArdraNakshatra, isShivaYoga, isSomvar, isBhairavaAshtami } = panchanga;
+  const { tithi, nakshatra, pradosham, yoga, karana, vara, solarMonth, lunarRashi, isArdraNakshatra, isShivaYoga, isSomvar, isBhairavaAshtami } = panchanga;
   const [now, setNow] = useState<Date | null>(null);
   const [dynamicPanchanga, setDynamicPanchanga] = useState<ReturnType<typeof getMomentPanchanga> | null>(null);
 
@@ -148,45 +148,40 @@ export default function HeroWidget({ panchanga, location }: HeroWidgetProps) {
             <p className="text-[#F5ECD7]/50 text-xs uppercase tracking-widest pl-1">На небе сейчас (в реальном времени)</p>
             <div className="grid grid-cols-2 gap-3">
               {/* Nakshatra */}
-              <div className="p-3.5 rounded-xl border border-[#C9A227]/15 bg-[#0D0A0B]/40 backdrop-blur-sm flex items-start gap-3 transition-colors duration-500">
-                <div className="w-8 h-8 rounded-full bg-indigo-500/10 border border-indigo-400/20 flex items-center justify-center shrink-0 mt-0.5">
-                  <Moon className="w-4 h-4 text-indigo-300" />
-                </div>
-                <div>
-                  <p className="text-[10px] text-[#F5ECD7]/50 uppercase tracking-widest mb-0.5">Накшатра</p>
-                  <p className="text-[#F5ECD7] text-sm font-medium">{dynamicPanchanga ? dynamicPanchanga.nakshatra.name : nakshatra.name}</p>
-                  <p className="text-[#F5ECD7]/40 text-xs mt-0.5">{dynamicPanchanga ? dynamicPanchanga.nakshatra.deity : nakshatra.deity}</p>
-                </div>
+              <div className="p-4 rounded-xl border border-[#C9A227]/15 bg-[#0D0A0B]/40 backdrop-blur-sm flex flex-col items-center justify-center text-center gap-1 transition-colors duration-500">
+                <p className="text-[11px] text-[#F5ECD7]/60 uppercase tracking-widest mb-1">Накшатра</p>
+                <p className="text-[#F5ECD7] text-xl font-bold leading-tight">{dynamicPanchanga ? dynamicPanchanga.nakshatra.name : nakshatra.name}</p>
+                <p className="text-[#F5ECD7]/50 text-[11px]">Управитель: {dynamicPanchanga ? dynamicPanchanga.nakshatra.deity : nakshatra.deity}</p>
+                <p className="text-[#C9A227]/70 text-[11px] mt-1.5">Луна в знаке: {dynamicPanchanga ? dynamicPanchanga.lunarRashi.fullName : lunarRashi?.fullName}</p>
               </div>
 
               {/* Vara */}
-              <div className="p-3.5 rounded-xl border border-[#C9A227]/15 bg-[#0D0A0B]/40 backdrop-blur-sm flex items-start gap-3 transition-colors duration-500">
-                <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-400/20 flex items-center justify-center shrink-0 mt-0.5">
-                  <Star className="w-4 h-4 text-amber-300" />
-                </div>
-                <div>
-                  <p className="text-[10px] text-[#F5ECD7]/50 uppercase tracking-widest mb-0.5">Вара (День)</p>
-                  <p className="text-[#F5ECD7] text-sm font-medium">{dynamicPanchanga ? dynamicPanchanga.vara : vara}</p>
-                  <p className="text-[#F5ECD7]/40 text-xs mt-0.5">Солнце в знаке: {dynamicPanchanga ? dynamicPanchanga.solarMonth.name : solarMonth.name}</p>
-                </div>
+              <div className="p-4 rounded-xl border border-[#C9A227]/15 bg-[#0D0A0B]/40 backdrop-blur-sm flex flex-col items-center justify-center text-center gap-1 transition-colors duration-500">
+                <p className="text-[11px] text-[#F5ECD7]/60 uppercase tracking-widest mb-1">Вара (День)</p>
+                <p className="text-[#F5ECD7] text-xl font-bold leading-tight">{dynamicPanchanga ? dynamicPanchanga.vara : vara}</p>
+                <p className="text-[#C9A227]/70 text-[11px] mt-2.5">Солнце в знаке: {dynamicPanchanga ? dynamicPanchanga.solarMonth.fullName : solarMonth.fullName}</p>
               </div>
 
               {/* Yoga */}
-              <div className="p-3.5 rounded-xl border border-[#C9A227]/15 bg-[#0D0A0B]/40 backdrop-blur-sm flex flex-col justify-center h-full transition-colors duration-500">
-                <p className="text-[10px] text-[#F5ECD7]/50 uppercase tracking-widest mb-0.5">Йога</p>
-                <p className="text-[#F5ECD7] text-sm font-medium">
+              <div className="p-4 rounded-xl border border-[#C9A227]/15 bg-[#0D0A0B]/40 backdrop-blur-sm flex flex-col items-center justify-center text-center gap-1 transition-colors duration-500">
+                <p className="text-[11px] text-[#F5ECD7]/60 uppercase tracking-widest mb-1">Йога</p>
+                <p className="text-[#F5ECD7] text-xl font-bold leading-tight flex items-center justify-center gap-2">
                   {dynamicPanchanga ? dynamicPanchanga.yoga.name : yoga.name}
-                  {(dynamicPanchanga ? dynamicPanchanga.yoga.isShivaYoga : yoga.isShivaYoga) && <span className="text-[#C9A227] ml-2 text-[10px]">🕉 Шива</span>}
                 </p>
+                {(dynamicPanchanga ? dynamicPanchanga.yoga.isShivaYoga : yoga.isShivaYoga) && (
+                  <span className="text-[#C9A227] text-[10px] bg-[#C9A227]/10 px-2 py-0.5 rounded-full mt-1 border border-[#C9A227]/20">🕉 Шива-йога</span>
+                )}
               </div>
 
               {/* Karana */}
-              <div className="p-3.5 rounded-xl border border-[#C9A227]/15 bg-[#0D0A0B]/40 backdrop-blur-sm flex flex-col justify-center h-full transition-colors duration-500">
-                <p className="text-[10px] text-[#F5ECD7]/50 uppercase tracking-widest mb-0.5">Карана</p>
-                <p className="text-[#F5ECD7] text-sm font-medium">
+              <div className="p-4 rounded-xl border border-[#C9A227]/15 bg-[#0D0A0B]/40 backdrop-blur-sm flex flex-col items-center justify-center text-center gap-1 transition-colors duration-500">
+                <p className="text-[11px] text-[#F5ECD7]/60 uppercase tracking-widest mb-1">Карана</p>
+                <p className="text-[#F5ECD7] text-xl font-bold leading-tight flex items-center justify-center gap-2">
                   {dynamicPanchanga ? dynamicPanchanga.karana.name : karana.name}
-                  {(dynamicPanchanga ? dynamicPanchanga.karana.isVishti : karana.isVishti) && <span className="text-red-400/70 ml-2 text-[10px]">⚠ Неблагоприятно</span>}
                 </p>
+                {(dynamicPanchanga ? dynamicPanchanga.karana.isVishti : karana.isVishti) && (
+                  <span className="text-red-400 text-[10px] bg-red-400/10 px-2 py-0.5 rounded-full mt-1 border border-red-400/20">⚠ Неблагоприятно</span>
+                )}
               </div>
             </div>
           </div>

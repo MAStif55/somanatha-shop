@@ -123,12 +123,28 @@ const RASI_NAMES = [
   'Тула', 'Вришчика', 'Дхану', 'Макара', 'Кумбха', 'Мина'
 ];
 
+const RASI_NAMES_WITH_TRANSLATION = [
+  'Меша (Овен)', 'Вришабха (Телец)', 'Митхуна (Близнецы)', 'Карка (Рак)', 'Симха (Лев)', 'Канья (Дева)',
+  'Тула (Весы)', 'Вришчика (Скорпион)', 'Дхану (Стрелец)', 'Макара (Козерог)', 'Кумбха (Водолей)', 'Мина (Рыбы)'
+];
+
 export function getSolarMonth(date: Date) {
   const sunLon = getSiderealLongitude(Body.Sun, date);
   const index = Math.floor(sunLon / 30);
   return {
     index,
     name: RASI_NAMES[index],
+    fullName: RASI_NAMES_WITH_TRANSLATION[index],
+  };
+}
+
+export function getLunarRashi(date: Date) {
+  const moonLon = getSiderealLongitude(Body.Moon, date);
+  const index = Math.floor(moonLon / 30);
+  return {
+    index,
+    name: RASI_NAMES[index],
+    fullName: RASI_NAMES_WITH_TRANSLATION[index],
   };
 }
 
@@ -401,6 +417,7 @@ export function getMomentPanchanga(date: Date, location: GeoLocation) {
   const yoga = getYoga(date);
   const karana = getKarana(date);
   const solarMonth = getSolarMonth(date);
+  const lunarRashi = getLunarRashi(date);
   const vedicDay = getVedicDay(date, location);
 
   return {
@@ -409,6 +426,7 @@ export function getMomentPanchanga(date: Date, location: GeoLocation) {
     yoga,
     karana,
     solarMonth,
+    lunarRashi,
     vara: vedicDay.vara,
     isSomvar: vedicDay.isSomvar,
     isArdraNakshatra: nakshatra.isArdra,
@@ -428,6 +446,7 @@ export function getDailyPanchanga(date: Date, location: GeoLocation) {
   const yoga = getYoga(udayaDate);
   const karana = getKarana(udayaDate);
   const solarMonth = getSolarMonth(udayaDate);
+  const lunarRashi = getLunarRashi(udayaDate);
   
   const brahmaMuhurta = getBrahmaMuhurta(date, location);
   const nishitaKala = getNishitaKala(date, location);
@@ -453,6 +472,7 @@ export function getDailyPanchanga(date: Date, location: GeoLocation) {
     yoga,
     karana,
     solarMonth,
+    lunarRashi,
     vara,
     sunTimes,
     brahmaMuhurta,
