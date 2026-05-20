@@ -39,7 +39,10 @@ export default function PanchangaPage({
   return (
     <main className="min-h-screen flex flex-col bg-[#1A1517] relative">
       {/* Top Hero-like background */}
-      <div className="absolute top-0 left-0 w-full h-[60vh] bg-hero-premium z-0"></div>
+      <div className="absolute top-0 left-0 w-full h-[60vh] bg-hero-premium z-0">
+        {/* Smooth transition to the dark background */}
+        <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-[#1A1517] via-[#1A1517]/60 to-transparent pointer-events-none"></div>
+      </div>
       
       {/* Sacred pattern overlay with a smooth gradient fade-in */}
       <div 
