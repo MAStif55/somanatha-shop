@@ -56,7 +56,7 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
     const navLinks = [
         { href: '/', label: t('nav.home'), icon: Home },
         { href: '/catalog', label: t('nav.catalog'), icon: Grid3X3 },
-        { href: '/panchanga', label: locale === 'ru' ? 'Панчанга' : 'Panchanga', icon: MoonStar },
+        { href: '/panchanga', label: locale === 'ru' ? 'Ведический Календарь' : 'Vedic Calendar', icon: MoonStar },
         { href: '/about', label: t('nav.about'), icon: Phone },
     ];
 

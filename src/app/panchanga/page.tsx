@@ -37,22 +37,32 @@ export default function PanchangaPage({
   const pradosham = getPradoshamDetails(now, location);
 
   return (
-    <main className="min-h-screen flex flex-col bg-[#0D0A0B]">
-      <Header variant="solid" />
+    <main className="min-h-screen flex flex-col bg-[#1A1517] bg-sacred-pattern relative">
+      {/* Top Hero-like background */}
+      <div className="absolute top-0 left-0 w-full h-[50vh] bg-hero-premium z-0"></div>
       
-      <div className="flex-1 relative">
-        {/* Subtle background decoration similar to site */}
-        <div className="absolute inset-0 bg-hero-premium opacity-30 pointer-events-none mix-blend-screen" />
-        
-        <div className="relative z-10 py-12 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto space-y-8">
-            
-            {/* Header & Location */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-10">
-              <div>
-                <h1 className="text-4xl font-ornamental text-[#E8D48B] tracking-wide">Ведический Календарь</h1>
-                <p className="text-[#C9A227]/80 text-sm mt-2 uppercase tracking-wider">Швейцарская точность расчетов</p>
-              </div>
+      {/* Ambient glow effects */}
+      <div className="absolute top-0 left-0 w-full h-[50vh] overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#C9A227] opacity-5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-[#8B6914] opacity-5 rounded-full blur-3xl"></div>
+      </div>
+
+      {/* Gradient mask to blend hero into the pattern */}
+      <div className="absolute top-[30vh] left-0 w-full h-[20vh] bg-gradient-to-b from-transparent to-[#1A1517] pointer-events-none z-0"></div>
+
+      <div className="relative z-20">
+        <Header variant="transparent" />
+      </div>
+      
+      <div className="flex-1 relative z-10 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto space-y-8">
+          
+          {/* Header & Location */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-10">
+            <div>
+              <h1 className="text-4xl font-ornamental text-[#E8D48B] tracking-wide text-glow-gold">Ведический Календарь</h1>
+              <p className="text-[#C9A227]/80 text-sm mt-2 uppercase tracking-wider font-elegant italic">Джйотиш — наука о свете</p>
+            </div>
               <LocationSelector currentLocationName={cityName} />
             </div>
 
