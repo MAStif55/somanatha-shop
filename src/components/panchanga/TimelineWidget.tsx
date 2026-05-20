@@ -80,14 +80,18 @@ export default function TimelineWidget({ panchanga, location }: TimelineWidgetPr
       blocks.push({ left: startP, width: endP - startP });
     }
 
-    return blocks.map((block, idx) => (
+    return blocks.map((block, idx) => {
+      const isLeftEdge = block.left < 15;
+      const isRightEdge = block.left + block.width > 85;
+
+      return (
       <div
         key={`${title}-${idx}`}
         className={`absolute top-0 bottom-0 ${colorClass} group cursor-help transition-all hover:brightness-125 z-10 hover:z-40`}
         style={{ left: `${block.left}%`, width: `${block.width}%` }}
       >
         {/* Tooltip */}
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-64 p-4 rounded-xl bg-[#0D0A0B]/95 backdrop-blur-xl border border-[#C9A227]/40 shadow-[0_10px_30px_rgba(0,0,0,0.8)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+        <div className={`absolute bottom-full mb-4 w-64 p-4 rounded-xl bg-[#0D0A0B]/95 backdrop-blur-xl border border-[#C9A227]/40 shadow-[0_10px_30px_rgba(0,0,0,0.8)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 ${isLeftEdge ? '-left-2' : isRightEdge ? '-right-2' : 'left-1/2 -translate-x-1/2'}`}>
           <div className="flex items-center gap-2 mb-2">
             <span className="text-xl">{icon}</span>
             <span className="text-[#E8D48B] font-semibold text-sm tracking-wider uppercase">{title}</span>
@@ -99,10 +103,11 @@ export default function TimelineWidget({ panchanga, location }: TimelineWidgetPr
             </p>
           </div>
           {/* Arrow */}
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#0D0A0B] border-b border-r border-[#C9A227]/40 transform rotate-45"></div>
+          <div className={`absolute -bottom-2 w-4 h-4 bg-[#0D0A0B] border-b border-r border-[#C9A227]/40 transform rotate-45 ${isLeftEdge ? 'left-6' : isRightEdge ? 'right-6' : 'left-1/2 -translate-x-1/2'}`}></div>
         </div>
       </div>
-    ));
+      );
+    });
   };
 
   return (
@@ -118,26 +123,13 @@ export default function TimelineWidget({ panchanga, location }: TimelineWidgetPr
 
       <div className="relative w-full h-24 mt-12 mb-6">
         
-        {/* Фоновый градиент дня и ночи с эффектами */}
-        <div className="absolute inset-x-0 top-4 bottom-4 rounded-full overflow-hidden flex shadow-[inset_0_4px_20px_rgba(0,0,0,0.5)] bg-[#0A0710]">
-          
-          {/* Ночь до восхода (звездное небо) */}
-          <div className="h-full relative overflow-hidden" style={{ width: `${sunriseP}%` }}>
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/60 via-[#0A0710] to-[#0A0710]"></div>
-            <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '16px 16px', backgroundPosition: '0 0, 8px 8px' }}></div>
-          </div>
-          
-          {/* День (солнечное небо) */}
-          <div className="h-full relative overflow-hidden bg-sky-900/40" style={{ width: `${sunsetP - sunriseP}%` }}>
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-300/20 via-sky-500/10 to-transparent"></div>
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-blue-400/10 to-transparent"></div>
-          </div>
-          
-          {/* Ночь после заката (звездное небо) */}
-          <div className="h-full relative overflow-hidden" style={{ width: `${100 - sunsetP}%` }}>
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/60 via-[#0A0710] to-[#0A0710]"></div>
-            <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '16px 16px', backgroundPosition: '0 0, 8px 8px' }}></div>
-          </div>
+        {/* Фоновый градиент дня и ночи с картинкой */}
+        <div 
+          className="absolute inset-x-0 top-4 bottom-4 rounded-full overflow-hidden shadow-[inset_0_4px_20px_rgba(0,0,0,0.5)] bg-cover bg-center"
+          style={{ backgroundImage: "url('/images/timeline-bg.png')" }}
+        >
+          {/* Полупрозрачный оверлей для приглушения и лучшей читаемости цветных блоков */}
+          <div className="absolute inset-0 bg-black/30"></div>
         </div>
 
         {/* Шкала (Background Track) */}
