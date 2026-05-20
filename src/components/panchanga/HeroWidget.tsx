@@ -12,7 +12,7 @@ interface HeroWidgetProps {
 }
 
 export default function HeroWidget({ panchanga, location }: HeroWidgetProps) {
-  const { tithi, nakshatra, pradosham, yoga, karana, vara, isArdraNakshatra, isShivaYoga, isSomvar } = panchanga;
+  const { tithi, nakshatra, pradosham, yoga, karana, vara, solarMonth, isArdraNakshatra, isShivaYoga, isSomvar, isBhairavaAshtami } = panchanga;
 
   // Exact illumination: 0 = new moon, 1 = full moon
   const exactPhase = tithi.isShukla
@@ -93,12 +93,15 @@ export default function HeroWidget({ panchanga, location }: HeroWidgetProps) {
           </div>
 
           {/* Шиваитские маркеры (если есть) */}
-          {(isArdraNakshatra || isShivaYoga || isSomvar) && (
+          {(isArdraNakshatra || isShivaYoga || isSomvar || isBhairavaAshtami) && (
             <div className="relative rounded-xl overflow-hidden border border-[#C9A227]/25 p-4"
                  style={{ background: 'linear-gradient(135deg, rgba(201,162,39,0.08) 0%, rgba(45,27,31,0.6) 100%)' }}>
               <div className="space-y-2">
                 {isSomvar && (
                   <p className="text-[#F5ECD7]/70 text-sm">🔱 <strong className="text-[#E8D48B]">Сомавара</strong> — понедельник, день Шивы. Благоприятен для поста и пуджи.</p>
+                )}
+                {isBhairavaAshtami && (
+                  <p className="text-[#F5ECD7]/70 text-sm">🔥 <strong className="text-[#E8D48B]">Калаштами</strong> (Бхайрава Аштами) — день почитания гневной формы Шивы.</p>
                 )}
                 {isArdraNakshatra && (
                   <p className="text-[#F5ECD7]/70 text-sm">⭐ Луна в накшатре <strong className="text-[#E8D48B]">Ардра</strong> — управитель Рудра (Шива). Мощный день для абхишеки.</p>
@@ -132,6 +135,7 @@ export default function HeroWidget({ panchanga, location }: HeroWidgetProps) {
               <div>
                 <p className="text-[10px] text-[#F5ECD7]/50 uppercase tracking-widest mb-0.5">Вара (День)</p>
                 <p className="text-[#F5ECD7] text-sm font-medium">{vara}</p>
+                <p className="text-[#F5ECD7]/40 text-xs mt-0.5">Солнце в знаке: {solarMonth.name}</p>
               </div>
             </div>
 

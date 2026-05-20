@@ -110,8 +110,28 @@ export function getTithi(date: Date) {
     progress,
     isPradosham: number === 13,
     isMasaShivaratri: !isShukla && number === 14,
+    isBhairavaAshtami: !isShukla && number === 8,
   };
 }
+
+// ════════════════════════════════════════════════════════
+//  СОЛНЕЧНЫЙ МЕСЯЦ (РАШИ)
+// ════════════════════════════════════════════════════════
+
+const RASI_NAMES = [
+  'Меша', 'Вришабха', 'Митхуна', 'Карка', 'Симха', 'Канья',
+  'Тула', 'Вришчика', 'Дхану', 'Макара', 'Кумбха', 'Мина'
+];
+
+export function getSolarMonth(date: Date) {
+  const sunLon = getSiderealLongitude(Body.Sun, date);
+  const index = Math.floor(sunLon / 30);
+  return {
+    index,
+    name: RASI_NAMES[index],
+  };
+}
+
 
 // ════════════════════════════════════════════════════════
 //  НАКШАТРА (Лунное созвездие)
@@ -344,32 +364,45 @@ export function getPradoshamDetails(date: Date, location: GeoLocation) {
 // ════════════════════════════════════════════════════════
 
 export function getDailyPanchanga(date: Date, location: GeoLocation) {
-  const tithi = getTithi(date);
-  const nakshatra = getNakshatra(date);
-  const yoga = getYoga(date);
-  const karana = getKarana(date);
   const sunTimes = getSunTimes(date, location);
+  
+  // Удайя время: Титхи и другие панчанги считаются на момент рассвета текущего дня
+  const udayaDate = sunTimes.sunrise ? new Date(sunTimes.sunrise.getTime() + 60000) : date; // 1 минута после рассвета
+
+  const tithi = getTithi(udayaDate);
+  const nakshatra = getNakshatra(udayaDate);
+  const yoga = getYoga(udayaDate);
+  const karana = getKarana(udayaDate);
+  const solarMonth = getSolarMonth(udayaDate);
+  
   const brahmaMuhurta = getBrahmaMuhurta(date, location);
   const nishitaKala = getNishitaKala(date, location);
   const rahuKala = getRahuKala(date, location);
   const yamagandam = getYamagandam(date, location);
+  
+  // Прадошам мы тоже вычисляем для "текущего локального дня", передаём date (внутри оно использует sunset)
   const pradosham = getPradoshamDetails(date, location);
 
-  // День недели (Вара)
+  // День недели (Вара) - считаем от udayaDate, чтобы день недели менялся на рассвете
   const VARA_NAMES = ['Равивара (Вс)', 'Сомавара (Пн)', 'Мангалавара (Вт)',
     'Будхавара (Ср)', 'Гурувара (Чт)', 'Шукравара (Пт)', 'Шанивара (Сб)'];
-  const vara = VARA_NAMES[date.getUTCDay()];
+  const offsetHours = location.longitude / 15;
+  const localUdayaDateMs = udayaDate.getTime() + offsetHours * 3600000;
+  const varaDayOfWeek = new Date(localUdayaDateMs).getUTCDay();
+  const vara = VARA_NAMES[varaDayOfWeek];
 
   // Особые маркеры для шиваитов
   const isArdraNakshatra = nakshatra.isArdra;
   const isShivaYoga = yoga.isShivaYoga;
-  const isSomvar = date.getUTCDay() === 1; // Понедельник — день Шивы
+  const isSomvar = varaDayOfWeek === 1; // Понедельник — день Шивы
+  const isBhairavaAshtami = tithi.isBhairavaAshtami;
 
   return {
     tithi,
     nakshatra,
     yoga,
     karana,
+    solarMonth,
     vara,
     sunTimes,
     brahmaMuhurta,
@@ -377,10 +410,12 @@ export function getDailyPanchanga(date: Date, location: GeoLocation) {
     rahuKala,
     yamagandam,
     pradosham,
+    
     // Шиваитские маркеры
     isArdraNakshatra,
     isShivaYoga,
     isSomvar,
+    isBhairavaAshtami,
   };
 }
 
