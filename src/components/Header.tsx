@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCartStore } from '@/store/cart-store';
 import { useCartUIStore } from '@/store/cart-ui-store';
-import { Menu, X, ShoppingBag, Home, Grid3X3, Phone } from 'lucide-react';
+import { Menu, X, ShoppingBag, Home, Grid3X3, Phone, MoonStar } from 'lucide-react';
 
 interface HeaderProps {
     variant?: 'transparent' | 'solid';
@@ -56,6 +56,7 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
     const navLinks = [
         { href: '/', label: t('nav.home'), icon: Home },
         { href: '/catalog', label: t('nav.catalog'), icon: Grid3X3 },
+        { href: '/panchanga', label: locale === 'ru' ? 'Панчанга' : 'Panchanga', icon: MoonStar },
         { href: '/about', label: t('nav.about'), icon: Phone },
     ];
 

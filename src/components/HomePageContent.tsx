@@ -16,6 +16,7 @@ import { Product } from '@/types/product';
 const TrustSignals = dynamic(() => import('@/components/TrustSignals'), { ssr: false });
 const Testimonials = dynamic(() => import('@/components/Testimonials'), { ssr: false });
 const AboutSnippet = dynamic(() => import('@/components/AboutSnippet'), { ssr: false });
+const HomeTeaser = dynamic(() => import('@/components/panchanga/HomeTeaser'), { ssr: false });
 
 interface HomePageContentProps {
     initialProducts: Product[];
@@ -111,6 +112,11 @@ export default function HomePageContent({ initialProducts }: HomePageContentProp
                 {/* Smooth transition to next section */}
                 <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-[#1A1517] via-[#1A1517]/60 to-transparent pointer-events-none z-10"></div>
             </section>
+
+            {/* ASTROLOGY TEASER */}
+            <div className="bg-[#1A1517] pt-8 -mb-8 relative z-20">
+                <HomeTeaser />
+            </div>
 
             {/* TRUST SIGNALS - Immediately build credibility */}
             <TrustSignals />
