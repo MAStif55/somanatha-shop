@@ -24,14 +24,24 @@ interface HeroWidgetProps {
 }
 
 export default function HeroWidget({ tithi, nakshatra, pradosham, location }: HeroWidgetProps) {
-  // Calculate exact lunar phase (0.0 to 1.0 where 0.5 is Full Moon)
+  // Exact phase: 0=new moon, 1=full moon
   const exactPhase = tithi.isShukla
     ? (tithi.number - 1 + tithi.progress) / 15
     : 1 - ((tithi.number - 1 + tithi.progress) / 15);
 
-  // Shadow moves left to right as moon illumination increases
-  const lightX = (exactPhase * 200) - 50;
-  const glowOpacity = Math.max(0.08, exactPhase * 0.35);
+  // Terminator x position as % from left for phase overlay
+  // At exactPhase=0 (new): terminator at 0% (all dark)
+  // At exactPhase=0.5 (half): terminator at 50% (half lit)
+  // At exactPhase=1 (full): terminator at 100% (all lit)
+  // For Shukla (waxing) lit is on RIGHT; for Krishna (waning) lit is on LEFT
+  const litPercent = Math.round(exactPhase * 100);
+  // The "dark half" covers the opposite side from the lit crescent
+  const isShukla = tithi.isShukla;
+
+  // Terminator position from the dark edge, as percent of diameter
+  const terminatorX = litPercent; // 0–100%
+
+  const glowOpacity = Math.max(0.05, exactPhase * 0.35);
 
   return (
     <div className="relative rounded-2xl overflow-hidden border border-[#C9A227]/15"
@@ -43,35 +53,43 @@ export default function HeroWidget({ tithi, nakshatra, pradosham, location }: He
       <div className="absolute bottom-0 left-0 w-96 h-48 rounded-full bg-[#8B1E3F] opacity-5 blur-[60px] pointer-events-none" />
 
       <div className="relative p-8 md:p-12 flex flex-col md:flex-row items-center gap-10 md:gap-14">
-        
         {/* ── MOON ── */}
         <div className="flex flex-col items-center gap-4 shrink-0">
           <div
             className="relative w-36 h-36 md:w-52 md:h-52 rounded-full overflow-hidden transition-all duration-1000"
             style={{
-              boxShadow: `0 0 ${70 * exactPhase}px ${15 * exactPhase}px rgba(201,162,39,${glowOpacity}), 0 0 30px rgba(0,0,0,0.8)`,
+              boxShadow: `0 0 ${60 * exactPhase}px ${12 * exactPhase}px rgba(201,162,39,${glowOpacity})`,
             }}
           >
-            {/* Real moon photo — boosted brightness */}
+            {/* Real moon photo */}
             <img
               src="/images/full-moon.jpg"
               alt="Луна"
               className="w-full h-full object-cover select-none pointer-events-none"
-              style={{ filter: 'brightness(1.35) contrast(1.1) saturate(0.9)' }}
+              style={{ filter: 'brightness(1.4) contrast(1.05) saturate(0.85)' }}
             />
 
-            {/* Phase shadow overlay */}
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: `radial-gradient(circle at ${lightX}% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,${Math.max(0, 0.75 - exactPhase * 0.6)}) ${35 + exactPhase * 35}%, rgba(0,0,0,${Math.min(0.97, 1 - exactPhase * 0.1)}) 100%)`
-              }}
-            />
+            {/* Phase shadow: dark overlay clipped to the unlit side */}
+            {exactPhase < 0.99 && (
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  // For Shukla (waxing): lit on RIGHT, dark covers LEFT.
+                  // For Krishna (waning): lit on LEFT, dark covers RIGHT.
+                  // Terminator x-position from the dark edge = litPercent%
+                  // We clip the rect [0,0 -> terminatorX%,100%] and keep dark on the other side.
+                  // Simpler: use background linear-gradient to split dark/light
+                  background: isShukla
+                    ? `linear-gradient(to right, rgba(0,0,0,0.93) ${terminatorX}%, rgba(0,0,0,0) ${Math.min(terminatorX + 25, 100)}%)`
+                    : `linear-gradient(to left, rgba(0,0,0,0.93) ${terminatorX}%, rgba(0,0,0,0) ${Math.min(terminatorX + 25, 100)}%)`,
+                }}
+              />
+            )}
 
-            {/* Rim glow */}
+            {/* Inner rim shadow for depth */}
             <div
               className="absolute inset-0 rounded-full pointer-events-none"
-              style={{ boxShadow: `inset 0 0 30px rgba(0,0,0,0.7), inset 0 0 8px rgba(201,162,39,${exactPhase * 0.15})` }}
+              style={{ boxShadow: 'inset 0 0 20px rgba(0,0,0,0.6)' }}
             />
           </div>
 
