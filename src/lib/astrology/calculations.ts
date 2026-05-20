@@ -114,6 +114,46 @@ export function getTithi(date: Date) {
   };
 }
 
+function getTithiContinuous(date: Date) {
+  let moonLon = getSiderealLongitude(Body.Moon, date);
+  let sunLon = getSiderealLongitude(Body.Sun, date);
+  let diff = moonLon - sunLon;
+  if (diff < 0) diff += 360;
+  return diff / DEGREES_IN_TITHI;
+}
+
+export function findTithiBoundaries(date: Date) {
+  const targetVal = getTithiContinuous(date);
+  const targetIndex = Math.floor(targetVal);
+
+  const getRelativeVal = (d: Date) => {
+    let val = getTithiContinuous(d);
+    if (targetIndex === 0 && val > 28) val -= 30;
+    if (targetIndex === 29 && val < 2) val += 30;
+    return val;
+  };
+
+  let start = new Date(date.getTime() - 30 * 3600000);
+  let end = date;
+  for (let i = 0; i < 20; i++) {
+    const mid = new Date((start.getTime() + end.getTime()) / 2);
+    if (getRelativeVal(mid) >= targetIndex) end = mid;
+    else start = mid;
+  }
+  const startTime = new Date((start.getTime() + end.getTime()) / 2);
+
+  start = date;
+  end = new Date(date.getTime() + 30 * 3600000);
+  for (let i = 0; i < 20; i++) {
+    const mid = new Date((start.getTime() + end.getTime()) / 2);
+    if (getRelativeVal(mid) < targetIndex + 1) start = mid;
+    else end = mid;
+  }
+  const endTime = new Date((start.getTime() + end.getTime()) / 2);
+
+  return { start: startTime, end: endTime };
+}
+
 // ════════════════════════════════════════════════════════
 //  СОЛНЕЧНЫЙ МЕСЯЦ (РАШИ)
 // ════════════════════════════════════════════════════════
@@ -186,6 +226,42 @@ export function getNakshatra(date: Date) {
     progress,
     isArdra,
   };
+}
+
+function getNakshatraContinuous(date: Date) {
+  return getSiderealLongitude(Body.Moon, date) / NAKSHATRA_DEGREES;
+}
+
+export function findNakshatraBoundaries(date: Date) {
+  const targetVal = getNakshatraContinuous(date);
+  const targetIndex = Math.floor(targetVal);
+
+  const getRelativeVal = (d: Date) => {
+    let val = getNakshatraContinuous(d);
+    if (targetIndex === 0 && val > 25) val -= 27;
+    if (targetIndex === 26 && val < 2) val += 27;
+    return val;
+  };
+
+  let start = new Date(date.getTime() - 30 * 3600000);
+  let end = date;
+  for (let i = 0; i < 20; i++) {
+    const mid = new Date((start.getTime() + end.getTime()) / 2);
+    if (getRelativeVal(mid) >= targetIndex) end = mid;
+    else start = mid;
+  }
+  const startTime = new Date((start.getTime() + end.getTime()) / 2);
+
+  start = date;
+  end = new Date(date.getTime() + 30 * 3600000);
+  for (let i = 0; i < 20; i++) {
+    const mid = new Date((start.getTime() + end.getTime()) / 2);
+    if (getRelativeVal(mid) < targetIndex + 1) start = mid;
+    else end = mid;
+  }
+  const endTime = new Date((start.getTime() + end.getTime()) / 2);
+
+  return { start: startTime, end: endTime };
 }
 
 // ════════════════════════════════════════════════════════
@@ -435,6 +511,10 @@ export function getMomentPanchanga(date: Date, location: GeoLocation) {
   const lunarRashi = getLunarRashi(date);
   const vedicDay = getVedicDay(date, location);
 
+  // Динамические границы (Начало/Конец)
+  const tithiBoundaries = findTithiBoundaries(date);
+  const nakshatraBoundaries = findNakshatraBoundaries(date);
+
   return {
     tithi,
     nakshatra,
@@ -442,6 +522,8 @@ export function getMomentPanchanga(date: Date, location: GeoLocation) {
     karana,
     solarMonth,
     lunarRashi,
+    tithiBoundaries,
+    nakshatraBoundaries,
     vara: vedicDay.vara,
     isSomvar: vedicDay.isSomvar,
     isArdraNakshatra: nakshatra.isArdra,

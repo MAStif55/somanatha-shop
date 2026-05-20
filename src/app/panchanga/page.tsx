@@ -1,6 +1,6 @@
 import React from 'react';
 import { Metadata } from 'next';
-import { getDailyPanchanga, GeoLocation } from '@/lib/astrology/calculations';
+import { getDailyPanchanga, getMomentPanchanga, GeoLocation } from '@/lib/astrology/calculations';
 import HeroWidget from '@/components/panchanga/HeroWidget';
 import TimelineWidget from '@/components/panchanga/TimelineWidget';
 import LocationSelector from '@/components/panchanga/LocationSelector';
@@ -47,6 +47,7 @@ export default function PanchangaPage({
 
   // Полная Панчанга на сегодня
   const panchanga = getDailyPanchanga(now, location);
+  const momentPanchanga = getMomentPanchanga(now, location);
 
   return (
     <main className="min-h-screen flex flex-col bg-[#1A1517] relative">
@@ -85,6 +86,7 @@ export default function PanchangaPage({
           {/* Луна + Полная Панчанга */}
           <HeroWidget 
             panchanga={panchanga}
+            momentPanchanga={momentPanchanga}
             location={location}
           />
 

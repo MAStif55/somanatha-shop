@@ -8,13 +8,24 @@ type PanchangaData = ReturnType<typeof getDailyPanchanga>;
 
 interface HeroWidgetProps {
   panchanga: PanchangaData;
+  momentPanchanga?: ReturnType<typeof getMomentPanchanga>;
   location: GeoLocation;
 }
 
-export default function HeroWidget({ panchanga, location }: HeroWidgetProps) {
-  const { tithi, nakshatra, pradosham, yoga, karana, vara, solarMonth, lunarRashi, isArdraNakshatra, isShivaYoga, isSomvar, isBhairavaAshtami } = panchanga;
+export default function HeroWidget({ panchanga, momentPanchanga, location }: HeroWidgetProps) {
+  const { pradosham, vara, solarMonth, lunarRashi, isArdraNakshatra, isShivaYoga, isSomvar, isBhairavaAshtami } = panchanga;
   const [now, setNow] = useState<Date | null>(null);
-  const [dynamicPanchanga, setDynamicPanchanga] = useState<ReturnType<typeof getMomentPanchanga> | null>(null);
+  const [dynamicPanchanga, setDynamicPanchanga] = useState<ReturnType<typeof getMomentPanchanga> | null>(momentPanchanga || null);
+
+  const fmtBoundary = (d: Date | null | undefined) => {
+    if (!d) return '';
+    const options: Intl.DateTimeFormatOptions = { 
+      day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit',
+      timeZone: location.timezone,
+      timeZoneName: 'short'
+    };
+    return new Intl.DateTimeFormat('ru-RU', options).format(d).replace(' в ', ', ');
+  };
 
   useEffect(() => {
     const update = () => {
@@ -27,12 +38,15 @@ export default function HeroWidget({ panchanga, location }: HeroWidgetProps) {
     return () => clearInterval(interval);
   }, [location]);
 
-  // Exact illumination: 0 = new moon, 1 = full moon
-  const exactPhase = tithi.isShukla
-    ? (tithi.number - 1 + tithi.progress) / 15
-    : 1 - ((tithi.number - 1 + tithi.progress) / 15);
+  const currentTithi = dynamicPanchanga ? dynamicPanchanga.tithi : panchanga.tithi;
+  const tithiBoundaries = dynamicPanchanga ? dynamicPanchanga.tithiBoundaries : null;
 
-  const isShukla = tithi.isShukla;
+  // Exact illumination: 0 = new moon, 1 = full moon
+  const exactPhase = currentTithi.isShukla
+    ? (currentTithi.number - 1 + currentTithi.progress) / 15
+    : 1 - ((currentTithi.number - 1 + currentTithi.progress) / 15);
+
+  const isShukla = currentTithi.isShukla;
 
   // How much of the moon is DARK (0-100%)
   const darkPercent = Math.round((1 - exactPhase) * 100);
@@ -89,7 +103,7 @@ export default function HeroWidget({ panchanga, location }: HeroWidgetProps) {
           </div>
 
           <div className="text-center">
-            <p className="text-[#C9A227] text-sm tracking-[0.25em] uppercase font-bold">{tithi.pakshaName}</p>
+            <p className="text-[#C9A227] text-sm tracking-[0.25em] uppercase font-bold">{currentTithi.pakshaName}</p>
             <p className="text-[#F5ECD7]/60 text-sm mt-1.5 font-medium">Освещённость: {Math.round(exactPhase * 100)}%</p>
           </div>
         </div>
@@ -98,13 +112,18 @@ export default function HeroWidget({ panchanga, location }: HeroWidgetProps) {
         <div className="flex-1 space-y-6 w-full">
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
             <div>
-              <p className="text-[#F5ECD7]/50 text-xs uppercase tracking-widest mb-1.5">Энергия суток (на момент восхода)</p>
-              <h2 className="text-4xl md:text-5xl font-ornamental text-[#E8D48B] text-glow-gold leading-tight">
-                {tithi.name}
+              <h2 className="text-4xl md:text-5xl font-ornamental text-[#E8D48B] text-glow-gold leading-tight mt-1">
+                {currentTithi.name}
               </h2>
-              <p className="text-[#F5ECD7]/60 text-lg mt-1 font-light">
-                {tithi.number}-е лунные сутки
+              <p className="text-[#F5ECD7]/80 text-lg mt-2 font-light">
+                {currentTithi.number}-е лунные сутки
               </p>
+              {tithiBoundaries && (
+                <div className="mt-3 space-y-0.5 text-[#F5ECD7]/50 text-xs font-mono">
+                  <p>Начало: {fmtBoundary(tithiBoundaries.start)}</p>
+                  <p>Окончание: {fmtBoundary(tithiBoundaries.end)}</p>
+                </div>
+              )}
             </div>
             
             {/* Live Date/Time Clock */}
@@ -123,14 +142,14 @@ export default function HeroWidget({ panchanga, location }: HeroWidgetProps) {
           </div>
 
           {/* Шиваитские маркеры (если есть) */}
-          {(isArdraNakshatra || isShivaYoga || isSomvar || isBhairavaAshtami) && (
+          {(currentTithi.isBhairavaAshtami || isArdraNakshatra || isShivaYoga || isSomvar) && (
             <div className="relative rounded-xl overflow-hidden border border-[#C9A227]/25 p-4"
                  style={{ background: 'linear-gradient(135deg, rgba(201,162,39,0.08) 0%, rgba(45,27,31,0.6) 100%)' }}>
               <div className="space-y-2">
                 {isSomvar && (
                   <p className="text-[#F5ECD7]/70 text-sm">🔱 <strong className="text-[#E8D48B]">Сомавара</strong> — понедельник, день Шивы. Благоприятен для поста и пуджи.</p>
                 )}
-                {isBhairavaAshtami && (
+                {currentTithi.isBhairavaAshtami && (
                   <p className="text-[#F5ECD7]/70 text-sm">🔥 <strong className="text-[#E8D48B]">Калаштами</strong> (Бхайрава Аштами) — день почитания гневной формы Шивы.</p>
                 )}
                 {isArdraNakshatra && (
@@ -145,14 +164,16 @@ export default function HeroWidget({ panchanga, location }: HeroWidgetProps) {
 
           {/* Panchanga Grid - Dynamic */}
           <div className="space-y-4 pt-2">
-            <p className="text-[#F5ECD7]/50 text-sm uppercase tracking-[0.2em] text-center font-bold">На небе сейчас (в реальном времени)</p>
             <div className="grid grid-cols-2 gap-4">
               {/* Nakshatra */}
               <div className="p-4 rounded-xl border border-[#C9A227]/15 bg-[#0D0A0B]/40 backdrop-blur-sm flex flex-col items-center justify-center text-center gap-1 transition-colors duration-500">
                 <p className="text-[11px] text-[#F5ECD7]/60 uppercase tracking-widest mb-1">Накшатра</p>
-                <p className="text-[#F5ECD7] text-xl font-bold leading-tight">{dynamicPanchanga ? dynamicPanchanga.nakshatra.name : nakshatra.name}</p>
-                <p className="text-[#F5ECD7]/50 text-[11px]">Управитель: {dynamicPanchanga ? dynamicPanchanga.nakshatra.deity : nakshatra.deity}</p>
+                <p className="text-[#F5ECD7] text-xl font-bold leading-tight">{dynamicPanchanga ? dynamicPanchanga.nakshatra.name : panchanga.nakshatra.name}</p>
+                <p className="text-[#F5ECD7]/50 text-[11px]">Управитель: {dynamicPanchanga ? dynamicPanchanga.nakshatra.deity : panchanga.nakshatra.deity}</p>
                 <p className="text-[#C9A227]/70 text-[11px] mt-1.5">Луна в знаке: {dynamicPanchanga ? dynamicPanchanga.lunarRashi.fullName : lunarRashi?.fullName}</p>
+                {dynamicPanchanga?.nakshatraBoundaries && (
+                  <p className="text-[#F5ECD7]/40 text-[10px] font-mono mt-1">до {fmtBoundary(dynamicPanchanga.nakshatraBoundaries.end)}</p>
+                )}
               </div>
 
               {/* Vara */}
@@ -166,9 +187,9 @@ export default function HeroWidget({ panchanga, location }: HeroWidgetProps) {
               <div className="p-4 rounded-xl border border-[#C9A227]/15 bg-[#0D0A0B]/40 backdrop-blur-sm flex flex-col items-center justify-center text-center gap-1 transition-colors duration-500">
                 <p className="text-[11px] text-[#F5ECD7]/60 uppercase tracking-widest mb-1">Йога</p>
                 <p className="text-[#F5ECD7] text-xl font-bold leading-tight flex items-center justify-center gap-2">
-                  {dynamicPanchanga ? dynamicPanchanga.yoga.name : yoga.name}
+                  {dynamicPanchanga ? dynamicPanchanga.yoga.name : panchanga.yoga.name}
                 </p>
-                {(dynamicPanchanga ? dynamicPanchanga.yoga.isShivaYoga : yoga.isShivaYoga) && (
+                {(dynamicPanchanga ? dynamicPanchanga.yoga.isShivaYoga : panchanga.yoga.isShivaYoga) && (
                   <span className="text-[#C9A227] text-[10px] bg-[#C9A227]/10 px-2 py-0.5 rounded-full mt-1 border border-[#C9A227]/20">🕉 Шива-йога</span>
                 )}
               </div>
@@ -177,10 +198,10 @@ export default function HeroWidget({ panchanga, location }: HeroWidgetProps) {
               <div className="p-4 rounded-xl border border-[#C9A227]/15 bg-[#0D0A0B]/40 backdrop-blur-sm flex flex-col items-center justify-center text-center gap-1 transition-colors duration-500">
                 <p className="text-[11px] text-[#F5ECD7]/60 uppercase tracking-widest mb-1">Карана</p>
                 <p className="text-[#F5ECD7] text-xl font-bold leading-tight flex items-center justify-center gap-2">
-                  {dynamicPanchanga ? dynamicPanchanga.karana.name : karana.name}
+                  {dynamicPanchanga ? dynamicPanchanga.karana.name : panchanga.karana.name}
                 </p>
-                <p className="text-[#F5ECD7]/50 text-[11px]">Управитель: {dynamicPanchanga ? dynamicPanchanga.karana.deity : karana.deity}</p>
-                {(dynamicPanchanga ? dynamicPanchanga.karana.isVishti : karana.isVishti) && (
+                <p className="text-[#F5ECD7]/50 text-[11px]">Управитель: {dynamicPanchanga ? dynamicPanchanga.karana.deity : panchanga.karana.deity}</p>
+                {(dynamicPanchanga ? dynamicPanchanga.karana.isVishti : panchanga.karana.isVishti) && (
                   <span className="text-red-400 text-[10px] bg-red-400/10 px-2 py-0.5 rounded-full mt-1 border border-red-400/20">⚠ Неблагоприятно</span>
                 )}
               </div>
