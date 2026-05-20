@@ -50,8 +50,14 @@ export function getSiderealLongitude(body: Body, date: Date): number {
  * astronomy-engine учитывает атмосферную рефракцию по умолчанию.
  */
 export function getSunTimes(date: Date, location: GeoLocation) {
-  const noon = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 12, 0, 0));
-  const time = MakeTime(noon);
+  // Вычисляем примерную локальную полночь в UTC для правильного поиска
+  const offsetHours = location.longitude / 15;
+  const localDateMs = date.getTime() + offsetHours * 3600000;
+  const localMidnightMs = localDateMs - (localDateMs % 86400000);
+  const searchStartMs = localMidnightMs - offsetHours * 3600000;
+  
+  // Начинаем поиск с 22:00 предыдущего дня по местному времени
+  const time = MakeTime(new Date(searchStartMs - 2 * 3600000));
   const observer = new Observer(location.latitude, location.longitude, 0);
 
   const sunrise = SearchRiseSet(Body.Sun, observer, 1, time, 1);
@@ -274,7 +280,10 @@ export function getRahuKala(date: Date, location: GeoLocation) {
 
   // Порядок слотов Раху Кала по дням (0=Sun..6=Sat)
   const rahuSlots = [8, 2, 7, 5, 6, 4, 3];
-  const dayOfWeek = date.getUTCDay();
+  
+  const offsetHours = location.longitude / 15;
+  const localDateMs = date.getTime() + offsetHours * 3600000;
+  const dayOfWeek = new Date(localDateMs).getUTCDay(); // Local day of week
   const slot = rahuSlots[dayOfWeek];
 
   const partDuration = daylightMs / 8;
@@ -293,7 +302,10 @@ export function getYamagandam(date: Date, location: GeoLocation) {
   if (!sunrise || !sunset || daylightMs === 0) return null;
 
   const yamaSlots = [5, 4, 3, 2, 1, 7, 6];
-  const dayOfWeek = date.getUTCDay();
+  
+  const offsetHours = location.longitude / 15;
+  const localDateMs = date.getTime() + offsetHours * 3600000;
+  const dayOfWeek = new Date(localDateMs).getUTCDay(); // Local day of week
   const slot = yamaSlots[dayOfWeek];
 
   const partDuration = daylightMs / 8;
