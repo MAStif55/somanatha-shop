@@ -2,7 +2,7 @@ import React from 'react';
 import { Metadata } from 'next';
 import { getDailyPanchanga, GeoLocation } from '@/lib/astrology/calculations';
 import HeroWidget from '@/components/panchanga/HeroWidget';
-import DailyDetails from '@/components/panchanga/DailyDetails';
+import TimelineWidget from '@/components/panchanga/TimelineWidget';
 import LocationSelector from '@/components/panchanga/LocationSelector';
 import UpcomingEvents from '@/components/panchanga/UpcomingEvents';
 import Header from '@/components/Header';
@@ -15,7 +15,6 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
-
 
 export default function PanchangaPage({
   searchParams,
@@ -34,7 +33,6 @@ export default function PanchangaPage({
   
   let tz = 'Europe/Moscow';
   try {
-    // geo-tz needs to be required this way in some Next.js setups, or imported.
     const { find } = require('geo-tz');
     const tzResult = find(lat, lon);
     if (tzResult && tzResult.length > 0) {
@@ -81,25 +79,23 @@ export default function PanchangaPage({
               <h1 className="text-4xl font-ornamental text-[#E8D48B] tracking-wide text-glow-gold">Ведический Календарь</h1>
               <p className="text-[#C9A227]/80 text-sm mt-2 uppercase tracking-wider font-elegant italic">Джйотиш — наука о свете</p>
             </div>
-              <LocationSelector currentLocationName={cityName} />
-            </div>
-
-            {/* Луна + Титхи + Накшатра */}
-            <HeroWidget 
-              tithi={panchanga.tithi}
-              nakshatra={panchanga.nakshatra}
-              pradosham={panchanga.pradosham}
-              location={location}
-            />
-
-            {/* Полная Панчанга: Йога, Карана, Мухурты */}
-            <DailyDetails panchanga={panchanga} location={location} />
-
-            {/* Ближайшие события */}
-            <UpcomingEvents location={location} />
-            
+            <LocationSelector currentLocationName={cityName} />
           </div>
+
+          {/* Луна + Полная Панчанга */}
+          <HeroWidget 
+            panchanga={panchanga}
+            location={location}
+          />
+
+          {/* Визуальный Таймлайн Практик */}
+          <TimelineWidget panchanga={panchanga} location={location} />
+
+          {/* Ближайшие события */}
+          <UpcomingEvents location={location} />
+            
         </div>
+      </div>
 
       <Footer />
     </main>
