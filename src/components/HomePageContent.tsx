@@ -35,7 +35,15 @@ export default function HomePageContent({ initialProducts }: HomePageContentProp
     }, [initialProducts]);
 
     return (
-        <main className="min-h-screen bg-[#0D0A0B]">
+        <main className="min-h-screen bg-[#1A1517] relative overflow-hidden">
+            {/* Sacred pattern overlay with a smooth gradient fade-in */}
+            <div 
+                className="absolute inset-0 bg-sacred-pattern pointer-events-none z-0"
+                style={{
+                    maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 40vh, rgba(0, 0, 0, 1) 70vh)',
+                    WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 40vh, rgba(0, 0, 0, 1) 70vh)'
+                }}
+            />
             {/* SEO Assist - Hidden text for search engines to prioritize over product cards */}
             <div className="sr-only">
                 <h1>Соманатха — Магазин Ведических Артефактов</h1>
@@ -114,7 +122,7 @@ export default function HomePageContent({ initialProducts }: HomePageContentProp
             </section>
 
             {/* ASTROLOGY TEASER */}
-            <div className="bg-[#1A1517] pt-8 -mb-8 relative z-20">
+            <div className="bg-transparent pt-8 -mb-8 relative z-20">
                 <HomeTeaser />
             </div>
 
@@ -123,9 +131,7 @@ export default function HomePageContent({ initialProducts }: HomePageContentProp
 
             {/* NEW ARRIVALS */}
             {products.length > 0 && (
-                <section className="py-24 px-6 bg-[#1A1517] bg-sacred-pattern relative">
-                    {/* Gradient Mask for top edge of pattern */}
-                    <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-[#1A1517] to-transparent pointer-events-none z-0"></div>
+                <section className="py-24 px-6 bg-transparent relative">
 
                     <div className="max-w-6xl mx-auto relative z-10">
                         <div className="text-center mb-12">

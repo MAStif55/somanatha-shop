@@ -25,7 +25,7 @@ export default function TrustSignals() {
     ];
 
     return (
-        <section className="bg-[#1A1517] border-b border-[#C9A227]/10 relative z-20">
+        <section className="bg-transparent border-b border-[#C9A227]/10 relative z-20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
                     {signals.map((item, idx) => (
