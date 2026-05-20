@@ -46,18 +46,27 @@ export default function HeroWidget({ tithi, nakshatra, pradosham, location }: He
       <div className="relative p-6 md:p-10 flex flex-col md:flex-row items-center gap-8 md:gap-12">
         {/* Moon Visualization */}
         <div className="flex flex-col items-center gap-5 shrink-0">
-          <div className="relative w-32 h-32 md:w-48 md:h-48 rounded-full transition-all duration-1000"
+          <div className="relative w-32 h-32 md:w-48 md:h-48 rounded-full overflow-hidden border border-[#C9A227]/20 shadow-2xl transition-all duration-1000 bg-black"
                style={{
-                 background: `radial-gradient(circle at ${lightX}% 50%, #F5ECD7 0%, #C9A227 30%, #5c4309 60%, #1A1517 85%, #0D0A0B 100%)`,
-                 boxShadow: `0 0 ${60 * exactPhase}px ${10 * exactPhase}px rgba(201,162,39, ${glowOpacity * 0.4}), inset -10px -10px 30px rgba(0,0,0,0.8), inset 10px 10px 20px rgba(255,255,255,${exactPhase * 0.2})`
+                 boxShadow: `0 0 ${50 * exactPhase}px ${10 * exactPhase}px rgba(201,162,39, ${glowOpacity * 0.3})`
                }}>
             
-            {/* Crater Textures (Subtle) */}
-            <div className="absolute inset-0 rounded-full opacity-20 mix-blend-overlay"
+            {/* Real Full Moon Photo */}
+            <img 
+              src="/images/full-moon.jpg" 
+              alt="Луна" 
+              className="w-full h-full object-cover rounded-full opacity-85 select-none pointer-events-none"
+            />
+            
+            {/* Dynamic 3D Shading Overlay */}
+            <div className="absolute inset-0 rounded-full pointer-events-none"
                  style={{
-                   background: 'radial-gradient(circle at 30% 40%, rgba(0,0,0,0.4) 0%, transparent 20%), radial-gradient(circle at 70% 60%, rgba(0,0,0,0.3) 0%, transparent 15%), radial-gradient(circle at 40% 70%, rgba(0,0,0,0.5) 0%, transparent 25%)'
-                 }}>
-            </div>
+                   background: `radial-gradient(circle at ${lightX}% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,${Math.max(0, 0.85 - exactPhase)}) ${40 + exactPhase * 40}%, rgba(0,0,0,${Math.min(0.98, 0.98 - exactPhase * 0.15)}) 100%)`
+                 }}
+            />
+            
+            {/* Ambient inner shadow */}
+            <div className="absolute inset-0 rounded-full shadow-[inset_0_0_25px_rgba(0,0,0,0.9)] pointer-events-none" />
           </div>
           <div className="text-center">
             <p className="text-[#C9A227] text-sm tracking-wider uppercase font-medium">{tithi.pakshaName}</p>
