@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Moon, Star } from 'lucide-react';
 import { GeoLocation, getDailyPanchanga } from '@/lib/astrology/calculations';
 
@@ -13,6 +13,15 @@ interface HeroWidgetProps {
 
 export default function HeroWidget({ panchanga, location }: HeroWidgetProps) {
   const { tithi, nakshatra, pradosham, yoga, karana, vara, solarMonth, isArdraNakshatra, isShivaYoga, isSomvar, isBhairavaAshtami } = panchanga;
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setNow(new Date());
+    const interval = setInterval(() => {
+      setNow(new Date());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Exact illumination: 0 = new moon, 1 = full moon
   const exactPhase = tithi.isShukla
@@ -83,13 +92,29 @@ export default function HeroWidget({ panchanga, location }: HeroWidgetProps) {
 
         {/* ── DATA ── */}
         <div className="flex-1 space-y-6 w-full">
-          <div>
-            <h2 className="text-4xl md:text-5xl font-ornamental text-[#E8D48B] text-glow-gold leading-tight">
-              {tithi.name}
-            </h2>
-            <p className="text-[#F5ECD7]/60 text-lg mt-1 font-light">
-              {tithi.number}-е лунные сутки
-            </p>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-ornamental text-[#E8D48B] text-glow-gold leading-tight">
+                {tithi.name}
+              </h2>
+              <p className="text-[#F5ECD7]/60 text-lg mt-1 font-light">
+                {tithi.number}-е лунные сутки
+              </p>
+            </div>
+            
+            {/* Live Date/Time Clock */}
+            <div className="text-left md:text-right">
+              {now && (
+                <>
+                  <p className="text-[#F5ECD7] text-lg font-medium tracking-wide">
+                    {now.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', timeZone: location.timezone }).replace(/^[а-я]/, c => c.toUpperCase())}
+                  </p>
+                  <p className="text-[#C9A227] font-mono text-xl mt-0.5">
+                    {now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: location.timezone })}
+                  </p>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Шиваитские маркеры (если есть) */}
@@ -140,8 +165,8 @@ export default function HeroWidget({ panchanga, location }: HeroWidgetProps) {
             </div>
 
             {/* Yoga */}
-            <div className="p-3.5 rounded-xl border border-[#C9A227]/15 bg-[#0D0A0B]/40 backdrop-blur-sm">
-              <p className="text-[10px] text-[#F5ECD7]/50 uppercase tracking-widest mb-1">Йога</p>
+            <div className="p-3.5 rounded-xl border border-[#C9A227]/15 bg-[#0D0A0B]/40 backdrop-blur-sm flex flex-col justify-center h-full">
+              <p className="text-[10px] text-[#F5ECD7]/50 uppercase tracking-widest mb-0.5">Йога</p>
               <p className="text-[#F5ECD7] text-sm font-medium">
                 {yoga.name}
                 {yoga.isShivaYoga && <span className="text-[#C9A227] ml-2 text-[10px]">🕉 Шива</span>}
@@ -149,8 +174,8 @@ export default function HeroWidget({ panchanga, location }: HeroWidgetProps) {
             </div>
 
             {/* Karana */}
-            <div className="p-3.5 rounded-xl border border-[#C9A227]/15 bg-[#0D0A0B]/40 backdrop-blur-sm">
-              <p className="text-[10px] text-[#F5ECD7]/50 uppercase tracking-widest mb-1">Карана</p>
+            <div className="p-3.5 rounded-xl border border-[#C9A227]/15 bg-[#0D0A0B]/40 backdrop-blur-sm flex flex-col justify-center h-full">
+              <p className="text-[10px] text-[#F5ECD7]/50 uppercase tracking-widest mb-0.5">Карана</p>
               <p className="text-[#F5ECD7] text-sm font-medium">
                 {karana.name}
                 {karana.isVishti && <span className="text-red-400/70 ml-2 text-[10px]">⚠ Неблагоприятно</span>}

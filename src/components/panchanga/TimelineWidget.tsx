@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import { getDailyPanchanga, GeoLocation } from '@/lib/astrology/calculations';
 
 type PanchangaData = ReturnType<typeof getDailyPanchanga>;
@@ -47,12 +49,22 @@ function fmt(d: Date | null, timeZone?: string): string {
 }
 
 export default function TimelineWidget({ panchanga, location }: TimelineWidgetProps) {
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setNow(new Date());
+    const interval = setInterval(() => {
+      setNow(new Date());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const tz = location.timezone;
   const { sunTimes, brahmaMuhurta, nishitaKala, rahuKala, yamagandam, pradosham } = panchanga;
 
   const sunriseP = getLocalTimePercent(sunTimes.sunrise, tz) || 25; // default 6am
   const sunsetP = getLocalTimePercent(sunTimes.sunset, tz) || 75;   // default 6pm
-  const nowP = getLocalTimePercent(new Date(), tz) || 0;
+  const nowP = getLocalTimePercent(now || new Date(), tz) || 0;
 
   // Функция для рендера блока периода
   const renderPeriod = (
@@ -155,11 +167,14 @@ export default function TimelineWidget({ panchanga, location }: TimelineWidgetPr
 
         {/* Индикатор "Сейчас" */}
         <div 
-          className="absolute top-0 bottom-0 w-px bg-white z-20 pointer-events-none"
+          className="absolute top-0 bottom-0 w-px bg-white z-20 pointer-events-none transition-all duration-1000 ease-linear"
           style={{ left: `${nowP}%` }}
         >
-          <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-white text-black font-bold text-[10px] px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)]">
-            СЕЙЧАС
+          <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-white text-black font-bold text-[10px] px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)] flex flex-col items-center">
+            <span>СЕЙЧАС</span>
+          </div>
+          <div className="absolute -top-11 left-1/2 -translate-x-1/2 text-white font-mono text-xs font-bold drop-shadow-md">
+            {now ? fmt(now, tz) : ''}
           </div>
           <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_5px_rgba(255,255,255,0.8)]"></div>
         </div>
