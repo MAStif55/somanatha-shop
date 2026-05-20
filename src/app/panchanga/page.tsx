@@ -79,7 +79,6 @@ export default function PanchangaPage({
             
           </div>
         </div>
-      </div>
 
       <Footer />
     </main>
