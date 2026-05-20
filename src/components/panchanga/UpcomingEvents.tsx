@@ -38,11 +38,8 @@ export default function UpcomingEvents({ location }: UpcomingEventsProps) {
       <div className="absolute top-0 right-0 w-64 h-32 rounded-full bg-[#C9A227] opacity-5 blur-[60px] pointer-events-none" />
 
       {/* Header */}
-      <div className="px-6 py-5 border-b border-[#C9A227]/10 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-[#C9A227]/10 border border-[#C9A227]/20 flex items-center justify-center">
-          <Calendar className="w-4 h-4 text-[#C9A227]" />
-        </div>
-        <h3 className="text-[#E8D48B] font-semibold tracking-wider uppercase text-sm">Ближайшие события</h3>
+      <div className="px-6 py-6 border-b border-[#C9A227]/10 flex flex-col items-center justify-center text-center">
+        <h3 className="text-[#F5ECD7]/50 font-bold tracking-[0.2em] uppercase text-sm md:text-base">Ближайшие события</h3>
       </div>
 
       <div className="divide-y divide-[#C9A227]/5">

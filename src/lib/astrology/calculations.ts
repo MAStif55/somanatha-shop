@@ -240,6 +240,20 @@ const KARANA_NAMES = [
   'Шакуни', 'Чатушпад', 'Нага', 'Кимстугна'
 ];
 
+const KARANA_DEITIES: Record<string, string> = {
+  'Кимстугна': 'Ваю',
+  'Бава': 'Индра',
+  'Балава': 'Брахма',
+  'Каулава': 'Митра',
+  'Тайтила': 'Вишвакарман',
+  'Гара': 'Бхуми (Земля)',
+  'Ваниджа': 'Лакшми',
+  'Вишти (Бхадра)': 'Яма',
+  'Шакуни': 'Кали',
+  'Чатушпад': 'Рудра',
+  'Нага': 'Наги (Змеи)'
+};
+
 export function getKarana(date: Date) {
   const moonLon = getSiderealLongitude(Body.Moon, date);
   const sunLon = getSiderealLongitude(Body.Sun, date);
@@ -261,8 +275,9 @@ export function getKarana(date: Date) {
 
   // Вишти (Бхадра) — неблагоприятная карана
   const isVishti = name === 'Вишти (Бхадра)';
+  const deity = KARANA_DEITIES[name] || '';
 
-  return { index, name, isVishti };
+  return { index, name, isVishti, deity };
 }
 
 // ════════════════════════════════════════════════════════

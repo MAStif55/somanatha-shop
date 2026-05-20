@@ -126,11 +126,9 @@ export default function TimelineWidget({ panchanga, location }: TimelineWidgetPr
     <div className="relative rounded-2xl border border-[#C9A227]/15 p-6 md:p-8"
          style={{ background: 'linear-gradient(135deg, #1A1517 0%, #110D0F 100%)' }}>
       
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h3 className="text-[#E8D48B] font-bold tracking-widest uppercase text-lg mb-1">Таймлайн Практик</h3>
-          <p className="text-[#F5ECD7]/50 text-sm mt-1">График мухурт на текущие сутки (местное время: {location.name})</p>
-        </div>
+      <div className="flex flex-col items-center justify-center text-center mb-10">
+        <h3 className="text-[#F5ECD7]/50 font-bold tracking-[0.2em] uppercase text-sm md:text-base mb-1">Таймлайн Практик</h3>
+        <p className="text-[#F5ECD7]/50 text-sm mt-1">График мухурт на текущие сутки (местное время: {location.name})</p>
       </div>
 
       <div className="relative w-full h-32 mt-16 mb-8">
@@ -170,10 +168,10 @@ export default function TimelineWidget({ panchanga, location }: TimelineWidgetPr
           className="absolute top-0 bottom-0 w-px bg-white z-20 pointer-events-none transition-all duration-1000 ease-linear"
           style={{ left: `${nowP}%` }}
         >
-          <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-white text-black font-bold text-[10px] px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)] flex flex-col items-center">
+          <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 bg-white text-black font-bold text-[10px] px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)] flex flex-col items-center">
             <span>СЕЙЧАС</span>
           </div>
-          <div className="absolute -top-11 left-1/2 -translate-x-1/2 text-white font-mono text-xs font-bold drop-shadow-md">
+          <div className="absolute top-1/2 -translate-y-1/2 mt-5 left-1/2 -translate-x-1/2 text-white font-mono text-xs font-bold drop-shadow-md">
             {now ? fmt(now, tz) : ''}
           </div>
           <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_5px_rgba(255,255,255,0.8)]"></div>
