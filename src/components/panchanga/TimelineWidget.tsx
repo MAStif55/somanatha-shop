@@ -17,6 +17,7 @@ function getLocalTimePercent(d: Date | null, timeZone?: string): number | null {
       timeZone: timeZone || 'UTC',
       hour: 'numeric',
       minute: 'numeric',
+      hour12: false
     }).formatToParts(d);
     
     let hour = 0;
@@ -82,21 +83,23 @@ export default function TimelineWidget({ panchanga, location }: TimelineWidgetPr
     return blocks.map((block, idx) => (
       <div
         key={`${title}-${idx}`}
-        className={`absolute top-0 bottom-0 ${colorClass} group cursor-help transition-all hover:brightness-125 hover:z-20`}
+        className={`absolute top-0 bottom-0 ${colorClass} group cursor-help transition-all hover:brightness-125 z-10 hover:z-40`}
         style={{ left: `${block.left}%`, width: `${block.width}%` }}
       >
         {/* Tooltip */}
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-48 p-3 rounded-xl bg-[#0D0A0B]/95 backdrop-blur-xl border border-[#C9A227]/30 shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-base">{icon}</span>
-            <span className="text-[#E8D48B] font-medium text-xs tracking-wider uppercase">{title}</span>
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-64 p-4 rounded-xl bg-[#0D0A0B]/95 backdrop-blur-xl border border-[#C9A227]/40 shadow-[0_10px_30px_rgba(0,0,0,0.8)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xl">{icon}</span>
+            <span className="text-[#E8D48B] font-semibold text-sm tracking-wider uppercase">{title}</span>
           </div>
-          <p className="text-[#F5ECD7]/60 text-[10px] mb-2 leading-relaxed">{desc}</p>
-          <p className="text-[#C9A227] font-mono text-xs">
-            {fmt(start, tz)} - {fmt(end, tz)}
-          </p>
+          <p className="text-[#F5ECD7]/80 text-xs mb-3 leading-relaxed">{desc}</p>
+          <div className="bg-[#1A1517] rounded-lg px-3 py-2 border border-[#C9A227]/20 flex items-center justify-center">
+            <p className="text-[#C9A227] font-mono text-sm tracking-widest font-medium">
+              {fmt(start, tz)} - {fmt(end, tz)}
+            </p>
+          </div>
           {/* Arrow */}
-          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#0D0A0B] border-b border-r border-[#C9A227]/30 transform rotate-45"></div>
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#0D0A0B] border-b border-r border-[#C9A227]/40 transform rotate-45"></div>
         </div>
       </div>
     ));
@@ -115,14 +118,26 @@ export default function TimelineWidget({ panchanga, location }: TimelineWidgetPr
 
       <div className="relative w-full h-24 mt-12 mb-6">
         
-        {/* Фоновый градиент дня и ночи */}
-        <div className="absolute inset-x-0 top-4 bottom-4 rounded-full overflow-hidden flex shadow-inner">
-          {/* Ночь до восхода */}
-          <div className="h-full bg-slate-900/40" style={{ width: `${sunriseP}%` }}></div>
-          {/* День */}
-          <div className="h-full bg-gradient-to-r from-amber-500/10 via-amber-300/10 to-orange-500/10" style={{ width: `${sunsetP - sunriseP}%` }}></div>
-          {/* Ночь после заката */}
-          <div className="h-full bg-slate-900/40" style={{ width: `${100 - sunsetP}%` }}></div>
+        {/* Фоновый градиент дня и ночи с эффектами */}
+        <div className="absolute inset-x-0 top-4 bottom-4 rounded-full overflow-hidden flex shadow-[inset_0_4px_20px_rgba(0,0,0,0.5)] bg-[#0A0710]">
+          
+          {/* Ночь до восхода (звездное небо) */}
+          <div className="h-full relative overflow-hidden" style={{ width: `${sunriseP}%` }}>
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/60 via-[#0A0710] to-[#0A0710]"></div>
+            <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '16px 16px', backgroundPosition: '0 0, 8px 8px' }}></div>
+          </div>
+          
+          {/* День (солнечное небо) */}
+          <div className="h-full relative overflow-hidden bg-sky-900/40" style={{ width: `${sunsetP - sunriseP}%` }}>
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-300/20 via-sky-500/10 to-transparent"></div>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-blue-400/10 to-transparent"></div>
+          </div>
+          
+          {/* Ночь после заката (звездное небо) */}
+          <div className="h-full relative overflow-hidden" style={{ width: `${100 - sunsetP}%` }}>
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/60 via-[#0A0710] to-[#0A0710]"></div>
+            <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '16px 16px', backgroundPosition: '0 0, 8px 8px' }}></div>
+          </div>
         </div>
 
         {/* Шкала (Background Track) */}
