@@ -13,6 +13,10 @@ export const metadata: Metadata = {
   description: 'Точный ведический календарь для шиваитов. Расчет Титхи, Накшатры, Йоги, Караны, мухурт и времени Прадоша Кала для вашего города.',
 };
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+
 export default function PanchangaPage({
   searchParams,
 }: {
