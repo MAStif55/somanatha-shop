@@ -154,37 +154,121 @@ export function getPradoshamDetails(date: Date, location: GeoLocation) {
 }
 
 /**
- * Ищет ближайшие важные события (Прадошам, Маса Шиваратри) на N дней вперед.
+ * Ищет ближайшие важные события на N дней вперед.
+ * Все даты рассчитываются астрономически из номера титхи и дня недели.
+ *
+ * Шиваитские события:
+ *   - Прадошам: 13-й титхи (Трайодаши) в обе пакши
+ *   - Маса Шиваратри: Кришна Пакша, 14-й титхи (Чатурдаши)
+ *   - Сомавати Амавасья: Амавасья (новолуние), выпавшая на понедельник — особо свята для Шивы
+ *
+ * Общие ведические события:
+ *   - Экадаши: 11-й титхи в обе пакши — день поста
+ *   - Пурнима: 15-й титхи Шукла Пакша — полнолуние
+ *   - Амавасья: 15-й титхи Кришна Пакша — новолуние (поминовение предков)
+ *   - Санкашти Чатуртхи: 4-й титхи Кришна Пакша — почитание Ганеши
  */
 export function getUpcomingEvents(startDate: Date, days: number, location: GeoLocation) {
-  const events = [];
-  
+  const events: Array<{
+    type: string;
+    title: string;
+    date: Date;
+    description: string;
+    details: ReturnType<typeof getPradoshamDetails>;
+    importance: 'high' | 'medium' | 'low';
+  }> = [];
+
   for (let i = 1; i <= days; i++) {
-    // Делаем копию даты и добавляем дни
     const checkDate = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
     const tithi = getTithi(checkDate);
-    
+    const dayOfWeek = checkDate.getUTCDay(); // 0=Sunday, 1=Monday, ...
+
+    // ── ПРАДОШАМ (13-й титхи) ──
     if (tithi.number === 13) {
       const pradosham = getPradoshamDetails(checkDate, location);
       if (pradosham) {
+        const dayName = dayOfWeek === 6 ? 'Шани Прадошам (Суббота)' :
+                        dayOfWeek === 1 ? 'Сома Прадошам (Понедельник)' : 'Прадошам';
         events.push({
           type: 'pradosham',
-          title: 'Прадошам',
+          title: dayName,
           date: checkDate,
-          details: pradosham
+          description: 'Благоприятное время для поклонения Шиве. Пуджа в Прадоша Калу.',
+          details: pradosham,
+          importance: 'high',
         });
       }
-    } else if (tithi.isMasaShivaratri) {
+    }
+
+    // ── МАСА ШИВАРАТРИ (Кришна Чатурдаши) ──
+    if (!tithi.isShukla && tithi.number === 14) {
       events.push({
         type: 'shivaratri',
         title: 'Маса Шиваратри',
         date: checkDate,
-        details: null
+        description: 'Ежемесячная Шиваратри. Ночь бдения и медитации на Шиву.',
+        details: null,
+        importance: 'high',
       });
     }
-    
-    if (events.length >= 3) break; // Нам достаточно 3 ближайших
+
+    // ── ЭКАДАШИ (11-й титхи) ──
+    if (tithi.number === 11) {
+      events.push({
+        type: 'ekadashi',
+        title: `Экадаши (${tithi.isShukla ? 'Шукла' : 'Кришна'})`,
+        date: checkDate,
+        description: 'День поста и духовной практики. Воздержание от зерновых.',
+        details: null,
+        importance: 'medium',
+      });
+    }
+
+    // ── ПУРНИМА (полнолуние — Шукла 15) ──
+    if (tithi.isShukla && tithi.number === 15) {
+      events.push({
+        type: 'purnima',
+        title: 'Пурнима (Полнолуние)',
+        date: checkDate,
+        description: 'Полнолуние. Благоприятный день для духовных практик и пуджи.',
+        details: null,
+        importance: 'medium',
+      });
+    }
+
+    // ── АМАВАСЬЯ (новолуние — Кришна 15) ──
+    if (!tithi.isShukla && tithi.number === 15) {
+      const isSomavati = dayOfWeek === 1; // Понедельник
+      events.push({
+        type: isSomavati ? 'somavati_amavasya' : 'amavasya',
+        title: isSomavati ? 'Сомавати Амавасья 🕉' : 'Амавасья (Новолуние)',
+        date: checkDate,
+        description: isSomavati
+          ? 'Новолуние в понедельник — особо священна для Шивы. Мощное время для практик.'
+          : 'Новолуние. День поминовения предков (Питри Тарпана).',
+        details: null,
+        importance: isSomavati ? 'high' : 'medium',
+      });
+    }
+
+    // ── САНКАШТИ ЧАТУРТХИ (Кришна 4 — Ганеша) ──
+    if (!tithi.isShukla && tithi.number === 4) {
+      events.push({
+        type: 'chaturthi',
+        title: 'Санкашти Чатуртхи',
+        date: checkDate,
+        description: 'День почитания Ганеши. Пост до восхода Луны.',
+        details: null,
+        importance: 'low',
+      });
+    }
+
+    if (events.length >= 8) break; // Показываем до 8 ближайших
   }
-  
+
+  // Sort by date, then by importance
+  events.sort((a, b) => a.date.getTime() - b.date.getTime());
+
   return events;
 }
+
