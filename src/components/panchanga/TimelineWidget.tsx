@@ -111,7 +111,7 @@ export default function TimelineWidget({ panchanga, location }: TimelineWidgetPr
   };
 
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-[#C9A227]/15 p-6 md:p-8"
+    <div className="relative rounded-2xl border border-[#C9A227]/15 p-6 md:p-8"
          style={{ background: 'linear-gradient(135deg, #1A1517 0%, #110D0F 100%)' }}>
       
       <div className="flex items-center justify-between mb-6">
@@ -121,7 +121,7 @@ export default function TimelineWidget({ panchanga, location }: TimelineWidgetPr
         </div>
       </div>
 
-      <div className="relative w-full h-24 mt-12 mb-6">
+      <div className="relative w-full h-32 mt-16 mb-8">
         
         {/* Фоновый градиент дня и ночи с картинкой */}
         <div 
@@ -129,7 +129,7 @@ export default function TimelineWidget({ panchanga, location }: TimelineWidgetPr
           style={{ backgroundImage: "url('/images/timeline-bg.png')" }}
         >
           {/* Полупрозрачный оверлей для приглушения и лучшей читаемости цветных блоков */}
-          <div className="absolute inset-0 bg-black/30"></div>
+          <div className="absolute inset-0 bg-black/10"></div>
         </div>
 
         {/* Шкала (Background Track) */}
@@ -137,11 +137,11 @@ export default function TimelineWidget({ panchanga, location }: TimelineWidgetPr
 
         {/* Периоды */}
         <div className="absolute inset-x-0 top-4 bottom-4 rounded-full overflow-visible">
-          {renderPeriod(brahmaMuhurta?.start || null, brahmaMuhurta?.end || null, 'bg-indigo-500/40 border-x border-indigo-400/50', 'Брахма-мухурта', 'Идеальное время для медитации, мантр и йоги.', '✨')}
-          {renderPeriod(yamagandam?.start || null, yamagandam?.end || null, 'bg-orange-500/30 border-x border-orange-500/50', 'Ямагандам', 'Период, управляемый Ямой. Неблагоприятен для начала новых важных дел.', '⚠️')}
-          {renderPeriod(rahuKala?.start || null, rahuKala?.end || null, 'bg-red-500/30 border-x border-red-500/50', 'Раху Кала', 'Период сильного влияния Раху. Не подходит для материальных начинаний.', '🔴')}
-          {renderPeriod(nishitaKala?.start || null, nishitaKala?.end || null, 'bg-purple-600/50 border-x border-purple-400/60 shadow-[0_0_10px_rgba(147,51,234,0.3)]', 'Нишита Кала', 'Астрономическая полночь. Время проявления Шива-лингама. Важнейшая пуджа на Махашиваратри.', '🕉')}
-          {pradosham && renderPeriod(pradosham.pradoshaKalaStart, pradosham.pradoshaKalaEnd, 'bg-[#C9A227]/40 border-x border-[#C9A227]/80 shadow-[0_0_15px_rgba(201,162,39,0.3)] z-10', 'Прадоша Кала', 'Священный период 1.5 часа вокруг заката для почитания Шивы.', '🔱')}
+          {renderPeriod(brahmaMuhurta?.start || null, brahmaMuhurta?.end || null, 'bg-indigo-500/20 border-x border-indigo-400/30', 'Брахма-мухурта', 'Идеальное время для медитации, мантр и йоги.', '✨')}
+          {renderPeriod(yamagandam?.start || null, yamagandam?.end || null, 'bg-orange-500/15 border-x border-orange-500/30', 'Ямагандам', 'Период, управляемый Ямой. Неблагоприятен для начала новых важных дел.', '⚠️')}
+          {renderPeriod(rahuKala?.start || null, rahuKala?.end || null, 'bg-red-500/15 border-x border-red-500/30', 'Раху Кала', 'Период сильного влияния Раху. Не подходит для материальных начинаний.', '🔴')}
+          {renderPeriod(nishitaKala?.start || null, nishitaKala?.end || null, 'bg-purple-600/25 border-x border-purple-400/40 shadow-[0_0_10px_rgba(147,51,234,0.2)]', 'Нишита Кала', 'Астрономическая полночь. Время проявления Шива-лингама. Важнейшая пуджа на Махашиваратри.', '🕉')}
+          {pradosham && renderPeriod(pradosham.pradoshaKalaStart, pradosham.pradoshaKalaEnd, 'bg-[#C9A227]/25 border-x border-[#C9A227]/50 shadow-[0_0_15px_rgba(201,162,39,0.2)] z-10', 'Прадоша Кала', 'Священный период 1.5 часа вокруг заката для почитания Шивы.', '🔱')}
         </div>
 
         {/* Метки часов */}
