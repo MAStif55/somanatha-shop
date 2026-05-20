@@ -37,18 +37,24 @@ export default function PanchangaPage({
   const pradosham = getPradoshamDetails(now, location);
 
   return (
-    <main className="min-h-screen flex flex-col bg-[#1A1517] bg-sacred-pattern relative">
+    <main className="min-h-screen flex flex-col bg-[#1A1517] relative">
       {/* Top Hero-like background */}
-      <div className="absolute top-0 left-0 w-full h-[50vh] bg-hero-premium z-0"></div>
+      <div className="absolute top-0 left-0 w-full h-[60vh] bg-hero-premium z-0"></div>
+      
+      {/* Sacred pattern overlay with a smooth gradient fade-in */}
+      <div 
+        className="absolute inset-0 bg-sacred-pattern pointer-events-none z-0"
+        style={{
+          maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 25vh, rgba(0, 0, 0, 1) 55vh)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 25vh, rgba(0, 0, 0, 1) 55vh)'
+        }}
+      />
       
       {/* Ambient glow effects */}
       <div className="absolute top-0 left-0 w-full h-[50vh] overflow-hidden pointer-events-none z-0">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#C9A227] opacity-5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-[#8B6914] opacity-5 rounded-full blur-3xl"></div>
       </div>
-
-      {/* Gradient mask to blend hero into the pattern */}
-      <div className="absolute top-[30vh] left-0 w-full h-[20vh] bg-gradient-to-b from-transparent to-[#1A1517] pointer-events-none z-0"></div>
 
       <div className="relative z-20">
         <Header variant="transparent" />
