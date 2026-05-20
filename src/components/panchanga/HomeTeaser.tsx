@@ -28,20 +28,29 @@ export default function HomeTeaser() {
 
   return (
     <Link href="/panchanga" className="block w-full max-w-2xl mx-auto my-6 px-4">
-      <div className={`rounded-xl p-4 flex items-center justify-between border transition-all hover:scale-[1.01] ${highlight ? 'bg-amber-950/30 border-amber-500/30 shadow-[0_0_20px_rgba(251,191,36,0.1)]' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
-        <div className="flex items-center gap-4">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${highlight ? 'bg-amber-500/10' : 'bg-zinc-800'}`}>
-            <Moon className={`w-5 h-5 ${highlight ? 'text-amber-500' : 'text-zinc-400'}`} />
+      <div className={`group rounded-xl p-4 sm:p-5 flex items-center justify-between border backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_25px_rgba(201,162,39,0.15)] ${
+        highlight 
+          ? 'bg-gradient-to-r from-[#C9A227]/10 via-[#1A1517]/80 to-[#0D0A0B]/80 border-[#C9A227]/40 shadow-[0_0_20px_rgba(201,162,39,0.1)]' 
+          : 'bg-[#1A1517]/80 border-[#C9A227]/20 hover:border-[#C9A227]/50'
+      }`}>
+        <div className="flex items-center gap-4 sm:gap-5">
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
+            highlight ? 'bg-gradient-to-br from-[#C9A227]/20 to-transparent border border-[#C9A227]/30' : 'bg-[#0D0A0B] border border-[#C9A227]/20'
+          }`}>
+            <Moon className={`w-6 h-6 ${highlight ? 'text-[#C9A227]' : 'text-[#E8D48B]/70'}`} />
           </div>
           <div>
-            <p className="text-xs text-zinc-500 mb-0.5">Ведический Календарь</p>
-            <p className={`font-medium ${highlight ? 'text-amber-100' : 'text-zinc-300'}`}>
+            <p className="text-[10px] sm:text-xs text-[#C9A227] uppercase tracking-[0.2em] font-semibold mb-1">
+              Ведический Календарь
+            </p>
+            <p className={`text-sm sm:text-base font-medium ${highlight ? 'text-[#F5ECD7] font-semibold' : 'text-[#F5ECD7]/90'}`}>
               {message}
             </p>
           </div>
         </div>
-        <div className="text-zinc-500 text-sm hidden sm:block">
-          Открыть календарь &rarr;
+        <div className="text-[#C9A227]/70 text-sm hidden sm:flex items-center gap-2 group-hover:text-[#C9A227] transition-colors">
+          <span>Открыть</span>
+          <span className="transform group-hover:translate-x-1 transition-transform">&rarr;</span>
         </div>
       </div>
     </Link>

@@ -4,6 +4,8 @@ import { getTithi, getNakshatra, getPradoshamDetails, GeoLocation } from '@/lib/
 import HeroWidget from '@/components/panchanga/HeroWidget';
 import LocationSelector from '@/components/panchanga/LocationSelector';
 import UpcomingEvents from '@/components/panchanga/UpcomingEvents';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
   title: 'Ведический Лунный Календарь (Панчанга) | Somanatha',
@@ -35,30 +37,41 @@ export default function PanchangaPage({
   const pradosham = getPradoshamDetails(now, location);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-300 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <main className="min-h-screen flex flex-col bg-[#0D0A0B]">
+      <Header variant="solid" />
+      
+      <div className="flex-1 relative">
+        {/* Subtle background decoration similar to site */}
+        <div className="absolute inset-0 bg-hero-premium opacity-30 pointer-events-none mix-blend-screen" />
         
-        {/* Header & Location */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-amber-50">Ведический Календарь</h1>
-            <p className="text-zinc-500 mt-1">Швейцарская точность расчетов (Айанамша Лахири)</p>
+        <div className="relative z-10 py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto space-y-8">
+            
+            {/* Header & Location */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-10">
+              <div>
+                <h1 className="text-4xl font-ornamental text-[#E8D48B] tracking-wide">Ведический Календарь</h1>
+                <p className="text-[#C9A227]/80 text-sm mt-2 uppercase tracking-wider">Швейцарская точность расчетов</p>
+              </div>
+              <LocationSelector currentLocationName={cityName} />
+            </div>
+
+            {/* Main Widget */}
+            <HeroWidget 
+              tithi={tithi}
+              nakshatra={nakshatra}
+              pradosham={pradosham}
+              location={location}
+            />
+
+            {/* Upcoming Events */}
+            <UpcomingEvents location={location} />
+            
           </div>
-          <LocationSelector currentLocationName={cityName} />
         </div>
-
-        {/* Main Widget */}
-        <HeroWidget 
-          tithi={tithi}
-          nakshatra={nakshatra}
-          pradosham={pradosham}
-          location={location}
-        />
-
-        {/* Upcoming Events (Static mock for V1, or we can calculate next 30 days) */}
-        <UpcomingEvents location={location} />
-        
       </div>
-    </div>
+
+      <Footer />
+    </main>
   );
 }
