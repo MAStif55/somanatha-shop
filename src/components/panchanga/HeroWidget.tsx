@@ -129,11 +129,11 @@ export default function HeroWidget({ tithi, nakshatra, pradosham, location }: He
               </p>
               <div className="flex items-center gap-3">
                 <span className="bg-[#C9A227]/10 border border-[#C9A227]/30 text-[#C9A227] font-mono text-lg px-3 py-1.5 rounded-lg tracking-wider">
-                  {pradosham.pradoshaKalaStart.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                  {pradosham.pradoshaKalaStart.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit', timeZone: location.timezone})}
                 </span>
                 <span className="text-[#F5ECD7]/30">—</span>
                 <span className="bg-[#C9A227]/10 border border-[#C9A227]/30 text-[#C9A227] font-mono text-lg px-3 py-1.5 rounded-lg tracking-wider">
-                  {pradosham.pradoshaKalaEnd.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                  {pradosham.pradoshaKalaEnd.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit', timeZone: location.timezone})}
                 </span>
               </div>
             </div>

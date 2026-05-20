@@ -1,16 +1,21 @@
 import React from 'react';
 import { Sunrise, Sunset, Clock, AlertTriangle, Sparkles, Star } from 'lucide-react';
-import { getDailyPanchanga } from '@/lib/astrology/calculations';
+import { getDailyPanchanga, GeoLocation } from '@/lib/astrology/calculations';
 
 type PanchangaData = ReturnType<typeof getDailyPanchanga>;
 
-function fmt(d: Date | null): string {
+function fmt(d: Date | null, timeZone?: string): string {
   if (!d) return '—';
-  return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  try {
+    return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone });
+  } catch (e) {
+    return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  }
 }
 
-export default function DailyDetails({ panchanga }: { panchanga: PanchangaData }) {
+export default function DailyDetails({ panchanga, location }: { panchanga: PanchangaData; location: GeoLocation }) {
   const { yoga, karana, vara, sunTimes, brahmaMuhurta, nishitaKala, rahuKala, yamagandam, isArdraNakshatra, isShivaYoga, isSomvar } = panchanga;
+  const tz = location.timezone;
 
   return (
     <div className="space-y-6">
@@ -105,14 +110,14 @@ export default function DailyDetails({ panchanga }: { panchanga: PanchangaData }
               <Sunrise className="w-4 h-4 text-amber-400" />
               <span className="text-[#F5ECD7]/60 text-sm">Восход</span>
             </div>
-            <span className="text-[#F5ECD7] font-mono text-sm">{fmt(sunTimes.sunrise)}</span>
+            <span className="text-[#F5ECD7] font-mono text-sm">{fmt(sunTimes.sunrise, tz)}</span>
           </div>
           <div className="px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Sunset className="w-4 h-4 text-orange-400" />
               <span className="text-[#F5ECD7]/60 text-sm">Закат</span>
             </div>
-            <span className="text-[#F5ECD7] font-mono text-sm">{fmt(sunTimes.sunset)}</span>
+            <span className="text-[#F5ECD7] font-mono text-sm">{fmt(sunTimes.sunset, tz)}</span>
           </div>
 
           {/* Брахма-мухурта */}
@@ -125,7 +130,7 @@ export default function DailyDetails({ panchanga }: { panchanga: PanchangaData }
                   <p className="text-[#F5ECD7]/30 text-xs">Мантры и медитация</p>
                 </div>
               </div>
-              <span className="text-indigo-300 font-mono text-sm">{fmt(brahmaMuhurta.start)} – {fmt(brahmaMuhurta.end)}</span>
+              <span className="text-indigo-300 font-mono text-sm">{fmt(brahmaMuhurta.start, tz)} – {fmt(brahmaMuhurta.end, tz)}</span>
             </div>
           )}
 
@@ -139,7 +144,7 @@ export default function DailyDetails({ panchanga }: { panchanga: PanchangaData }
                   <p className="text-[#F5ECD7]/30 text-xs">Полночь Шивы (пуджа Махашиваратри)</p>
                 </div>
               </div>
-              <span className="text-[#C9A227] font-mono text-sm">{fmt(nishitaKala.start)} – {fmt(nishitaKala.end)}</span>
+              <span className="text-[#C9A227] font-mono text-sm">{fmt(nishitaKala.start, tz)} – {fmt(nishitaKala.end, tz)}</span>
             </div>
           )}
 
@@ -153,7 +158,7 @@ export default function DailyDetails({ panchanga }: { panchanga: PanchangaData }
                   <p className="text-[#F5ECD7]/30 text-xs">Неблагоприятный период</p>
                 </div>
               </div>
-              <span className="text-red-300/60 font-mono text-sm">{fmt(rahuKala.start)} – {fmt(rahuKala.end)}</span>
+              <span className="text-red-300/60 font-mono text-sm">{fmt(rahuKala.start, tz)} – {fmt(rahuKala.end, tz)}</span>
             </div>
           )}
 
@@ -167,7 +172,7 @@ export default function DailyDetails({ panchanga }: { panchanga: PanchangaData }
                   <p className="text-[#F5ECD7]/30 text-xs">Период Ямы</p>
                 </div>
               </div>
-              <span className="text-red-300/40 font-mono text-sm">{fmt(yamagandam.start)} – {fmt(yamagandam.end)}</span>
+              <span className="text-red-300/40 font-mono text-sm">{fmt(yamagandam.start, tz)} – {fmt(yamagandam.end, tz)}</span>
             </div>
           )}
         </div>

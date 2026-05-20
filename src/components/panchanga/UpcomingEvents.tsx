@@ -77,9 +77,9 @@ export default function UpcomingEvents({ location }: UpcomingEventsProps) {
                 <div className="flex items-center gap-2 shrink-0 bg-[#0D0A0B]/50 px-3 py-2 rounded-lg border border-[#C9A227]/15 ml-auto">
                   <span className="text-[#F5ECD7]/40 text-xs">Пуджа:</span>
                   <span className="text-[#C9A227] font-mono text-sm tracking-wide">
-                    {event.details.pradoshaKalaStart.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'})}
+                    {event.details.pradoshaKalaStart.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit', timeZone: location.timezone})}
                     {' – '}
-                    {event.details.pradoshaKalaEnd.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'})}
+                    {event.details.pradoshaKalaEnd.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit', timeZone: location.timezone})}
                   </span>
                 </div>
               )}

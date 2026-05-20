@@ -32,7 +32,19 @@ export default function PanchangaPage({
   const lon = searchParams.lon ? parseFloat(searchParams.lon) : defaultLocation.longitude;
   const cityName = searchParams.city || defaultLocation.name!;
   
-  const location: GeoLocation = { latitude: lat, longitude: lon, name: cityName };
+  let tz = 'Europe/Moscow';
+  try {
+    // geo-tz needs to be required this way in some Next.js setups, or imported.
+    const { find } = require('geo-tz');
+    const tzResult = find(lat, lon);
+    if (tzResult && tzResult.length > 0) {
+      tz = tzResult[0];
+    }
+  } catch (e) {
+    console.error("Error finding timezone:", e);
+  }
+
+  const location: GeoLocation = { latitude: lat, longitude: lon, name: cityName, timezone: tz };
   const now = new Date();
 
   // Полная Панчанга на сегодня
