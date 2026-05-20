@@ -93,7 +93,7 @@ export default function PanchangaPage({
             />
 
             {/* Полная Панчанга: Йога, Карана, Мухурты */}
-            <DailyDetails panchanga={panchanga} />
+            <DailyDetails panchanga={panchanga} location={location} />
 
             {/* Ближайшие события */}
             <UpcomingEvents location={location} />
