@@ -93,38 +93,39 @@ export default function HeroWidget({ panchanga, momentPanchanga, location }: Her
               boxShadow: `0 0 ${70 * exactPhase}px ${15 * exactPhase}px rgba(201,162,39,${glowOpacity})`,
             }}
           >
-            {use3D ? (
-              <ThreeMoon exactPhase={exactPhase} isShukla={isShukla} />
-            ) : (
-              <>
-                {/* Real moon photo — scaled up 20% to eliminate black edges */}
-                <img
-                  src="/images/full-moon.jpg"
-                  alt="Луна"
-                  className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none animate-moon-drift"
-                  style={{
-                    filter: 'brightness(1.5) contrast(1.1) saturate(0.8)',
-                    transform: 'scale(1.2)',
-                  }}
-                />
+            {/* Real moon photo — always rendered as background/placeholder */}
+            <img
+              src="/images/full-moon.jpg"
+              alt="Луна"
+              className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none animate-moon-drift"
+              style={{
+                filter: 'brightness(1.5) contrast(1.1) saturate(0.8)',
+                transform: 'scale(1.2)',
+              }}
+            />
 
-                {/* Phase shadow overlay */}
-                {exactPhase < 0.98 && (
-                  <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      background: isShukla
-                        ? `linear-gradient(to right, rgba(5,3,4,0.95) 0%, rgba(5,3,4,0.95) ${darkPercent - 15}%, rgba(5,3,4,0) ${Math.min(darkPercent + 10, 100)}%)`
-                        : `linear-gradient(to left, rgba(5,3,4,0.95) 0%, rgba(5,3,4,0.95) ${darkPercent - 15}%, rgba(5,3,4,0) ${Math.min(darkPercent + 10, 100)}%)`,
-                    }}
-                  />
-                )}
-              </>
+            {/* Phase shadow overlay */}
+            {exactPhase < 0.98 && (
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: isShukla
+                    ? `linear-gradient(to right, rgba(5,3,4,0.95) 0%, rgba(5,3,4,0.95) ${darkPercent - 15}%, rgba(5,3,4,0) ${Math.min(darkPercent + 10, 100)}%)`
+                    : `linear-gradient(to left, rgba(5,3,4,0.95) 0%, rgba(5,3,4,0.95) ${darkPercent - 15}%, rgba(5,3,4,0) ${Math.min(darkPercent + 10, 100)}%)`,
+                }}
+              />
             )}
 
-            {/* Soft inner rim for 3D depth */}
+            {/* 3D Moon layered on top (fades in when loaded) */}
+            {use3D && (
+              <div className="absolute inset-0 z-10">
+                <ThreeMoon exactPhase={exactPhase} isShukla={isShukla} />
+              </div>
+            )}
+
+            {/* Soft inner rim for 3D depth — always on top */}
             <div
-              className="absolute inset-0 rounded-full pointer-events-none"
+              className="absolute inset-0 rounded-full pointer-events-none z-20"
               style={{ boxShadow: 'inset 0 0 25px rgba(0,0,0,0.5)' }}
             />
           </div>

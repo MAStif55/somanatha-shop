@@ -13,6 +13,7 @@ export default function ThreeMoon({ exactPhase, isShukla }: ThreeMoonProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sunLightRef = useRef<THREE.DirectionalLight | null>(null);
   const [webglSupported, setWebglSupported] = useState<boolean>(true);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   // 1. Initial Scene Setup (runs once on mount)
   useEffect(() => {
@@ -54,7 +55,12 @@ export default function ThreeMoon({ exactPhase, isShukla }: ThreeMoonProps) {
     // Geometry & Material
     const geometry = new THREE.SphereGeometry(1, 64, 64);
     const textureLoader = new THREE.TextureLoader();
-    const moonTexture = textureLoader.load('/images/moon-texture.jpg');
+    const moonTexture = textureLoader.load(
+      '/images/moon-texture.jpg',
+      () => {
+        setIsLoaded(true); // Smooth fade-in once texture is ready
+      }
+    );
     moonTexture.colorSpace = THREE.SRGBColorSpace;
 
     const material = new THREE.MeshStandardMaterial({
@@ -161,7 +167,10 @@ export default function ThreeMoon({ exactPhase, isShukla }: ThreeMoonProps) {
   }
 
   return (
-    <div ref={containerRef} className="w-full h-full relative flex items-center justify-center">
+    <div 
+      ref={containerRef} 
+      className={`w-full h-full relative flex items-center justify-center transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+    >
       <canvas 
         ref={canvasRef} 
         className="w-full h-full block touch-none"
