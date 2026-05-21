@@ -69,7 +69,7 @@ export default function ThreeMoon({ exactPhase, isShukla }: ThreeMoonProps) {
     scene.add(moonMesh);
 
     // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.02);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.15); // Softer shadow (makes dark side slightly visible)
     scene.add(ambientLight);
 
     const sunLight = new THREE.DirectionalLight(0xffffff, 2.2);
@@ -108,7 +108,7 @@ export default function ThreeMoon({ exactPhase, isShukla }: ThreeMoonProps) {
     const animate = () => {
       if (!isVisible) return;
       animationFrameId = requestAnimationFrame(animate);
-      moonMesh.rotation.y += 0.0007; // Smooth continuous rotation
+      moonMesh.rotation.y += 0.0001; // Slower, majestic rotation
       renderer.render(scene, camera);
     };
 
