@@ -49,6 +49,7 @@ export default function ThreeMoon({ exactPhase, isShukla }: ThreeMoonProps) {
       powerPreference: 'low-power',
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace; // Correct color space mapping for bright textures
 
     // Geometry & Material
     const geometry = new THREE.SphereGeometry(1, 64, 64);
@@ -60,7 +61,7 @@ export default function ThreeMoon({ exactPhase, isShukla }: ThreeMoonProps) {
       map: moonTexture,
       bumpMap: moonTexture,
       bumpScale: 0.04,
-      roughness: 0.95,
+      roughness: 0.80,
       metalness: 0.05,
     });
 
@@ -69,10 +70,10 @@ export default function ThreeMoon({ exactPhase, isShukla }: ThreeMoonProps) {
     scene.add(moonMesh);
 
     // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.15); // Softer shadow (makes dark side slightly visible)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.08); // Softer shadow, but with higher contrast
     scene.add(ambientLight);
 
-    const sunLight = new THREE.DirectionalLight(0xffffff, 4.0); // Make the sun-facing side much brighter
+    const sunLight = new THREE.DirectionalLight(0xffffff, 8.0); // Make the sun-facing side much brighter (increased to 8.0)
     scene.add(sunLight);
     sunLightRef.current = sunLight;
 
