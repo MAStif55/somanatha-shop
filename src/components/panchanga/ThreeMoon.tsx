@@ -72,7 +72,7 @@ export default function ThreeMoon({ exactPhase, isShukla }: ThreeMoonProps) {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.15); // Softer shadow (makes dark side slightly visible)
     scene.add(ambientLight);
 
-    const sunLight = new THREE.DirectionalLight(0xffffff, 2.2);
+    const sunLight = new THREE.DirectionalLight(0xffffff, 4.0); // Make the sun-facing side much brighter
     scene.add(sunLight);
     sunLightRef.current = sunLight;
 
