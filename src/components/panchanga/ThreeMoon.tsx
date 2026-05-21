@@ -11,10 +11,12 @@ interface ThreeMoonProps {
 export default function ThreeMoon({ exactPhase, isShukla }: ThreeMoonProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const sunLightRef = useRef<THREE.DirectionalLight | null>(null);
   const [webglSupported, setWebglSupported] = useState<boolean>(true);
 
+  // 1. Initial Scene Setup (runs once on mount)
   useEffect(() => {
-    // 1. WebGL Support check
+    // WebGL Support check
     try {
       const canvas = document.createElement('canvas');
       const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -32,68 +34,55 @@ export default function ThreeMoon({ exactPhase, isShukla }: ThreeMoonProps) {
     const container = containerRef.current;
     const canvas = canvasRef.current;
 
-    // 2. Setup Three.js Scene
+    // Setup Three.js Scene
     const scene = new THREE.Scene();
 
-    // 3. Camera
+    // Camera
     const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-    camera.position.z = 2.5; // Place camera in front
+    camera.position.z = 2.5;
 
-    // 4. Renderer
+    // Renderer
     const renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: true,
-      alpha: true, // Transparent background to blend with page gradient
-      powerPreference: 'low-power', // Save battery
+      alpha: true,
+      powerPreference: 'low-power',
     });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio to 2 for performance
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    // 5. Geometry & Material
-    // Create sphere. 64x64 segments is highly detailed but lightweight
+    // Geometry & Material
     const geometry = new THREE.SphereGeometry(1, 64, 64);
-
-    // Texture Loader
     const textureLoader = new THREE.TextureLoader();
-    
-    // Load local textures
     const moonTexture = textureLoader.load('/images/moon-texture.jpg');
-    // Using the same texture as a bump map gives excellent results for moon craters
     moonTexture.colorSpace = THREE.SRGBColorSpace;
 
     const material = new THREE.MeshStandardMaterial({
       map: moonTexture,
       bumpMap: moonTexture,
-      bumpScale: 0.04, // Subtle depth for craters
-      roughness: 0.95, // Moon is very dusty and diffuse
+      bumpScale: 0.04,
+      roughness: 0.95,
       metalness: 0.05,
     });
 
     const moonMesh = new THREE.Mesh(geometry, material);
-    // Slightly tilt the moon on its axis for realism (about 6.7 degrees tilt + orbit inclination)
     moonMesh.rotation.x = 0.12; 
     scene.add(moonMesh);
 
-    // 6. Lighting
-    // Ambient light - represents subtle space glow/earthshine, so dark side isn't pitch black
+    // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.02);
     scene.add(ambientLight);
 
-    // Directional light - represents the Sun
     const sunLight = new THREE.DirectionalLight(0xffffff, 2.2);
     scene.add(sunLight);
+    sunLightRef.current = sunLight;
 
-    // Position Sun according to lunar phase
-    // Phase 0 = New Moon, Phase 1 = Full Moon
-    // angle goes from -PI (new moon) to 0 (full moon) to PI (new moon)
-    // Shukla (waxing): light comes from the right (positive X)
-    // Krishna (waning): light comes from the left (negative X)
-    const angle = (isShukla ? 1 : -1) * Math.acos(2 * exactPhase - 1);
-    const lx = Math.sin(angle);
-    const lz = Math.cos(angle);
-    
+    // Initial light positioning
+    const initialAngle = (isShukla ? 1 : -1) * Math.acos(2 * exactPhase - 1);
+    const lx = Math.sin(initialAngle);
+    const lz = Math.cos(initialAngle);
     sunLight.position.set(lx, 0, lz).normalize().multiplyScalar(5);
 
-    // 7. Responsive Resizing
+    // Responsive Resizing
     const resizeCanvas = () => {
       if (!container || !renderer) return;
       const width = container.clientWidth;
@@ -105,31 +94,24 @@ export default function ThreeMoon({ exactPhase, isShukla }: ThreeMoonProps) {
       renderer.setSize(width, height, false);
     };
 
-    // Initial resize
     resizeCanvas();
     
-    // Resize observer to watch container size changes
     const resizeObserver = new ResizeObserver(() => {
       resizeCanvas();
     });
     resizeObserver.observe(container);
 
-    // 8. Animation & Visibility Control (Intersection Observer)
+    // Animation & Visibility Control
     let animationFrameId: number;
     let isVisible = true;
 
     const animate = () => {
       if (!isVisible) return;
-
       animationFrameId = requestAnimationFrame(animate);
-
-      // Very slow rotation of the moon (approx. 1 full turn in 2.5 minutes)
-      moonMesh.rotation.y += 0.0007;
-
+      moonMesh.rotation.y += 0.0007; // Smooth continuous rotation
       renderer.render(scene, camera);
     };
 
-    // Intersection Observer to stop rendering when off-screen
     const intersectionObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -145,25 +127,35 @@ export default function ThreeMoon({ exactPhase, isShukla }: ThreeMoonProps) {
     );
     intersectionObserver.observe(canvas);
 
-    // Start animation loop initially
     animate();
 
-    // 9. Cleanup
+    // Cleanup
     return () => {
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
       cancelAnimationFrame(animationFrameId);
       
-      // Dispose WebGL resources
       geometry.dispose();
       material.dispose();
       moonTexture.dispose();
       renderer.dispose();
+      sunLightRef.current = null;
     };
+  }, []); // Run only on mount
+
+  // 2. Dynamic lighting update (runs whenever exactPhase or isShukla changes)
+  useEffect(() => {
+    if (!sunLightRef.current) return;
+    const sunLight = sunLightRef.current;
+    
+    const angle = (isShukla ? 1 : -1) * Math.acos(2 * exactPhase - 1);
+    const lx = Math.sin(angle);
+    const lz = Math.cos(angle);
+    
+    sunLight.position.set(lx, 0, lz).normalize().multiplyScalar(5);
   }, [exactPhase, isShukla]);
 
   if (!webglSupported) {
-    // If WebGL is not supported, return null so parent component renders fallback 2D Moon
     return null;
   }
 
