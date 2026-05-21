@@ -39,7 +39,7 @@ export default function UpcomingEvents({ location }: UpcomingEventsProps) {
 
       {/* Header */}
       <div className="px-6 py-6 border-b border-[#C9A227]/10 flex flex-col items-center justify-center text-center">
-        <h3 className="text-[#F5ECD7]/50 font-bold tracking-[0.2em] uppercase text-sm md:text-base">Ближайшие события</h3>
+        <h3 className="text-[#F5ECD7]/50 text-sm md:text-base uppercase tracking-[0.2em] text-center font-bold">Ближайшие события</h3>
       </div>
 
       <div className="divide-y divide-[#C9A227]/5">

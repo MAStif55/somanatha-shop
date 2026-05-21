@@ -127,7 +127,7 @@ export default function TimelineWidget({ panchanga, location }: TimelineWidgetPr
          style={{ background: 'linear-gradient(135deg, #1A1517 0%, #110D0F 100%)' }}>
       
       <div className="flex flex-col items-center justify-center text-center mb-10">
-        <h3 className="text-[#F5ECD7]/50 font-bold tracking-[0.2em] uppercase text-sm md:text-base mb-1">Таймлайн Практик</h3>
+        <h3 className="text-[#F5ECD7]/50 text-sm md:text-base uppercase tracking-[0.2em] text-center font-bold mb-1">Суточный круг практик</h3>
         <p className="text-[#F5ECD7]/50 text-sm mt-1">График мухурт на текущие сутки (местное время: {location.name})</p>
       </div>
 

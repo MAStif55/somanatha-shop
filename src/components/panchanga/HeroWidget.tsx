@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Moon, Star } from 'lucide-react';
 import { GeoLocation, getDailyPanchanga, getMomentPanchanga } from '@/lib/astrology/calculations';
+import ThreeMoon from './ThreeMoon';
 
 type PanchangaData = ReturnType<typeof getDailyPanchanga>;
 
@@ -16,6 +17,19 @@ export default function HeroWidget({ panchanga, momentPanchanga, location }: Her
   const { pradosham, vara, solarMonth, lunarRashi, isArdraNakshatra, isShivaYoga, isSomvar, isBhairavaAshtami } = panchanga;
   const [now, setNow] = useState<Date | null>(null);
   const [dynamicPanchanga, setDynamicPanchanga] = useState<ReturnType<typeof getMomentPanchanga> | null>(momentPanchanga || null);
+  const [use3D, setUse3D] = useState(false);
+
+  useEffect(() => {
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (gl) {
+        setUse3D(true);
+      }
+    } catch (e) {
+      setUse3D(false);
+    }
+  }, []);
 
   const fmtBoundary = (d: Date | null | undefined) => {
     if (!d) return '';
@@ -25,6 +39,13 @@ export default function HeroWidget({ panchanga, momentPanchanga, location }: Her
       timeZoneName: 'short'
     };
     return new Intl.DateTimeFormat('ru-RU', options).format(d).replace(' в ', ', ');
+  };
+
+  const getBoundaryParts = (d: Date | null | undefined) => {
+    if (!d) return null;
+    const timeStr = d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: location.timezone });
+    const dateStr = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', weekday: 'short', timeZone: location.timezone }).replace('.', '');
+    return { timeStr, dateStr };
   };
 
   useEffect(() => {
@@ -67,32 +88,38 @@ export default function HeroWidget({ panchanga, momentPanchanga, location }: Her
         {/* ── MOON ── */}
         <div className="flex flex-col items-center gap-6 shrink-0 mt-2">
           <div
-            className="relative w-40 h-40 md:w-72 md:h-72 rounded-full overflow-hidden"
+            className="relative w-40 h-40 md:w-72 md:h-72 rounded-full overflow-hidden bg-black"
             style={{
               boxShadow: `0 0 ${70 * exactPhase}px ${15 * exactPhase}px rgba(201,162,39,${glowOpacity})`,
             }}
           >
-            {/* Real moon photo — scaled up 20% to eliminate black edges */}
-            <img
-              src="/images/full-moon.jpg"
-              alt="Луна"
-              className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none animate-moon-drift"
-              style={{
-                filter: 'brightness(1.5) contrast(1.1) saturate(0.8)',
-                transform: 'scale(1.2)',
-              }}
-            />
+            {use3D ? (
+              <ThreeMoon exactPhase={exactPhase} isShukla={isShukla} />
+            ) : (
+              <>
+                {/* Real moon photo — scaled up 20% to eliminate black edges */}
+                <img
+                  src="/images/full-moon.jpg"
+                  alt="Луна"
+                  className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none animate-moon-drift"
+                  style={{
+                    filter: 'brightness(1.5) contrast(1.1) saturate(0.8)',
+                    transform: 'scale(1.2)',
+                  }}
+                />
 
-            {/* Phase shadow overlay */}
-            {exactPhase < 0.98 && (
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                  background: isShukla
-                    ? `linear-gradient(to right, rgba(5,3,4,0.95) 0%, rgba(5,3,4,0.95) ${darkPercent - 15}%, rgba(5,3,4,0) ${Math.min(darkPercent + 10, 100)}%)`
-                    : `linear-gradient(to left, rgba(5,3,4,0.95) 0%, rgba(5,3,4,0.95) ${darkPercent - 15}%, rgba(5,3,4,0) ${Math.min(darkPercent + 10, 100)}%)`,
-                }}
-              />
+                {/* Phase shadow overlay */}
+                {exactPhase < 0.98 && (
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background: isShukla
+                        ? `linear-gradient(to right, rgba(5,3,4,0.95) 0%, rgba(5,3,4,0.95) ${darkPercent - 15}%, rgba(5,3,4,0) ${Math.min(darkPercent + 10, 100)}%)`
+                        : `linear-gradient(to left, rgba(5,3,4,0.95) 0%, rgba(5,3,4,0.95) ${darkPercent - 15}%, rgba(5,3,4,0) ${Math.min(darkPercent + 10, 100)}%)`,
+                    }}
+                  />
+                )}
+              </>
             )}
 
             {/* Soft inner rim for 3D depth */}
@@ -110,7 +137,23 @@ export default function HeroWidget({ panchanga, momentPanchanga, location }: Her
 
         {/* ── DATA ── */}
         <div className="flex-1 space-y-6 w-full">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+          {/* Top Row: Live Clock / Date */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#C9A227]/10 pb-4 gap-2">
+            <span className="text-xs uppercase text-[#F5ECD7]/40 tracking-wider">Текущее время</span>
+            {now && (
+              <div className="text-left sm:text-right">
+                <span className="text-[#F5ECD7] font-medium mr-3 text-sm">
+                  {now.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', timeZone: location.timezone }).replace(/^[а-я]/, c => c.toUpperCase())}
+                </span>
+                <span className="text-[#C9A227] font-mono font-bold text-lg">
+                  {now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: location.timezone })}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+            {/* Column 1: Tithi Title */}
             <div>
               <h2 className="text-4xl md:text-5xl font-ornamental text-[#E8D48B] text-glow-gold leading-tight mt-1">
                 {currentTithi.name}
@@ -118,27 +161,37 @@ export default function HeroWidget({ panchanga, momentPanchanga, location }: Her
               <p className="text-[#F5ECD7]/80 text-lg mt-2 font-light">
                 {currentTithi.number}-е лунные сутки
               </p>
-              {tithiBoundaries && (
-                <div className="mt-3 space-y-0.5 text-[#F5ECD7]/50 text-xs font-mono">
-                  <p>Начало: {fmtBoundary(tithiBoundaries.start)}</p>
-                  <p>Окончание: {fmtBoundary(tithiBoundaries.end)}</p>
-                </div>
-              )}
             </div>
             
-            {/* Live Date/Time Clock */}
-            <div className="text-left md:text-right">
-              {now && (
-                <>
-                  <p className="text-[#F5ECD7] text-lg font-medium tracking-wide">
-                    {now.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', timeZone: location.timezone }).replace(/^[а-я]/, c => c.toUpperCase())}
-                  </p>
-                  <p className="text-[#C9A227] font-mono text-xl mt-0.5">
-                    {now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: location.timezone })}
-                  </p>
-                </>
-              )}
-            </div>
+            {/* Column 2: Boundaries Widget */}
+            {tithiBoundaries && (() => {
+              const startParts = getBoundaryParts(tithiBoundaries.start);
+              const endParts = getBoundaryParts(tithiBoundaries.end);
+              return (
+                <div className="grid grid-cols-2 gap-4 bg-[#0D0A0B]/30 border border-[#C9A227]/15 rounded-xl p-4 transition-colors duration-500 hover:border-[#C9A227]/30">
+                  {/* Начало */}
+                  <div className="border-r border-[#C9A227]/10 pr-2">
+                    <p className="text-[10px] text-[#C9A227] uppercase tracking-widest font-semibold mb-1">Начало</p>
+                    <p className="text-2xl md:text-3xl font-extrabold font-mono text-[#FFFFFF] leading-none">
+                      {startParts?.timeStr}
+                    </p>
+                    <p className="text-xs text-[#F5ECD7]/60 mt-2 capitalize font-medium">
+                      {startParts?.dateStr}
+                    </p>
+                  </div>
+                  {/* Окончание */}
+                  <div className="pl-2">
+                    <p className="text-[10px] text-[#C9A227] uppercase tracking-widest font-semibold mb-1">Окончание</p>
+                    <p className="text-2xl md:text-3xl font-extrabold font-mono text-[#FFFFFF] leading-none">
+                      {endParts?.timeStr}
+                    </p>
+                    <p className="text-xs text-[#F5ECD7]/60 mt-2 capitalize font-medium">
+                      {endParts?.dateStr}
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Шиваитские маркеры (если есть) */}
@@ -163,46 +216,47 @@ export default function HeroWidget({ panchanga, momentPanchanga, location }: Her
           )}
 
           {/* Panchanga Grid - Dynamic */}
-          <div className="space-y-4 pt-2">
+          <div className="space-y-4 pt-4">
+            <h3 className="text-[#F5ECD7]/50 text-sm md:text-base uppercase tracking-[0.2em] text-center font-bold mb-6">На небе сейчас</h3>
             <div className="grid grid-cols-2 gap-4">
               {/* Nakshatra */}
-              <div className="p-4 rounded-xl border border-[#C9A227]/15 bg-[#0D0A0B]/40 backdrop-blur-sm flex flex-col items-center justify-center text-center gap-1 transition-colors duration-500">
-                <p className="text-[11px] text-[#F5ECD7]/60 uppercase tracking-widest mb-1">Накшатра</p>
-                <p className="text-[#F5ECD7] text-xl font-bold leading-tight">{dynamicPanchanga ? dynamicPanchanga.nakshatra.name : panchanga.nakshatra.name}</p>
-                <p className="text-[#F5ECD7]/50 text-[11px]">Управитель: {dynamicPanchanga ? dynamicPanchanga.nakshatra.deity : panchanga.nakshatra.deity}</p>
-                <p className="text-[#C9A227]/70 text-[11px] mt-1.5">Луна в знаке: {dynamicPanchanga ? dynamicPanchanga.lunarRashi.fullName : lunarRashi?.fullName}</p>
+              <div className="p-5 rounded-xl border border-[#C9A227]/25 bg-[#0D0A0B]/50 backdrop-blur-md flex flex-col items-center justify-center text-center gap-2 transition-all duration-500 shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:border-[#C9A227]/40">
+                <p className="text-[12px] md:text-[13px] text-[#C9A227] font-semibold uppercase tracking-[0.2em] mb-1">Накшатра</p>
+                <p className="text-[#FFFFFF] text-xl md:text-2xl font-extrabold leading-tight">{dynamicPanchanga ? dynamicPanchanga.nakshatra.name : panchanga.nakshatra.name}</p>
+                <p className="text-[#F5ECD7]/70 text-xs md:text-sm font-medium">Управитель: {dynamicPanchanga ? dynamicPanchanga.nakshatra.deity : panchanga.nakshatra.deity}</p>
+                <p className="text-[#E8D48B]/90 text-xs md:text-sm mt-0.5">Луна в знаке: {dynamicPanchanga ? dynamicPanchanga.lunarRashi.fullName : lunarRashi?.fullName}</p>
                 {dynamicPanchanga?.nakshatraBoundaries && (
-                  <p className="text-[#F5ECD7]/40 text-[10px] font-mono mt-1">до {fmtBoundary(dynamicPanchanga.nakshatraBoundaries.end)}</p>
+                  <p className="text-[#F5ECD7]/40 text-[11px] font-mono mt-1">до {fmtBoundary(dynamicPanchanga.nakshatraBoundaries.end)}</p>
                 )}
               </div>
 
               {/* Vara */}
-              <div className="p-4 rounded-xl border border-[#C9A227]/15 bg-[#0D0A0B]/40 backdrop-blur-sm flex flex-col items-center justify-center text-center gap-1 transition-colors duration-500">
-                <p className="text-[11px] text-[#F5ECD7]/60 uppercase tracking-widest mb-1">Вара (День)</p>
-                <p className="text-[#F5ECD7] text-xl font-bold leading-tight">{dynamicPanchanga ? dynamicPanchanga.vara : vara}</p>
-                <p className="text-[#C9A227]/70 text-[11px] mt-2.5">Солнце в знаке: {dynamicPanchanga ? dynamicPanchanga.solarMonth.fullName : solarMonth.fullName}</p>
+              <div className="p-5 rounded-xl border border-[#C9A227]/25 bg-[#0D0A0B]/50 backdrop-blur-md flex flex-col items-center justify-center text-center gap-2 transition-all duration-500 shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:border-[#C9A227]/40">
+                <p className="text-[12px] md:text-[13px] text-[#C9A227] font-semibold uppercase tracking-[0.2em] mb-1">Вара (День)</p>
+                <p className="text-[#FFFFFF] text-xl md:text-2xl font-extrabold leading-tight">{dynamicPanchanga ? dynamicPanchanga.vara : vara}</p>
+                <p className="text-[#E8D48B]/90 text-xs md:text-sm mt-2.5">Солнце в знаке: {dynamicPanchanga ? dynamicPanchanga.solarMonth.fullName : solarMonth.fullName}</p>
               </div>
 
               {/* Yoga */}
-              <div className="p-4 rounded-xl border border-[#C9A227]/15 bg-[#0D0A0B]/40 backdrop-blur-sm flex flex-col items-center justify-center text-center gap-1 transition-colors duration-500">
-                <p className="text-[11px] text-[#F5ECD7]/60 uppercase tracking-widest mb-1">Йога</p>
-                <p className="text-[#F5ECD7] text-xl font-bold leading-tight flex items-center justify-center gap-2">
+              <div className="p-5 rounded-xl border border-[#C9A227]/25 bg-[#0D0A0B]/50 backdrop-blur-md flex flex-col items-center justify-center text-center gap-2 transition-all duration-500 shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:border-[#C9A227]/40">
+                <p className="text-[12px] md:text-[13px] text-[#C9A227] font-semibold uppercase tracking-[0.2em] mb-1">Йога</p>
+                <p className="text-[#FFFFFF] text-xl md:text-2xl font-extrabold leading-tight flex items-center justify-center gap-2">
                   {dynamicPanchanga ? dynamicPanchanga.yoga.name : panchanga.yoga.name}
                 </p>
                 {(dynamicPanchanga ? dynamicPanchanga.yoga.isShivaYoga : panchanga.yoga.isShivaYoga) && (
-                  <span className="text-[#C9A227] text-[10px] bg-[#C9A227]/10 px-2 py-0.5 rounded-full mt-1 border border-[#C9A227]/20">🕉 Шива-йога</span>
+                  <span className="text-[#C9A227] text-[10px] bg-[#C9A227]/10 px-2 py-0.5 rounded-full mt-1 border border-[#C9A227]/20 font-medium">🕉 Шива-йога</span>
                 )}
               </div>
 
               {/* Karana */}
-              <div className="p-4 rounded-xl border border-[#C9A227]/15 bg-[#0D0A0B]/40 backdrop-blur-sm flex flex-col items-center justify-center text-center gap-1 transition-colors duration-500">
-                <p className="text-[11px] text-[#F5ECD7]/60 uppercase tracking-widest mb-1">Карана</p>
-                <p className="text-[#F5ECD7] text-xl font-bold leading-tight flex items-center justify-center gap-2">
+              <div className="p-5 rounded-xl border border-[#C9A227]/25 bg-[#0D0A0B]/50 backdrop-blur-md flex flex-col items-center justify-center text-center gap-2 transition-all duration-500 shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:border-[#C9A227]/40">
+                <p className="text-[12px] md:text-[13px] text-[#C9A227] font-semibold uppercase tracking-[0.2em] mb-1">Карана</p>
+                <p className="text-[#FFFFFF] text-xl md:text-2xl font-extrabold leading-tight flex items-center justify-center gap-2">
                   {dynamicPanchanga ? dynamicPanchanga.karana.name : panchanga.karana.name}
                 </p>
-                <p className="text-[#F5ECD7]/50 text-[11px]">Управитель: {dynamicPanchanga ? dynamicPanchanga.karana.deity : panchanga.karana.deity}</p>
+                <p className="text-[#F5ECD7]/70 text-xs md:text-sm font-medium">Управитель: {dynamicPanchanga ? dynamicPanchanga.karana.deity : panchanga.karana.deity}</p>
                 {(dynamicPanchanga ? dynamicPanchanga.karana.isVishti : panchanga.karana.isVishti) && (
-                  <span className="text-red-400 text-[10px] bg-red-400/10 px-2 py-0.5 rounded-full mt-1 border border-red-400/20">⚠ Неблагоприятно</span>
+                  <span className="text-red-400 text-[10px] bg-red-400/10 px-2 py-0.5 rounded-full mt-1 border border-red-400/20 font-medium">⚠ Неблагоприятно</span>
                 )}
               </div>
             </div>
