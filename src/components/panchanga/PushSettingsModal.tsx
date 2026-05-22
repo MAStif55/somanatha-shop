@@ -33,6 +33,7 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
     const [isStandalone, setIsStandalone] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubscribed, setIsSubscribed] = useState(false);
+    const [errorDetails, setErrorDetails] = useState<string | null>(null);
 
     // Form settings
     const [preferences, setPreferences] = useState({
@@ -129,6 +130,7 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
     const handleSubscribe = async () => {
         if (!isSupported) return;
         setIsSubmitting(true);
+        setErrorDetails(null);
 
         try {
             // Register or wait for active service worker
@@ -173,11 +175,20 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
                 setPermissionStatus(Notification.permission);
                 localStorage.setItem('push_preferences', JSON.stringify(preferences));
             } else {
-                alert(`Ошибка подписки: ${data.error || 'Неизвестная ошибка'}`);
+                setErrorDetails(`Ошибка на стороне сервера: ${data.error || 'Неизвестная ошибка'}`);
             }
         } catch (error: any) {
             console.error('Push subscription failed:', error);
-            alert(`Не удалось оформить подписку. Убедитесь, что вы разрешили уведомления в системе.\n\nДетали ошибки: ${error?.message || error}`);
+            const errStr = error?.message || String(error);
+            let userFriendlyMsg = 'Не удалось оформить подписку. Убедитесь, что вы разрешили уведомления в системе.';
+
+            if (errStr.includes('permission denied') || errStr.includes('Permission denied')) {
+                userFriendlyMsg = 'Доступ к уведомлениям отклонен. Возможно, вы открыли сайт через встроенный просмотрщик (Яндекс Старт, Telegram, VK, встроенный браузер почты), где пуши не поддерживаются, либо заблокировали уведомления в настройках.\n\nРешение: Откройте сайт в полноценном браузере (Chrome, Safari, Яндекс.Браузер) и разрешите уведомления в его настройках.';
+            } else if (errStr.includes('VAPID')) {
+                userFriendlyMsg = 'На сервере не настроены VAPID ключи шифрования для пушей.';
+            }
+
+            setErrorDetails(userFriendlyMsg);
         } finally {
             setIsSubmitting(false);
         }
@@ -216,7 +227,7 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
             <div className="relative w-full max-w-lg bg-[#0D0A0B] border border-[#C9A227]/30 rounded-3xl shadow-[0_10px_50px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-[90vh]">
                 
                 {/* Header */}
@@ -385,6 +396,17 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
                                     Расчеты мухурт адаптированы под город: <strong>{cityName}</strong>. Если вы путешествуете, измените город на странице календаря для пересчета времени.
                                 </p>
                             </div>
+
+                            {/* Error Details Alert */}
+                            {errorDetails && (
+                                <div className="p-4 bg-red-950/40 border border-red-500/20 rounded-xl text-xs text-red-200/90 leading-relaxed space-y-1">
+                                    <div className="font-semibold text-red-400 flex items-center gap-1.5">
+                                        <BellOff className="w-3.5 h-3.5 text-red-400" />
+                                        <span>Подписка не удалась</span>
+                                    </div>
+                                    <p className="whitespace-pre-line">{errorDetails}</p>
+                                </div>
+                            )}
                         </>
                     )}
                 </div>
