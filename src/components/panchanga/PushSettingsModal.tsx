@@ -175,9 +175,9 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
             } else {
                 alert(`Ошибка подписки: ${data.error || 'Неизвестная ошибка'}`);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Push subscription failed:', error);
-            alert('Не удалось оформить подписку. Убедитесь, что вы разрешили уведомления в системе.');
+            alert(`Не удалось оформить подписку. Убедитесь, что вы разрешили уведомления в системе.\n\nДетали ошибки: ${error?.message || error}`);
         } finally {
             setIsSubmitting(false);
         }
