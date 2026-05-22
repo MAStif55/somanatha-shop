@@ -246,8 +246,18 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
                     </button>
                 </div>
 
-                {/* Content */}
                 <div className="flex-1 p-6 overflow-y-auto space-y-6 custom-scrollbar text-[#F5ECD7]">
+                    
+                    {/* Error Details Alert */}
+                    {errorDetails && (
+                        <div className="p-4 bg-red-950/40 border border-red-500/20 rounded-xl text-xs text-red-200/90 leading-relaxed space-y-1">
+                            <div className="font-semibold text-red-400 flex items-center gap-1.5">
+                                <BellOff className="w-3.5 h-3.5 text-red-400" />
+                                <span>Подписка не удалась</span>
+                            </div>
+                            <p className="whitespace-pre-line">{errorDetails}</p>
+                        </div>
+                    )}
                     
                     {/* iOS Specific Instructions if not Standalone */}
                     {isIOS && !isStandalone && (
@@ -397,16 +407,6 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
                                 </p>
                             </div>
 
-                            {/* Error Details Alert */}
-                            {errorDetails && (
-                                <div className="p-4 bg-red-950/40 border border-red-500/20 rounded-xl text-xs text-red-200/90 leading-relaxed space-y-1">
-                                    <div className="font-semibold text-red-400 flex items-center gap-1.5">
-                                        <BellOff className="w-3.5 h-3.5 text-red-400" />
-                                        <span>Подписка не удалась</span>
-                                    </div>
-                                    <p className="whitespace-pre-line">{errorDetails}</p>
-                                </div>
-                            )}
                         </>
                     )}
                 </div>
