@@ -3,12 +3,16 @@ import webpush from 'web-push';
 import { PushRepository } from '@/lib/data';
 import { getMomentPanchanga, getDailyPanchanga } from '@/lib/astrology/calculations';
 
-// Set VAPID keys
-webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT || 'mailto:info@somanatha.ru',
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '',
-    process.env.VAPID_PRIVATE_KEY || ''
-);
+// Set VAPID keys if present in env (prevent build-time crash when variables aren't loaded)
+const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+const privateKey = process.env.VAPID_PRIVATE_KEY;
+if (publicKey && privateKey) {
+    webpush.setVapidDetails(
+        process.env.VAPID_SUBJECT || 'mailto:info@somanatha.ru',
+        publicKey,
+        privateKey
+    );
+}
 
 export const dynamic = 'force-dynamic';
 
