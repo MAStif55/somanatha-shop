@@ -4,6 +4,7 @@ import { getDailyPanchanga, getMomentPanchanga, GeoLocation } from '@/lib/astrol
 import HeroWidget from '@/components/panchanga/HeroWidget';
 import TimelineWidget from '@/components/panchanga/TimelineWidget';
 import LocationSelector from '@/components/panchanga/LocationSelector';
+import PushSettings from '@/components/panchanga/PushSettings';
 import UpcomingEvents from '@/components/panchanga/UpcomingEvents';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -80,7 +81,10 @@ export default function PanchangaPage({
               <h1 className="text-4xl font-ornamental text-[#E8D48B] tracking-wide text-glow-gold">Ведический Календарь</h1>
               <p className="text-[#C9A227]/80 text-sm mt-2 uppercase tracking-wider font-elegant italic">Джйотиш — наука о свете</p>
             </div>
-            <LocationSelector currentLocationName={cityName} />
+            <div className="flex flex-wrap gap-3 items-center">
+              <PushSettings latitude={lat} longitude={lon} cityName={cityName} />
+              <LocationSelector currentLocationName={cityName} />
+            </div>
           </div>
 
           {/* Луна + Полная Панчанга */}

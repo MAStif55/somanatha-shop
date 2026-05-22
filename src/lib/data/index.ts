@@ -7,6 +7,7 @@ import { S3StorageRepository } from './yandex/S3StorageRepository';
 import { MongoAuthRepository } from './yandex/MongoAuthRepository';
 import { YandexFunctionsRepository } from './yandex/YandexFunctionsRepository';
 import { MongoInventoryRepository } from './yandex/MongoInventoryRepository';
+import { MongoPushRepository } from './yandex/MongoPushRepository';
 
 // ============================================================================
 // DATA ACCESS LAYER
@@ -22,3 +23,5 @@ export const StorageRepository = new S3StorageRepository();
 export const AuthRepository = new MongoAuthRepository();
 export const FunctionsRepository = new YandexFunctionsRepository();
 export const InventoryRepository = new MongoInventoryRepository();
+export const PushRepository = new MongoPushRepository();
+

@@ -16,7 +16,8 @@ import {
     Users,
     Sliders,
     Star,
-    Store
+    Store,
+    Bell
 } from "lucide-react";
 import { useTranslation } from "@/contexts/LanguageContext";
 
@@ -42,6 +43,7 @@ const getNavGroups = (t: (key: string) => string, locale: string) => [
         label: locale === 'ru' ? 'Контент' : 'Content',
         items: [
             { href: '/admin/reviews', label: locale === 'ru' ? 'Отзывы' : 'Reviews', icon: Star },
+            { href: '/admin/push', label: locale === 'ru' ? 'Пуш-рассылки' : 'Push Campaigns', icon: Bell },
         ],
     },
     {
