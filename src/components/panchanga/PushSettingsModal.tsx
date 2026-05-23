@@ -407,29 +407,40 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
                                 </label>
                             </div>
                             {/* Sound & Lockscreen Instructions Toggle */}
-                            <div className="border border-[#C9A227]/20 rounded-xl overflow-hidden bg-[#1A1517]/20">
+                            <div className="border border-[#C9A227]/40 rounded-xl overflow-hidden bg-gradient-to-r from-[#C9A227]/10 via-transparent to-[#C9A227]/5 shadow-[0_0_20px_rgba(201,162,39,0.08)]">
                                 <button 
                                     type="button"
                                     onClick={() => setShowInstructions(!showInstructions)}
-                                    className="w-full flex items-center justify-between p-3.5 text-left text-xs font-semibold text-[#E8D48B] hover:bg-[#C9A227]/5 transition-all"
+                                    className="w-full flex items-center justify-between p-3.5 text-left text-xs font-semibold text-[#E8D48B] hover:bg-[#C9A227]/10 transition-all group"
                                 >
-                                    <div className="flex items-center gap-2">
-                                        <Bell className="w-4 h-4 text-[#C9A227]" />
-                                        <span>Как включить звук и показ на экране блокировки?</span>
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative flex items-center justify-center w-6 h-6 rounded-full bg-[#C9A227]/10 border border-[#C9A227]/30 group-hover:scale-105 transition-transform duration-300">
+                                            <Bell className="w-3.5 h-3.5 text-[#C9A227] animate-pulse" />
+                                            <span className="absolute top-0 right-0 w-1.5 h-1.5 bg-amber-500 rounded-full animate-ping"></span>
+                                            <span className="absolute top-0 right-0 w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+                                        </div>
+                                        <span className="text-[#E8D48B] font-semibold tracking-wide text-glow-gold">🔔 Инструкция: Как включить звук уведомлений</span>
                                     </div>
-                                    {showInstructions ? (
-                                        <ChevronUp className="w-4 h-4 text-[#C9A227]" />
-                                    ) : (
-                                        <ChevronDown className="w-4 h-4 text-[#C9A227]" />
-                                    )}
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] text-[#C9A227]/60 font-medium uppercase tracking-wider group-hover:text-[#C9A227] transition-colors">
+                                            {showInstructions ? 'Скрыть' : 'Открыть'}
+                                        </span>
+                                        {showInstructions ? (
+                                            <ChevronUp className="w-4 h-4 text-[#C9A227] group-hover:translate-y-[-1px] transition-transform" />
+                                        ) : (
+                                            <ChevronDown className="w-4 h-4 text-[#C9A227] group-hover:translate-y-[1px] transition-transform" />
+                                        )}
+                                    </div>
                                 </button>
                                 
                                 {showInstructions && (
-                                    <div className="p-4 border-t border-[#C9A227]/10 space-y-4 text-xs text-[#F5ECD7]/80 bg-[#0D0A0B]/60 leading-relaxed">
+                                    <div className="p-4 border-t border-[#C9A227]/20 space-y-4 text-xs text-[#F5ECD7]/80 bg-[#0D0A0B]/85 leading-relaxed">
                                         {/* Android / Desktop */}
                                         <div className="space-y-1.5">
-                                            <h4 className="font-bold text-[#E8D48B]">🤖 Для Android и ПК (Chrome, Яндекс и др.):</h4>
-                                            <p>
+                                            <h4 className="font-bold text-[#E8D48B] flex items-center gap-1.5">
+                                                <span>🤖 Для Android и ПК (Chrome, Яндекс и др.):</span>
+                                            </h4>
+                                            <p className="text-[#F5ECD7]/70">
                                                 По умолчанию браузеры могут присылать уведомления беззвучно. Чтобы они будили вас и отображались при заблокированном экране:
                                             </p>
                                             <ol className="list-decimal pl-4 space-y-1 mt-1 text-[#F5ECD7]/70">
@@ -442,8 +453,10 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
 
                                         {/* iOS (iPhone/iPad) */}
                                         <div className="space-y-1.5 pt-3 border-t border-[#C9A227]/10">
-                                            <h4 className="font-bold text-[#E8D48B]">🍎 Для iPhone и iPad (iOS 16.4+):</h4>
-                                            <p>
+                                            <h4 className="font-bold text-[#E8D48B] flex items-center gap-1.5">
+                                                <span>🍎 Для iPhone и iPad (iOS 16.4+):</span>
+                                            </h4>
+                                            <p className="text-[#F5ECD7]/70">
                                                 На устройствах Apple пуш-уведомления работают только после установки сайта в качестве веб-приложения:
                                             </p>
                                             <ol className="list-decimal pl-4 space-y-1 mt-1 text-[#F5ECD7]/70">
