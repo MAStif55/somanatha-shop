@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Bell, BellOff, Info, Check, Share, ArrowUp, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import LocationSelector from './LocationSelector';
 
@@ -36,6 +37,11 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [errorDetails, setErrorDetails] = useState<string | null>(null);
     const [showInstructions, setShowInstructions] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     // Form settings
     const [preferences, setPreferences] = useState({
@@ -97,7 +103,7 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
         });
     }, [isOpen]);
 
-    if (!isOpen) return null;
+    if (!isOpen || !mounted) return null;
 
     const handleCheckboxChange = (key: keyof typeof preferences) => {
         if (key === 'frequency' || key === 'quietHours') return; // handled separately
@@ -228,7 +234,7 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
         }
     };
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
             <div className="relative w-full max-w-lg bg-[#0D0A0B] border border-[#C9A227]/30 rounded-3xl shadow-[0_10px_50px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-[90vh]">
                 
@@ -490,7 +496,7 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
                                         <BellOff className="w-4 h-4" />
                                         Отписаться
                                     </button>
-                                </>
+                                    </>
                             ) : (
                                 <button 
                                     onClick={handleSubscribe}
@@ -525,6 +531,7 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
                 </div>
 
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
