@@ -122,11 +122,19 @@ export default function LocationSelector({ currentLocationName }: { currentLocat
     <div className="relative z-50" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 bg-[#1A1517]/80 backdrop-blur-md border border-[#C9A227]/30 px-4 py-2 rounded-full hover:bg-[#C9A227]/10 hover:border-[#C9A227]/50 transition-all group"
+        className="flex items-center gap-3 bg-[#1A1517]/80 backdrop-blur-md border border-[#C9A227]/20 px-5 py-2.5 rounded-2xl hover:bg-[#C9A227]/10 hover:border-[#C9A227]/60 transition-all duration-300 group"
       >
-        <MapPin className="w-4 h-4 text-[#C9A227] group-hover:scale-110 transition-transform" />
-        <span className="text-[#F5ECD7] font-medium text-sm">{currentLocationName}</span>
-        <span className="text-xs text-[#F5ECD7]/40 ml-1">(Изменить)</span>
+        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 border border-white/10 group-hover:border-[#C9A227]/30 group-hover:bg-[#C9A227]/5 transition-all duration-300">
+            <MapPin className="w-4 h-4 text-[#C9A227]/80 group-hover:text-[#C9A227] group-hover:scale-110 group-hover:animate-bounce transition-all" />
+        </div>
+        <div className="flex flex-col items-start text-left">
+            <span className="text-[#F5ECD7] font-semibold tracking-wide text-sm leading-tight group-hover:text-[#E8D48B] transition-colors max-w-[140px] truncate">
+                {currentLocationName}
+            </span>
+            <span className="text-[10px] text-[#C9A227]/60 uppercase tracking-wider font-medium leading-tight mt-0.5 group-hover:text-[#C9A227]/80 transition-colors">
+                Изменить город
+            </span>
+        </div>
       </button>
 
       {isOpen && (
