@@ -24,6 +24,9 @@ export async function GET(request: Request) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { searchParams } = new URL(request.url);
+        const isForce = searchParams.get('force') === 'true';
+
         const subscriptions = await PushRepository.getSubscriptions();
         const deadEndpoints: string[] = [];
         let notificationsSent = 0;
@@ -69,7 +72,7 @@ export async function GET(request: Request) {
             // 2. DAILY DIGEST FLOW
             if (user.preferences.frequency === 'daily') {
                 // Send once a day between 7:00 and 8:00 AM local time
-                if (hour === 7 && user.lastSentDailyDate !== localDateStr) {
+                if ((hour === 7 || isForce) && (user.lastSentDailyDate !== localDateStr || isForce)) {
                     const daily = getDailyPanchanga(new Date(), {
                         latitude: user.location.lat,
                         longitude: user.location.lon
@@ -97,18 +100,20 @@ export async function GET(request: Request) {
                         notificationsSent++;
                         
                         // Update cache to prevent duplicate daily pushes and align state
-                        const db = await (PushRepository as any).getCollection('push_subscriptions');
-                        await db.updateOne(
-                            { endpoint: user.endpoint },
-                            {
-                                $set: {
-                                    lastSentDailyDate: localDateStr,
-                                    lastSentTithi: currentTithi,
-                                    lastSentNakshatra: currentNakshatra,
-                                    updatedAt: new Date()
+                        if (!isForce) {
+                            const db = await (PushRepository as any).getCollection('push_subscriptions');
+                            await db.updateOne(
+                                { endpoint: user.endpoint },
+                                {
+                                    $set: {
+                                        lastSentDailyDate: localDateStr,
+                                        lastSentTithi: currentTithi,
+                                        lastSentNakshatra: currentNakshatra,
+                                        updatedAt: new Date()
+                                    }
                                 }
-                            }
-                        );
+                            );
+                        }
                     } catch (err: any) {
                         if (err.statusCode === 410 || err.statusCode === 404) {
                             deadEndpoints.push(user.endpoint);

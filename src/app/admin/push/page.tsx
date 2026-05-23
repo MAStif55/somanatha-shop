@@ -44,6 +44,8 @@ export default function PushAdminDashboard() {
     });
     const [campaigns, setCampaigns] = useState<CampaignLog[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isTriggeringCron, setIsTriggeringCron] = useState(false);
+    const [cronResult, setCronResult] = useState<{ success?: boolean; message?: string } | null>(null);
 
     // Form states
     const [title, setTitle] = useState('');
@@ -75,6 +77,36 @@ export default function PushAdminDashboard() {
     useEffect(() => {
         fetchStats();
     }, []);
+
+    const handleTriggerCron = async () => {
+        setIsTriggeringCron(true);
+        setCronResult(null);
+        try {
+            const res = await fetch('/api/admin/push/trigger-cron', {
+                method: 'POST'
+            });
+            const data = await res.json();
+            if (data.success) {
+                setCronResult({
+                    success: true,
+                    message: `Успешно! Отправлено: ${data.data.notificationsSent}, удалено нерабочих: ${data.data.deadTokensRemoved}`
+                });
+                fetchStats();
+            } else {
+                setCronResult({
+                    success: false,
+                    message: data.error || 'Ошибка при вызове крона'
+                });
+            }
+        } catch (error: any) {
+            setCronResult({
+                success: false,
+                message: error.message || 'Ошибка сети'
+            });
+        } finally {
+            setIsTriggeringCron(false);
+        }
+    };
 
     const handleSendPush = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -154,11 +186,34 @@ export default function PushAdminDashboard() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div>
-                <h1 className="admin-page-title">Управление пуш-рассылками</h1>
-                <p className="admin-page-subtitle">
-                    Сегментация подписчиков, детальная статистика каналов и отправка мгновенных трансляций.
-                </p>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 className="admin-page-title">Управление пуш-рассылками</h1>
+                    <p className="admin-page-subtitle">
+                        Сегментация подписчиков, детальная статистика каналов и отправка мгновенных трансляций.
+                    </p>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                    <button
+                        onClick={handleTriggerCron}
+                        disabled={isTriggeringCron}
+                        className="admin-btn-secondary py-2.5 px-4 text-xs font-semibold rounded-xl flex items-center gap-2 border border-zinc-200 hover:bg-zinc-50"
+                    >
+                        {isTriggeringCron ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                            <Clock className="w-3.5 h-3.5" />
+                        )}
+                        Тест утренней сводки (Force Cron)
+                    </button>
+                    {cronResult && (
+                        <span className={`text-[10px] px-2 py-0.5 rounded ${
+                            cronResult.success ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                        }`}>
+                            {cronResult.message}
+                        </span>
+                    )}
+                </div>
             </div>
 
             {/* Stats Grid */}
