@@ -14,6 +14,18 @@ if (publicKey && privateKey) {
     );
 }
 
+function getMoonImageForTithi(tithiNumber: number): string {
+    if (tithiNumber === 30) return '/images/moon/new_moon.png';
+    if (tithiNumber >= 1 && tithiNumber <= 5) return '/images/moon/waxing_crescent.png';
+    if (tithiNumber >= 6 && tithiNumber <= 10) return '/images/moon/first_quarter.png';
+    if (tithiNumber >= 11 && tithiNumber <= 14) return '/images/moon/waxing_gibbous.png';
+    if (tithiNumber === 15) return '/images/moon/full_moon.png';
+    if (tithiNumber >= 16 && tithiNumber <= 20) return '/images/moon/waning_gibbous.png';
+    if (tithiNumber >= 21 && tithiNumber <= 25) return '/images/moon/last_quarter.png';
+    if (tithiNumber >= 26 && tithiNumber <= 29) return '/images/moon/waning_crescent.png';
+    return '/logo.png';
+}
+
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
@@ -93,6 +105,7 @@ export async function GET(request: Request) {
                         body: `${description} Накшатра: ${daily.nakshatra.name}.`,
                         icon: '/logo.png',
                         badge: '/logo.png',
+                        image: `https://somanatha.ru${getMoonImageForTithi(daily.tithi.number)}`,
                         url: '/panchanga'
                     };
 
@@ -140,6 +153,7 @@ export async function GET(request: Request) {
                         body: `Наступили ${currentTithi} (${panchanga.tithi.pakshaName}) для г. ${user.location.cityName}.`,
                         icon: '/logo.png',
                         badge: '/logo.png',
+                        image: `https://somanatha.ru${getMoonImageForTithi(panchanga.tithi.number)}`,
                         url: '/panchanga'
                     };
 
