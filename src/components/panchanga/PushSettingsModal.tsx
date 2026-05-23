@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Bell, BellOff, Info, Check, Share, ArrowUp, Loader2 } from 'lucide-react';
+import LocationSelector from './LocationSelector';
 
 interface PushSettingsModalProps {
     isOpen: boolean;
@@ -400,11 +401,17 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
                             </div>
 
                             {/* Location Details Info */}
-                            <div className="flex items-start gap-2.5 bg-[#C9A227]/5 border border-[#C9A227]/10 p-3 rounded-xl text-xs text-[#F5ECD7]/60">
-                                <Info className="w-4 h-4 text-[#C9A227] shrink-0 mt-0.5" />
-                                <p>
-                                    Расчеты мухурт адаптированы под город: <strong>{cityName}</strong>. Если вы путешествуете, измените город на странице календаря для пересчета времени.
-                                </p>
+                            <div className="flex flex-col gap-3 bg-[#C9A227]/5 border border-[#C9A227]/10 p-4 rounded-xl">
+                                <div className="flex items-start gap-2.5 text-xs text-[#F5ECD7]/80">
+                                    <Info className="w-4 h-4 text-[#C9A227] shrink-0 mt-0.5" />
+                                    <p>
+                                        Расчеты адаптированы под выбранный город. От него зависит точность времени прихода уведомлений о мухуртах.
+                                    </p>
+                                </div>
+                                <div className="flex items-center justify-between mt-1 pt-3 border-t border-[#C9A227]/10">
+                                    <span className="text-xs text-[#F5ECD7]/60">Текущий город:</span>
+                                    <LocationSelector currentLocationName={cityName} />
+                                </div>
                             </div>
 
                         </>
