@@ -26,6 +26,7 @@ export async function GET(request: Request) {
 
         const { searchParams } = new URL(request.url);
         const isForce = searchParams.get('force') === 'true';
+        const isForceInstant = searchParams.get('forceInstant') === 'true';
 
         const subscriptions = await PushRepository.getSubscriptions();
         const deadEndpoints: string[] = [];
@@ -58,7 +59,7 @@ export async function GET(request: Request) {
             const localDateStr = `${year}-${month}-${day}`;
 
             // Check quiet hours
-            const isInQuietHours = user.preferences.quietHours && (hour >= 22 || hour < 8);
+            const isInQuietHours = !isForceInstant && user.preferences.quietHours && (hour >= 22 || hour < 8);
 
             // Calculate current moment astrology
             const panchanga = getMomentPanchanga(new Date(), {
@@ -128,14 +129,14 @@ export async function GET(request: Request) {
             }
 
             // 3. INSTANT EVENTS FLOW
-            if (user.preferences.frequency === 'instant' && !isInQuietHours) {
+            if (user.preferences.frequency === 'instant' && (!isInQuietHours || isForceInstant)) {
                 let didTrigger = false;
                 const updatePayload: any = {};
 
                 // Tithi Change
-                if (user.preferences.tithi && currentTithi !== user.lastSentTithi) {
+                if ((user.preferences.tithi && currentTithi !== user.lastSentTithi) || isForceInstant) {
                     const payload = {
-                        title: `🌙 Смена лунных суток (Титхи)`,
+                        title: `🌙 Смена лунных суток (Титхи)${isForceInstant ? ' [Тест]' : ''}`,
                         body: `Наступили ${currentTithi} (${panchanga.tithi.pakshaName}) для г. ${user.location.cityName}.`,
                         icon: '/logo.png',
                         badge: '/logo.png',
@@ -154,14 +155,16 @@ export async function GET(request: Request) {
                             deadEndpoints.push(user.endpoint);
                         }
                     }
-                    updatePayload.lastSentTithi = currentTithi;
-                    didTrigger = true;
+                    if (!isForceInstant) {
+                        updatePayload.lastSentTithi = currentTithi;
+                        didTrigger = true;
+                    }
                 }
 
                 // Nakshatra Change
-                if (user.preferences.nakshatra && currentNakshatra !== user.lastSentNakshatra) {
+                if ((user.preferences.nakshatra && currentNakshatra !== user.lastSentNakshatra) || isForceInstant) {
                     const payload = {
-                        title: `✨ Переход в новую Накшатру`,
+                        title: `✨ Переход в новую Накшатру${isForceInstant ? ' [Тест]' : ''}`,
                         body: `Луна вошла в созвездие ${currentNakshatra} (покровитель: ${panchanga.nakshatra.deity}).`,
                         icon: '/logo.png',
                         badge: '/logo.png',
@@ -182,11 +185,13 @@ export async function GET(request: Request) {
                             deadEndpoints.push(user.endpoint);
                         }
                     }
-                    updatePayload.lastSentNakshatra = currentNakshatra;
-                    didTrigger = true;
+                    if (!isForceInstant) {
+                        updatePayload.lastSentNakshatra = currentNakshatra;
+                        didTrigger = true;
+                    }
                 }
 
-                if (didTrigger) {
+                if (didTrigger && !isForceInstant) {
                     const db = await (PushRepository as any).getCollection('push_subscriptions');
                     await db.updateOne(
                         { endpoint: user.endpoint },

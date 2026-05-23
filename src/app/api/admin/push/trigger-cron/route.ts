@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 
-export async function POST() {
+export async function POST(request: Request) {
     try {
+        const { searchParams } = new URL(request.url);
+        const type = searchParams.get('type') || 'daily';
+
         const port = process.env.PORT || 3000;
         const headers: Record<string, string> = {};
         
@@ -9,8 +12,12 @@ export async function POST() {
             headers['Authorization'] = `Bearer ${process.env.CRON_SECRET}`;
         }
         
-        // Вызываем внутренний эндпоинт крона с параметром force=true
-        const res = await fetch(`http://127.0.0.1:${port}/api/push/cron?force=true`, {
+        const cronUrl = type === 'instant'
+            ? `http://127.0.0.1:${port}/api/push/cron?forceInstant=true`
+            : `http://127.0.0.1:${port}/api/push/cron?force=true`;
+
+        // Вызываем внутренний эндпоинт крона с соответствующими параметрами
+        const res = await fetch(cronUrl, {
             method: 'GET',
             headers
         });
