@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getDailyPanchanga, GeoLocation } from '@/lib/astrology/calculations';
+import VedicTermTooltip from './VedicTermTooltip';
 
 type PanchangaData = ReturnType<typeof getDailyPanchanga>;
 
@@ -97,27 +98,28 @@ export default function TimelineWidget({ panchanga, location }: TimelineWidgetPr
       const isRightEdge = block.left + block.width > 85;
 
       return (
-      <div
-        key={`${title}-${idx}`}
-        className={`absolute top-0 bottom-0 ${colorClass} group cursor-help transition-all hover:brightness-125 z-10 hover:z-40`}
-        style={{ left: `${block.left}%`, width: `${block.width}%` }}
-      >
-        {/* Tooltip */}
-        <div className={`absolute bottom-full mb-4 w-64 p-4 rounded-xl bg-[#0D0A0B]/95 backdrop-blur-xl border border-[#C9A227]/40 shadow-[0_10px_30px_rgba(0,0,0,0.8)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 ${isLeftEdge ? '-left-2' : isRightEdge ? '-right-2' : 'left-1/2 -translate-x-1/2'}`}>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-xl">{icon}</span>
-            <span className="text-[#E8D48B] font-semibold text-sm tracking-wider uppercase">{title}</span>
+      <VedicTermTooltip key={`${title}-${idx}`} termName={title} disableHover={true}>
+        <div
+          className={`absolute top-0 bottom-0 ${colorClass} group cursor-help transition-all hover:brightness-125 z-10 hover:z-40`}
+          style={{ left: `${block.left}%`, width: `${block.width}%` }}
+        >
+          {/* Tooltip */}
+          <div className={`absolute bottom-full mb-4 w-64 p-4 rounded-xl bg-[#0D0A0B]/95 backdrop-blur-xl border border-[#C9A227]/40 shadow-[0_10px_30px_rgba(0,0,0,0.8)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 ${isLeftEdge ? '-left-2' : isRightEdge ? '-right-2' : 'left-1/2 -translate-x-1/2'}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl">{icon}</span>
+              <span className="text-[#E8D48B] font-semibold text-sm tracking-wider uppercase">{title}</span>
+            </div>
+            <p className="text-[#F5ECD7]/80 text-xs mb-3 leading-relaxed">{desc}</p>
+            <div className="bg-[#1A1517] rounded-lg px-3 py-2 border border-[#C9A227]/20 flex items-center justify-center">
+              <p className="text-[#C9A227] font-mono text-sm tracking-widest font-medium">
+                {fmt(start, tz)} - {fmt(end, tz)}
+              </p>
+            </div>
+            {/* Arrow */}
+            <div className={`absolute -bottom-2 w-4 h-4 bg-[#0D0A0B] border-b border-r border-[#C9A227]/40 transform rotate-45 ${isLeftEdge ? 'left-6' : isRightEdge ? 'right-6' : 'left-1/2 -translate-x-1/2'}`}></div>
           </div>
-          <p className="text-[#F5ECD7]/80 text-xs mb-3 leading-relaxed">{desc}</p>
-          <div className="bg-[#1A1517] rounded-lg px-3 py-2 border border-[#C9A227]/20 flex items-center justify-center">
-            <p className="text-[#C9A227] font-mono text-sm tracking-widest font-medium">
-              {fmt(start, tz)} - {fmt(end, tz)}
-            </p>
-          </div>
-          {/* Arrow */}
-          <div className={`absolute -bottom-2 w-4 h-4 bg-[#0D0A0B] border-b border-r border-[#C9A227]/40 transform rotate-45 ${isLeftEdge ? 'left-6' : isRightEdge ? 'right-6' : 'left-1/2 -translate-x-1/2'}`}></div>
         </div>
-      </div>
+      </VedicTermTooltip>
       );
     });
   };

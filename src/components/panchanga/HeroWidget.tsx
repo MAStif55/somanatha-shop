@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Moon, Star } from 'lucide-react';
 import { GeoLocation, getDailyPanchanga, getMomentPanchanga } from '@/lib/astrology/calculations';
 import ThreeMoon from './ThreeMoon';
+import VedicTermTooltip from './VedicTermTooltip';
 
 type PanchangaData = ReturnType<typeof getDailyPanchanga>;
 
@@ -131,7 +132,9 @@ export default function HeroWidget({ panchanga, momentPanchanga, location }: Her
           </div>
 
           <div className="text-center">
-            <p className="text-[#C9A227] text-sm tracking-[0.25em] uppercase font-bold">{currentTithi.pakshaName}</p>
+            <p className="text-[#C9A227] text-sm tracking-[0.25em] uppercase font-bold">
+              <VedicTermTooltip>{currentTithi.pakshaName}</VedicTermTooltip>
+            </p>
             <p className="text-[#F5ECD7]/60 text-sm mt-1.5 font-medium">Освещённость: {Math.round(exactPhase * 100)}%</p>
           </div>
         </div>
@@ -157,7 +160,7 @@ export default function HeroWidget({ panchanga, momentPanchanga, location }: Her
             {/* Column 1: Tithi Title */}
             <div>
               <h2 className="text-4xl md:text-5xl font-ornamental text-[#E8D48B] text-glow-gold leading-tight mt-1">
-                {currentTithi.name}
+                <VedicTermTooltip>{currentTithi.name}</VedicTermTooltip>
               </h2>
               <p className="text-[#F5ECD7]/80 text-lg mt-2 font-light">
                 {currentTithi.number}-е лунные сутки
@@ -223,9 +226,13 @@ export default function HeroWidget({ panchanga, momentPanchanga, location }: Her
               {/* Nakshatra */}
               <div className="p-5 rounded-xl border border-[#C9A227]/25 bg-[#0D0A0B]/50 backdrop-blur-md flex flex-col items-center justify-center text-center gap-2 transition-all duration-500 shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:border-[#C9A227]/40">
                 <p className="text-[12px] md:text-[13px] text-[#C9A227] font-semibold uppercase tracking-[0.2em] mb-1">Накшатра</p>
-                <p className="text-[#FFFFFF] text-xl md:text-2xl font-extrabold leading-tight">{dynamicPanchanga ? dynamicPanchanga.nakshatra.name : panchanga.nakshatra.name}</p>
+                <p className="text-[#FFFFFF] text-xl md:text-2xl font-extrabold leading-tight">
+                  <VedicTermTooltip>{dynamicPanchanga ? dynamicPanchanga.nakshatra.name : panchanga.nakshatra.name}</VedicTermTooltip>
+                </p>
                 <p className="text-[#F5ECD7]/70 text-xs md:text-sm font-medium">Управитель: {dynamicPanchanga ? dynamicPanchanga.nakshatra.deity : panchanga.nakshatra.deity}</p>
-                <p className="text-[#E8D48B]/90 text-xs md:text-sm mt-0.5">Луна в знаке: {dynamicPanchanga ? dynamicPanchanga.lunarRashi.fullName : lunarRashi?.fullName}</p>
+                <p className="text-[#E8D48B]/90 text-xs md:text-sm mt-0.5">
+                  Луна в знаке: <VedicTermTooltip>{dynamicPanchanga ? dynamicPanchanga.lunarRashi.fullName : lunarRashi?.fullName}</VedicTermTooltip>
+                </p>
                 {dynamicPanchanga?.nakshatraBoundaries && (
                   <p className="text-[#F5ECD7]/40 text-[11px] font-mono mt-1">до {fmtBoundary(dynamicPanchanga.nakshatraBoundaries.end)}</p>
                 )}
@@ -234,15 +241,19 @@ export default function HeroWidget({ panchanga, momentPanchanga, location }: Her
               {/* Vara */}
               <div className="p-5 rounded-xl border border-[#C9A227]/25 bg-[#0D0A0B]/50 backdrop-blur-md flex flex-col items-center justify-center text-center gap-2 transition-all duration-500 shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:border-[#C9A227]/40">
                 <p className="text-[12px] md:text-[13px] text-[#C9A227] font-semibold uppercase tracking-[0.2em] mb-1">Вара (День)</p>
-                <p className="text-[#FFFFFF] text-xl md:text-2xl font-extrabold leading-tight">{dynamicPanchanga ? dynamicPanchanga.vara : vara}</p>
-                <p className="text-[#E8D48B]/90 text-xs md:text-sm mt-2.5">Солнце в знаке: {dynamicPanchanga ? dynamicPanchanga.solarMonth.fullName : solarMonth.fullName}</p>
+                <p className="text-[#FFFFFF] text-xl md:text-2xl font-extrabold leading-tight">
+                  <VedicTermTooltip>{dynamicPanchanga ? dynamicPanchanga.vara : vara}</VedicTermTooltip>
+                </p>
+                <p className="text-[#E8D48B]/90 text-xs md:text-sm mt-2.5">
+                  Солнце в знаке: <VedicTermTooltip>{dynamicPanchanga ? dynamicPanchanga.solarMonth.fullName : solarMonth.fullName}</VedicTermTooltip>
+                </p>
               </div>
 
               {/* Yoga */}
               <div className="p-5 rounded-xl border border-[#C9A227]/25 bg-[#0D0A0B]/50 backdrop-blur-md flex flex-col items-center justify-center text-center gap-2 transition-all duration-500 shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:border-[#C9A227]/40">
                 <p className="text-[12px] md:text-[13px] text-[#C9A227] font-semibold uppercase tracking-[0.2em] mb-1">Йога</p>
                 <p className="text-[#FFFFFF] text-xl md:text-2xl font-extrabold leading-tight flex items-center justify-center gap-2">
-                  {dynamicPanchanga ? dynamicPanchanga.yoga.name : panchanga.yoga.name}
+                  <VedicTermTooltip>{dynamicPanchanga ? dynamicPanchanga.yoga.name : panchanga.yoga.name}</VedicTermTooltip>
                 </p>
                 {(dynamicPanchanga ? dynamicPanchanga.yoga.isShivaYoga : panchanga.yoga.isShivaYoga) && (
                   <span className="text-[#C9A227] text-[10px] bg-[#C9A227]/10 px-2 py-0.5 rounded-full mt-1 border border-[#C9A227]/20 font-medium">🕉 Шива-йога</span>
@@ -253,7 +264,7 @@ export default function HeroWidget({ panchanga, momentPanchanga, location }: Her
               <div className="p-5 rounded-xl border border-[#C9A227]/25 bg-[#0D0A0B]/50 backdrop-blur-md flex flex-col items-center justify-center text-center gap-2 transition-all duration-500 shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:border-[#C9A227]/40">
                 <p className="text-[12px] md:text-[13px] text-[#C9A227] font-semibold uppercase tracking-[0.2em] mb-1">Карана</p>
                 <p className="text-[#FFFFFF] text-xl md:text-2xl font-extrabold leading-tight flex items-center justify-center gap-2">
-                  {dynamicPanchanga ? dynamicPanchanga.karana.name : panchanga.karana.name}
+                  <VedicTermTooltip>{dynamicPanchanga ? dynamicPanchanga.karana.name : panchanga.karana.name}</VedicTermTooltip>
                 </p>
                 <p className="text-[#F5ECD7]/70 text-xs md:text-sm font-medium">Управитель: {dynamicPanchanga ? dynamicPanchanga.karana.deity : panchanga.karana.deity}</p>
                 {(dynamicPanchanga ? dynamicPanchanga.karana.isVishti : panchanga.karana.isVishti) && (
