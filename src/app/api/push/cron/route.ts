@@ -96,7 +96,11 @@ export async function GET(request: Request) {
                     };
 
                     try {
-                        await webpush.sendNotification(pushSub, JSON.stringify(payload));
+                        await webpush.sendNotification(pushSub, JSON.stringify(payload), {
+                            headers: {
+                                'Urgency': 'high'
+                            }
+                        });
                         notificationsSent++;
                         
                         // Update cache to prevent duplicate daily pushes and align state
@@ -139,7 +143,11 @@ export async function GET(request: Request) {
                     };
 
                     try {
-                        await webpush.sendNotification(pushSub, JSON.stringify(payload));
+                        await webpush.sendNotification(pushSub, JSON.stringify(payload), {
+                            headers: {
+                                'Urgency': 'high'
+                            }
+                        });
                         notificationsSent++;
                     } catch (err: any) {
                         if (err.statusCode === 410 || err.statusCode === 404) {
@@ -162,7 +170,11 @@ export async function GET(request: Request) {
 
                     try {
                         if (!deadEndpoints.includes(user.endpoint)) {
-                            await webpush.sendNotification(pushSub, JSON.stringify(payload));
+                            await webpush.sendNotification(pushSub, JSON.stringify(payload), {
+                                headers: {
+                                    'Urgency': 'high'
+                                }
+                            });
                             notificationsSent++;
                         }
                     } catch (err: any) {

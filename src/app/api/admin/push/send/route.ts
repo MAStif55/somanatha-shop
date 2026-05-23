@@ -74,7 +74,11 @@ export async function POST(request: Request) {
             };
 
             try {
-                await webpush.sendNotification(pushSub, payloadString);
+                await webpush.sendNotification(pushSub, payloadString, {
+                    headers: {
+                        'Urgency': 'high'
+                    }
+                });
                 successCount++;
             } catch (err: any) {
                 failedCount++;
