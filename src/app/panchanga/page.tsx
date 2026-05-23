@@ -1,5 +1,6 @@
 import React from 'react';
 import { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import { getDailyPanchanga, getMomentPanchanga, GeoLocation } from '@/lib/astrology/calculations';
 import HeroWidget from '@/components/panchanga/HeroWidget';
 import TimelineWidget from '@/components/panchanga/TimelineWidget';
@@ -22,15 +23,26 @@ export default function PanchangaPage({
 }: {
   searchParams: { lat?: string; lon?: string; city?: string }
 }) {
+  const cookieStore = cookies();
+  const savedLocationCookie = cookieStore.get('user_location')?.value;
+  let savedLocation = null;
+  if (savedLocationCookie) {
+    try {
+      savedLocation = JSON.parse(decodeURIComponent(savedLocationCookie));
+    } catch (e) {
+      console.error("Error parsing location cookie:", e);
+    }
+  }
+
   const defaultLocation: GeoLocation = {
     latitude: 55.7558,
     longitude: 37.6173,
     name: 'Москва'
   };
 
-  const lat = searchParams.lat ? parseFloat(searchParams.lat) : defaultLocation.latitude;
-  const lon = searchParams.lon ? parseFloat(searchParams.lon) : defaultLocation.longitude;
-  const cityName = searchParams.city || defaultLocation.name!;
+  const lat = searchParams.lat ? parseFloat(searchParams.lat) : (savedLocation?.lat ?? defaultLocation.latitude);
+  const lon = searchParams.lon ? parseFloat(searchParams.lon) : (savedLocation?.lon ?? defaultLocation.longitude);
+  const cityName = searchParams.city || (savedLocation?.city ?? defaultLocation.name!);
   
   let tz = 'Europe/Moscow';
   try {

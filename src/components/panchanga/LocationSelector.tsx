@@ -62,6 +62,13 @@ export default function LocationSelector({ currentLocationName }: { currentLocat
     // Extract main city name from display_name if needed
     const shortName = name.split(',')[0];
     
+    // Save to cookie (valid for 1 year)
+    document.cookie = `user_location=${encodeURIComponent(JSON.stringify({
+      lat: parseFloat(lat.toString()),
+      lon: parseFloat(lon.toString()),
+      city: shortName
+    }))}; path=/; max-age=31536000; SameSite=Lax`;
+
     const params = new URLSearchParams(searchParams.toString());
     params.set('lat', lat.toString());
     params.set('lon', lon.toString());
