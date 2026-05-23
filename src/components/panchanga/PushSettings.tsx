@@ -59,18 +59,18 @@ export default function PushSettings({ latitude, longitude, cityName }: PushSett
 
     return (
         <>
-            <div className="relative flex items-center">
+            <div className="relative flex items-center w-full sm:w-auto">
                 {showTooltip && !isSubscribed && !isOpen && (
-                    <div className="absolute bottom-full mb-3 right-0 md:right-auto md:left-1/2 md:-translate-x-1/2 w-[280px] animate-in fade-in slide-in-from-bottom-2 duration-500 z-50">
+                    <div className="absolute top-full mt-4 right-0 md:right-auto md:left-1/2 md:-translate-x-1/2 w-[300px] animate-in fade-in slide-in-from-top-2 duration-500 z-50">
                         <div className="bg-[#1A1517]/95 backdrop-blur-xl border border-[#C9A227]/40 rounded-2xl p-4 shadow-[0_10px_40px_rgba(201,162,39,0.15)] relative">
-                            <div className="absolute -bottom-2 right-8 md:right-auto md:left-1/2 md:-translate-x-1/2 w-4 h-4 bg-[#1A1517] border-b border-r border-[#C9A227]/40 rotate-45"></div>
+                            <div className="absolute -top-2 right-8 md:right-auto md:left-1/2 md:-translate-x-1/2 w-4 h-4 bg-[#1A1517] border-t border-l border-[#C9A227]/40 rotate-45"></div>
                             <div className="flex items-start gap-3 relative z-10">
                                 <div className="w-8 h-8 rounded-full bg-[#C9A227]/10 flex flex-shrink-0 items-center justify-center border border-[#C9A227]/20">
                                     <Bell className="w-4 h-4 text-[#C9A227] animate-pulse" />
                                 </div>
                                 <div className="pr-2">
-                                    <p className="text-xs font-semibold text-[#E8D48B] mb-1">Не пропустите события!</p>
-                                    <p className="text-[10px] text-[#F5ECD7]/80 leading-relaxed">Включите уведомления, чтобы вовремя узнавать о наступлении Экадаши и смене Титхи.</p>
+                                    <p className="text-sm font-semibold text-[#E8D48B] mb-1">Не пропустите события!</p>
+                                    <p className="text-xs text-[#F5ECD7]/80 leading-relaxed">Включите уведомления, чтобы вовремя узнавать о наступлении Экадаши и смене Титхи.</p>
                                 </div>
                                 <button onClick={(e) => { e.stopPropagation(); setShowTooltip(false); }} className="absolute -top-1 -right-1 text-[#C9A227]/50 hover:text-[#C9A227] p-1 bg-black/20 rounded-full hover:bg-black/40 transition-colors">
                                     <X className="w-3 h-3" />
@@ -81,7 +81,7 @@ export default function PushSettings({ latitude, longitude, cityName }: PushSett
                 )}
                 <button
                     onClick={() => { setIsOpen(true); setShowTooltip(false); }}
-                    className={`flex items-center gap-3 bg-[#1A1517]/80 backdrop-blur-md border px-5 py-2.5 rounded-2xl transition-all duration-300 group ${
+                    className={`flex items-center gap-4 bg-[#1A1517]/80 backdrop-blur-md border px-5 py-3 sm:px-6 sm:py-4 rounded-2xl transition-all duration-300 group w-full sm:min-w-[240px] lg:min-w-[260px] ${
                         isSubscribed
                             ? 'border-[#C9A227]/40 hover:bg-[#C9A227]/10 hover:border-[#C9A227] shadow-[0_0_15px_rgba(201,162,39,0.1)]'
                             : 'border-[#C9A227]/20 hover:bg-[#C9A227]/10 hover:border-[#C9A227]/60'
@@ -89,20 +89,20 @@ export default function PushSettings({ latitude, longitude, cityName }: PushSett
                     title="Настроить уведомления"
                 >
                     {isSubscribed ? (
-                        <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-[#C9A227]/10 border border-[#C9A227]/30 group-hover:scale-105 transition-transform duration-300">
-                            <Bell className="w-4 h-4 text-[#C9A227]" />
-                            <span className="absolute top-0 right-0 w-2 h-2 bg-amber-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.8)]"></span>
+                        <div className="relative flex items-center justify-center w-10 h-10 rounded-full bg-[#C9A227]/10 border border-[#C9A227]/30 group-hover:scale-105 transition-transform duration-300">
+                            <Bell className="w-5 h-5 text-[#C9A227]" />
+                            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.8)]"></span>
                         </div>
                     ) : (
-                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 border border-white/10 group-hover:border-[#C9A227]/30 group-hover:bg-[#C9A227]/5 transition-all duration-300">
-                            <BellOff className="w-4 h-4 text-[#C9A227]/50 group-hover:text-[#C9A227]/80 transition-colors" />
+                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 border border-white/10 group-hover:border-[#C9A227]/30 group-hover:bg-[#C9A227]/5 transition-all duration-300 flex-shrink-0">
+                            <BellOff className="w-5 h-5 text-[#C9A227]/50 group-hover:text-[#C9A227]/80 transition-colors" />
                         </div>
                     )}
                     <div className="flex flex-col items-start text-left">
-                        <span className={`text-sm font-semibold tracking-wide leading-tight ${isSubscribed ? 'text-[#E8D48B]' : 'text-[#F5ECD7] group-hover:text-[#E8D48B] transition-colors'}`}>
+                        <span className={`text-base font-semibold tracking-wide leading-tight ${isSubscribed ? 'text-[#E8D48B]' : 'text-[#F5ECD7] group-hover:text-[#E8D48B] transition-colors'}`}>
                             {isSubscribed ? 'Уведомления ВКЛ' : 'Включить пуши'}
                         </span>
-                        <span className="text-[10px] text-[#C9A227]/60 uppercase tracking-wider font-medium leading-tight mt-0.5">
+                        <span className="text-xs text-[#C9A227]/60 uppercase tracking-wider font-medium leading-tight mt-1 group-hover:text-[#C9A227]/80 transition-colors">
                             {isSubscribed ? 'Настроить фильтры' : 'Узнавать о событиях'}
                         </span>
                     </div>

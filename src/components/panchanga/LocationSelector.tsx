@@ -122,16 +122,16 @@ export default function LocationSelector({ currentLocationName }: { currentLocat
     <div className="relative z-50" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 bg-[#1A1517]/80 backdrop-blur-md border border-[#C9A227]/20 px-5 py-2.5 rounded-2xl hover:bg-[#C9A227]/10 hover:border-[#C9A227]/60 transition-all duration-300 group"
+        className="flex items-center gap-4 bg-[#1A1517]/80 backdrop-blur-md border border-[#C9A227]/20 px-5 py-3 sm:px-6 sm:py-4 rounded-2xl hover:bg-[#C9A227]/10 hover:border-[#C9A227]/60 transition-all duration-300 group w-full sm:min-w-[240px] lg:min-w-[260px]"
       >
-        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 border border-white/10 group-hover:border-[#C9A227]/30 group-hover:bg-[#C9A227]/5 transition-all duration-300">
-            <MapPin className="w-4 h-4 text-[#C9A227]/80 group-hover:text-[#C9A227] group-hover:scale-110 group-hover:animate-bounce transition-all" />
+        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 border border-white/10 group-hover:border-[#C9A227]/30 group-hover:bg-[#C9A227]/5 transition-all duration-300 flex-shrink-0">
+            <MapPin className="w-5 h-5 text-[#C9A227]/80 group-hover:text-[#C9A227] group-hover:scale-110 group-hover:animate-bounce transition-all" />
         </div>
         <div className="flex flex-col items-start text-left">
-            <span className="text-[#F5ECD7] font-semibold tracking-wide text-sm leading-tight group-hover:text-[#E8D48B] transition-colors max-w-[140px] truncate">
+            <span className="text-[#F5ECD7] font-semibold tracking-wide text-base leading-tight group-hover:text-[#E8D48B] transition-colors max-w-[160px] sm:max-w-[180px] truncate">
                 {currentLocationName}
             </span>
-            <span className="text-[10px] text-[#C9A227]/60 uppercase tracking-wider font-medium leading-tight mt-0.5 group-hover:text-[#C9A227]/80 transition-colors">
+            <span className="text-xs text-[#C9A227]/60 uppercase tracking-wider font-medium leading-tight mt-1 group-hover:text-[#C9A227]/80 transition-colors">
                 Изменить город
             </span>
         </div>
