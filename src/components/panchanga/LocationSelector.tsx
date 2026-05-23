@@ -22,7 +22,28 @@ export default function LocationSelector({ currentLocationName }: { currentLocat
   const [results, setResults] = useState<NominatimResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [showPrompt, setShowPrompt] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Check if location cookie exists
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hasLocationCookie = document.cookie.split(';').some(item => item.trim().startsWith('user_location='));
+      if (!hasLocationCookie) {
+        setShowPrompt(true);
+      }
+    }
+  }, []);
+
+  const handleConfirmDefault = () => {
+    // Set Moscow default cookie (lat: 55.7558, lon: 37.6173)
+    document.cookie = `user_location=${encodeURIComponent(JSON.stringify({
+      lat: 55.7558,
+      lon: 37.6173,
+      city: 'Москва'
+    }))}; path=/; max-age=31536000; SameSite=Lax`;
+    setShowPrompt(false);
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -76,6 +97,7 @@ export default function LocationSelector({ currentLocationName }: { currentLocat
     
     router.push(`${pathname}?${params.toString()}`);
     setIsOpen(false);
+    setShowPrompt(false);
     setSearchQuery('');
   };
 
@@ -111,8 +133,9 @@ export default function LocationSelector({ currentLocationName }: { currentLocat
       },
       (error) => {
         console.error("Geolocation error:", error);
-        alert("Не удалось определить местоположение. Пожалуйста, введите город вручную.");
         setIsLocating(false);
+        setIsOpen(true);
+        setShowPrompt(false);
       },
       { timeout: 10000, enableHighAccuracy: true }
     );
@@ -214,6 +237,42 @@ export default function LocationSelector({ currentLocationName }: { currentLocat
                   Введите название города, чтобы найти его координаты в базе данных.
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPrompt && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] w-[92%] max-w-xl animate-in fade-in slide-in-from-bottom-5 duration-500">
+          <div className="bg-[#1A1517]/95 backdrop-blur-xl border border-[#C9A227]/40 rounded-2xl p-5 shadow-[0_10px_50px_rgba(201,162,39,0.25)]">
+            <p className="text-sm font-semibold text-[#E8D48B] mb-2 flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-[#C9A227]" />
+              Настройка часового пояса и координат
+            </p>
+            <p className="text-xs text-[#F5ECD7]/80 leading-relaxed mb-4">
+              Ведический календарь рассчитывает точное время начала Титхи и Мухурт (например, Брахма-мухурты) на основе вашего местоположения. Сейчас выбран город <strong className="text-[#E8D48B]">{currentLocationName}</strong>.
+            </p>
+            <div className="flex flex-wrap gap-2 justify-end">
+              <button 
+                onClick={handleConfirmDefault}
+                className="text-xs px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[#F5ECD7]/80 hover:bg-white/10 hover:text-white transition-colors"
+              >
+                Да, верно
+              </button>
+              <button 
+                onClick={handleGeolocate}
+                disabled={isLocating}
+                className="text-xs px-4 py-2 rounded-xl bg-[#C9A227]/10 border border-[#C9A227]/30 text-[#E8D48B] hover:bg-[#C9A227]/20 transition-colors flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {isLocating ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#C9A227]" /> : <Navigation className="w-3.5 h-3.5" />}
+                Определить по GPS
+              </button>
+              <button 
+                onClick={() => { setIsOpen(true); setShowPrompt(false); }}
+                className="text-xs px-4 py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#AA842C] text-[#1A1517] font-semibold hover:shadow-[0_0_10px_rgba(201,162,39,0.3)] transition-all"
+              >
+                Выбрать другой
+              </button>
             </div>
           </div>
         </div>

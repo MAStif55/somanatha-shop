@@ -586,6 +586,45 @@ export function getDailyPanchanga(date: Date, location: GeoLocation) {
   };
 }
 
+export function getParanaDetails(ekadashiDate: Date, location: GeoLocation) {
+  try {
+    const ekadashiBoundaries = findTithiBoundaries(ekadashiDate);
+    const dwadashiStart = ekadashiBoundaries.end;
+    
+    const insideDwadashi = new Date(dwadashiStart.getTime() + 2 * 3600000);
+    const dwadashiBoundaries = findTithiBoundaries(insideDwadashi);
+    const dwadashiEnd = dwadashiBoundaries.end;
+    
+    const dwadashiDuration = dwadashiEnd.getTime() - dwadashiStart.getTime();
+    const hariVasaraEnd = new Date(dwadashiStart.getTime() + dwadashiDuration * 0.25);
+    
+    const dwadashiDay = new Date(ekadashiDate.getTime() + 24 * 60 * 60 * 1000);
+    const sunTimes = getSunTimes(dwadashiDay, location);
+    if (!sunTimes.sunrise) return null;
+    
+    const sunrise = sunTimes.sunrise;
+    
+    let paranaStart = new Date(Math.max(sunrise.getTime(), hariVasaraEnd.getTime()));
+    const oneThirdDaylight = new Date(sunrise.getTime() + (sunTimes.daylightMs / 3));
+    let paranaEnd = new Date(Math.min(dwadashiEnd.getTime(), oneThirdDaylight.getTime()));
+    
+    if (paranaStart.getTime() >= paranaEnd.getTime()) {
+      paranaStart = sunrise;
+      paranaEnd = new Date(Math.min(dwadashiEnd.getTime(), sunrise.getTime() + 3 * 3600000));
+    }
+    
+    return {
+      paranaStart,
+      paranaEnd,
+      hariVasaraEnd,
+      dwadashiEnd
+    };
+  } catch (error) {
+    console.error("Error calculating Parana:", error);
+    return null;
+  }
+}
+
 // ════════════════════════════════════════════════════════
 //  БЛИЖАЙШИЕ СОБЫТИЯ
 // ════════════════════════════════════════════════════════
@@ -596,7 +635,7 @@ export function getUpcomingEvents(startDate: Date, days: number, location: GeoLo
     title: string;
     date: Date;
     description: string;
-    details: ReturnType<typeof getPradoshamDetails>;
+    details: any;
     importance: 'high' | 'medium' | 'low';
   }> = [];
 
@@ -640,10 +679,11 @@ export function getUpcomingEvents(startDate: Date, days: number, location: GeoLo
 
     // ── ЭКАДАШИ (11-й титхи) ──
     if (tithi.number === 11) {
+      const parana = getParanaDetails(checkDate, location);
       events.push({
         type: 'ekadashi', title: `Экадаши (${tithi.isShukla ? 'Шукла' : 'Кришна'})`, date: checkDate,
         description: 'День поста и духовной практики. Воздержание от зерновых.',
-        details: null, importance: 'medium',
+        details: parana, importance: 'medium',
       });
     }
 

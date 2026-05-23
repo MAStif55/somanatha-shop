@@ -11,6 +11,7 @@ interface PushSettingsModalProps {
     latitude: number;
     longitude: number;
     cityName: string;
+    reminderEventName?: string;
 }
 
 function urlBase64ToUint8Array(base64String: string) {
@@ -28,7 +29,7 @@ function urlBase64ToUint8Array(base64String: string) {
     return outputArray;
 }
 
-export default function PushSettingsModal({ isOpen, onClose, latitude, longitude, cityName }: PushSettingsModalProps) {
+export default function PushSettingsModal({ isOpen, onClose, latitude, longitude, cityName, reminderEventName }: PushSettingsModalProps) {
     const [isSupported, setIsSupported] = useState(true);
     const [permissionStatus, setPermissionStatus] = useState<NotificationPermission>('default');
     const [isIOS, setIsIOS] = useState(false);
@@ -255,6 +256,19 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
                 </div>
 
                 <div className="flex-1 p-6 overflow-y-auto space-y-6 custom-scrollbar text-[#F5ECD7]">
+                    
+                    {/* Event Specific Reminder Context Banner */}
+                    {reminderEventName && (
+                        <div className="p-4 bg-[#C9A227]/5 border border-[#C9A227]/30 rounded-2xl flex items-start gap-3 animate-in fade-in duration-300">
+                            <Bell className="w-5 h-5 text-[#C9A227] shrink-0 mt-0.5" />
+                            <div>
+                                <h4 className="font-semibold text-sm text-[#E8D48B]">Браузерное уведомление о празднике</h4>
+                                <p className="text-xs text-[#F5ECD7]/80 mt-1 leading-relaxed">
+                                    Вы настраиваете оповещения для события <strong className="text-[#E8D48B]">{reminderEventName}</strong>. После подписки вы будете получать браузерные пуш-уведомления на этом устройстве.
+                                </p>
+                            </div>
+                        </div>
+                    )}
                     
                     {/* Error Details Alert */}
                     {errorDetails && (

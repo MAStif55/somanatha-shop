@@ -37,6 +37,7 @@ export default function UpcomingEvents({ location }: UpcomingEventsProps) {
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [isPushModalOpen, setIsPushModalOpen] = useState(false);
+    const [reminderEventName, setReminderEventName] = useState<string | undefined>(undefined);
 
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(monthStart);
@@ -141,7 +142,10 @@ export default function UpcomingEvents({ location }: UpcomingEventsProps) {
                             {selectedDate ? format(selectedDate, 'd MMMM yyyy', { locale: ru }) : 'Все события месяца'}
                         </h4>
                         <button 
-                            onClick={() => setIsPushModalOpen(true)}
+                            onClick={() => {
+                                setReminderEventName(undefined);
+                                setIsPushModalOpen(true);
+                            }}
                             className="flex items-center gap-2 text-xs text-[#C9A227]/80 hover:text-[#C9A227] px-3 py-1.5 rounded-full border border-[#C9A227]/20 hover:bg-[#C9A227]/10 transition-colors"
                         >
                             <Bell className="w-3.5 h-3.5" />
@@ -205,8 +209,21 @@ export default function UpcomingEvents({ location }: UpcomingEventsProps) {
                                                     </span>
                                                 </div>
                                             )}
+                                            {event.type === 'ekadashi' && event.details && (
+                                                <div className="flex items-center gap-3 bg-[#0D0A0B]/50 px-4 py-2.5 rounded-xl border border-[#C9A227]/15 w-full sm:w-auto justify-between sm:justify-start">
+                                                    <span className="text-[#F5ECD7]/40 text-[10px] uppercase tracking-widest font-bold">Парана:</span>
+                                                    <span className="text-[#C9A227] font-mono text-sm tracking-wide">
+                                                        {new Date(event.details.paranaStart).toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit', timeZone: location.timezone})}
+                                                        {' – '}
+                                                        {new Date(event.details.paranaEnd).toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit', timeZone: location.timezone})}
+                                                    </span>
+                                                </div>
+                                            )}
                                             <button 
-                                                onClick={() => setIsPushModalOpen(true)}
+                                                onClick={() => {
+                                                    setReminderEventName(event.title);
+                                                    setIsPushModalOpen(true);
+                                                }}
                                                 className="flex items-center justify-center gap-2 text-xs uppercase tracking-wider font-semibold text-[#1A1517] px-5 py-2.5 bg-gradient-to-r from-[#D4AF37] to-[#AA842C] hover:from-[#E8D48B] hover:to-[#D4AF37] rounded-xl transition-all shadow-[0_0_15px_rgba(201,162,39,0.2)] hover:shadow-[0_0_20px_rgba(201,162,39,0.4)] w-full sm:w-auto"
                                             >
                                                 <Bell className="w-4 h-4" />
@@ -227,6 +244,7 @@ export default function UpcomingEvents({ location }: UpcomingEventsProps) {
                 latitude={location.latitude}
                 longitude={location.longitude}
                 cityName={location.name || 'Ваш город'}
+                reminderEventName={reminderEventName}
             />
         </>
     );
