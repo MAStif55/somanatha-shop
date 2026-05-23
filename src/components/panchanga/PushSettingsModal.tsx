@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Bell, BellOff, Info, Check, Share, ArrowUp, Loader2 } from 'lucide-react';
+import { X, Bell, BellOff, Info, Check, Share, ArrowUp, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import LocationSelector from './LocationSelector';
 
 interface PushSettingsModalProps {
@@ -35,6 +35,7 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [errorDetails, setErrorDetails] = useState<string | null>(null);
+    const [showInstructions, setShowInstructions] = useState(false);
 
     // Form settings
     const [preferences, setPreferences] = useState({
@@ -398,6 +399,55 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
                                         <p className="text-[10px] text-zinc-500">Уведомления не будут будить вас ночью. Все пуши придут утром.</p>
                                     </div>
                                 </label>
+                            </div>
+                            {/* Sound & Lockscreen Instructions Toggle */}
+                            <div className="border border-[#C9A227]/20 rounded-xl overflow-hidden bg-[#1A1517]/20">
+                                <button 
+                                    type="button"
+                                    onClick={() => setShowInstructions(!showInstructions)}
+                                    className="w-full flex items-center justify-between p-3.5 text-left text-xs font-semibold text-[#E8D48B] hover:bg-[#C9A227]/5 transition-all"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Bell className="w-4 h-4 text-[#C9A227]" />
+                                        <span>Как включить звук и показ на экране блокировки?</span>
+                                    </div>
+                                    {showInstructions ? (
+                                        <ChevronUp className="w-4 h-4 text-[#C9A227]" />
+                                    ) : (
+                                        <ChevronDown className="w-4 h-4 text-[#C9A227]" />
+                                    )}
+                                </button>
+                                
+                                {showInstructions && (
+                                    <div className="p-4 border-t border-[#C9A227]/10 space-y-4 text-xs text-[#F5ECD7]/80 bg-[#0D0A0B]/60 leading-relaxed">
+                                        {/* Android / Desktop */}
+                                        <div className="space-y-1.5">
+                                            <h4 className="font-bold text-[#E8D48B]">🤖 Для Android и ПК (Chrome, Яндекс и др.):</h4>
+                                            <p>
+                                                По умолчанию браузеры могут присылать уведомления беззвучно. Чтобы они будили вас и отображались при заблокированном экране:
+                                            </p>
+                                            <ol className="list-decimal pl-4 space-y-1 mt-1 text-[#F5ECD7]/70">
+                                                <li>Зайдите в настройки телефона <strong>→ Приложения → Все приложения</strong>.</li>
+                                                <li>Выберите ваш браузер (например, <strong>Chrome</strong>) и откройте раздел <strong>Уведомления</strong>.</li>
+                                                <li>Прокрутите вниз до пункта <strong>«Сайты»</strong> (или «Уведомления от сайтов») и найдите адрес сайта.</li>
+                                                <li>Включите переключатели <strong>«Звук»</strong>, <strong>«Вибрация»</strong>, <strong>«Всплывающие уведомления»</strong> и выберите показ <strong>«На экране блокировки»</strong>.</li>
+                                            </ol>
+                                        </div>
+
+                                        {/* iOS (iPhone/iPad) */}
+                                        <div className="space-y-1.5 pt-3 border-t border-[#C9A227]/10">
+                                            <h4 className="font-bold text-[#E8D48B]">🍎 Для iPhone и iPad (iOS 16.4+):</h4>
+                                            <p>
+                                                На устройствах Apple пуш-уведомления работают только после установки сайта в качестве веб-приложения:
+                                            </p>
+                                            <ol className="list-decimal pl-4 space-y-1 mt-1 text-[#F5ECD7]/70">
+                                                <li>Добавьте сайт на экран «Домой» (нажмите <strong>«Поделиться»</strong> <Share className="w-3.5 h-3.5 inline text-[#C9A227]" /> <strong>→ «На экран Домой»</strong>) и запустите его.</li>
+                                                <li>Зайдите в системные настройки устройства <strong>→ Уведомления → Somanatha</strong>.</li>
+                                                <li>Разрешите допуск уведомлений, включите звуки и показ на заблокированном экране.</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Location Details Info */}
