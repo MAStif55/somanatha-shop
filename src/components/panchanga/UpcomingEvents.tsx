@@ -18,6 +18,7 @@ import {
 } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import PushSettingsModal from './PushSettingsModal';
+import VedicTermTooltip from './VedicTermTooltip';
 
 interface UpcomingEventsProps {
     location: GeoLocation;
@@ -31,6 +32,15 @@ const eventStyles: Record<string, { icon: React.ReactNode; bg: string; border: s
     purnima:            { icon: <Sun className="w-5 h-5 text-amber-300" />, bg: 'bg-amber-500/10', border: 'border-amber-400/20', dot: 'bg-amber-300 shadow-[0_0_5px_#fcd34d]' },
     amavasya:           { icon: <MoonStar className="w-5 h-5 text-indigo-300" />, bg: 'bg-indigo-500/10', border: 'border-indigo-400/20', dot: 'bg-indigo-400 shadow-[0_0_5px_#818cf8]' },
     chaturthi:          { icon: <span className="text-xl leading-none">🐘</span>, bg: 'bg-orange-500/10', border: 'border-orange-400/20', dot: 'bg-orange-400 shadow-[0_0_5px_#fb923c]' },
+    sankranti:          { icon: <span className="text-xl leading-none">☀️</span>, bg: 'bg-amber-500/10', border: 'border-amber-400/20', dot: 'bg-amber-400 shadow-[0_0_5px_#f59e0b]' },
+    maha_shivaratri:    { icon: <span className="text-xl leading-none">🔱</span>, bg: 'bg-[#C9A227]/20', border: 'border-[#C9A227]/45', dot: 'bg-[#C9A227] shadow-[0_0_8px_#C9A227]' },
+    vasanta_navaratri:  { icon: <span className="text-xl leading-none">🌸</span>, bg: 'bg-rose-500/10', border: 'border-rose-400/20', dot: 'bg-rose-400 shadow-[0_0_5px_#f43f5e]' },
+    sharad_navaratri:   { icon: <span className="text-xl leading-none">🌺</span>, bg: 'bg-rose-500/10', border: 'border-rose-400/20', dot: 'bg-rose-400 shadow-[0_0_5px_#f43f5e]' },
+    guru_purnima:       { icon: <span className="text-xl leading-none">🕉</span>, bg: 'bg-[#C9A227]/10', border: 'border-[#C9A227]/25', dot: 'bg-[#C9A227] shadow-[0_0_5px_#C9A227]' },
+    kartik_purnima:     { icon: <span className="text-xl leading-none">🔱</span>, bg: 'bg-[#C9A227]/20', border: 'border-[#C9A227]/45', dot: 'bg-[#C9A227] shadow-[0_0_8px_#C9A227]' },
+    ganesh_chaturthi:   { icon: <span className="text-xl leading-none">🐘</span>, bg: 'bg-orange-500/10', border: 'border-orange-400/20', dot: 'bg-orange-400 shadow-[0_0_5px_#fb923c]' },
+    diwali:             { icon: <span className="text-xl leading-none">🪔</span>, bg: 'bg-yellow-500/10', border: 'border-yellow-400/20', dot: 'bg-yellow-400 shadow-[0_0_5px_#eab308]' },
+    ardra:              { icon: <span className="text-xl leading-none">🕉</span>, bg: 'bg-[#C9A227]/10', border: 'border-[#C9A227]/25', dot: 'bg-[#C9A227] shadow-[0_0_5px_#C9A227]' }
 };
 
 export default function UpcomingEvents({ location }: UpcomingEventsProps) {
@@ -184,7 +194,11 @@ export default function UpcomingEvents({ location }: UpcomingEventsProps) {
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2 flex-wrap mb-1">
-                                                    <p className="font-semibold text-[#F5ECD7] text-lg group-hover:text-[#E8D48B] transition-colors">{event.title}</p>
+                                                    <VedicTermTooltip termName={event.title}>
+                                                        <span className="font-semibold text-[#F5ECD7] text-lg group-hover:text-[#E8D48B] transition-colors border-b border-dashed border-[#C9A227]/30 hover:border-[#C9A227] cursor-pointer">
+                                                            {event.title}
+                                                        </span>
+                                                    </VedicTermTooltip>
                                                     {event.importance === 'high' && (
                                                         <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border bg-[#C9A227]/15 text-[#C9A227] border-[#C9A227]/30">
                                                             Важно

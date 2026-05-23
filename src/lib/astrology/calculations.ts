@@ -643,7 +643,22 @@ export function getUpcomingEvents(startDate: Date, days: number, location: GeoLo
     const checkDate = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
     const tithi = getTithi(checkDate);
     const nakshatra = getNakshatra(checkDate);
+    const solarMonth = getSolarMonth(checkDate);
     const dayOfWeek = checkDate.getUTCDay();
+
+    // ── СУРЬЯ САНКРАНТИ (Смена знака Солнца) ──
+    const prevDate = new Date(checkDate.getTime() - 24 * 60 * 60 * 1000);
+    const prevSolar = getSolarMonth(prevDate);
+    if (solarMonth.index !== prevSolar.index) {
+      events.push({
+        type: 'sankranti',
+        title: `Сурья Санкранти (${solarMonth.name})`,
+        date: checkDate,
+        description: `Солнце переходит в знак ${solarMonth.fullName}. Период смены знака считается неблагоприятным для материальных дел, но исключительно благоприятен для духовных практик, благотворительности и медитации.`,
+        details: null,
+        importance: 'medium',
+      });
+    }
 
     // ── ПРАДОШАМ (13-й титхи) ──
     if (tithi.number === 13) {
@@ -659,12 +674,62 @@ export function getUpcomingEvents(startDate: Date, days: number, location: GeoLo
       }
     }
 
-    // ── МАСА ШИВАРАТРИ (Кришна 14) ──
+    // ── МАСА ШИВАРАТРИ / МАХАШИВАРАТРИ (Кришна 14) ──
     if (!tithi.isShukla && tithi.number === 14) {
+      const isMahaShivaratri = solarMonth.index === 10 || (solarMonth.index === 9 && (checkDate.getMonth() === 1 || checkDate.getMonth() === 2));
+      if (isMahaShivaratri) {
+        events.push({
+          type: 'maha_shivaratri',
+          title: 'Махашиваратри 🔱',
+          date: checkDate,
+          description: 'Великая Ночь Шивы. Самый священный день года для преданных Шивы. Рекомендуется строгий пост, всенощное бдение и молитва.',
+          details: null,
+          importance: 'high',
+        });
+      } else {
+        events.push({
+          type: 'shivaratri',
+          title: 'Маса Шиваратри',
+          date: checkDate,
+          description: 'Ежемесячная Шиваратри. Ночь бдения и медитации на Шиву.',
+          details: null,
+          importance: 'high',
+        });
+      }
+    }
+
+    // ── НАВАРАТРИ (Васанта / Шарад) ──
+    if (tithi.isShukla && tithi.number === 1) {
+      if (solarMonth.index === 11) { // Мина / Чайтра
+        events.push({
+          type: 'vasanta_navaratri',
+          title: 'Васанта Наваратри 🌸',
+          date: checkDate,
+          description: 'Начало весеннего фестиваля Деви (Божественной Матери). Девять дней поклонения Дурге, Лакшми и Сарасвати.',
+          details: null,
+          importance: 'high',
+        });
+      } else if (solarMonth.index === 5) { // Канья / Ашвина
+        events.push({
+          type: 'sharad_navaratri',
+          title: 'Шарад Наваратри 🌺',
+          date: checkDate,
+          description: 'Начало главного осеннего фестиваля Деви (Божественной Матери). Девять ночей поклонения различным ипостасям Деви.',
+          details: null,
+          importance: 'high',
+        });
+      }
+    }
+
+    // ── ГАНЕШ ЧАТУРТХИ ──
+    if (tithi.isShukla && tithi.number === 4 && solarMonth.index === 4) { // Симха / Бхадрапада
       events.push({
-        type: 'shivaratri', title: 'Маса Шиваратри', date: checkDate,
-        description: 'Ежемесячная Шиваратри. Ночь бдения и медитации на Шиву.',
-        details: null, importance: 'high',
+        type: 'ganesh_chaturthi',
+        title: 'Ганеш Чатуртхи 🐘',
+        date: checkDate,
+        description: 'День явления Господа Ганеши, устранителя препятствий. Благоприятны молитвы Ганеше для успешных начинаний.',
+        details: null,
+        importance: 'high',
       });
     }
 
@@ -673,7 +738,8 @@ export function getUpcomingEvents(startDate: Date, days: number, location: GeoLo
       events.push({
         type: 'bhairava', title: 'Калаштами (Бхайрава Аштами)', date: checkDate,
         description: 'День почитания Бхайравы — гневной формы Шивы. Пуджа и медитация.',
-        details: null, importance: 'medium',
+        details: null,
+        importance: 'medium',
       });
     }
 
@@ -687,27 +753,62 @@ export function getUpcomingEvents(startDate: Date, days: number, location: GeoLo
       });
     }
 
-    // ── ПУРНИМА (Шукла 15) ──
+    // ── ПУРНИМА / ГУРУ ПУРНИМА / КАРТИК ПУРНИМА ──
     if (tithi.isShukla && tithi.number === 15) {
-      events.push({
-        type: 'purnima', title: 'Пурнима (Полнолуние)', date: checkDate,
-        description: 'Полнолуние. Благоприятный день для духовных практик и пуджи.',
-        details: null, importance: 'medium',
-      });
+      if (solarMonth.index === 2) { // Митхуна / Ашадха
+        events.push({
+          type: 'guru_purnima',
+          title: 'Гуру Пурнима 🕉',
+          date: checkDate,
+          description: 'День почитания духовных учителей (Гуру) и мудреца Вьясы. Благоприятно выражать почтение и благодарность наставникам.',
+          details: null,
+          importance: 'high',
+        });
+      } else if (solarMonth.index === 6) { // Тула / Картика
+        events.push({
+          type: 'kartik_purnima',
+          title: 'Картик Пурнима (Трипурари Пурнима) 🔱',
+          date: checkDate,
+          description: 'День победы Шивы над демоном Трипурасурой. Благоприятно омовение в священных водах и зажигание глиняных лампад (дип).',
+          details: null,
+          importance: 'high',
+        });
+      } else {
+        events.push({
+          type: 'purnima',
+          title: 'Пурнима (Полнолуние)',
+          date: checkDate,
+          description: 'Полнолуние. Благоприятный день для духовных практик и пуджи.',
+          details: null,
+          importance: 'medium',
+        });
+      }
     }
 
-    // ── АМАВАСЬЯ (Кришна 15) ──
+    // ── АМАВАСЬЯ / ДИВАЛИ (Кришна 15) ──
     if (!tithi.isShukla && tithi.number === 15) {
       const isSomavati = dayOfWeek === 1;
-      events.push({
-        type: isSomavati ? 'somavati_amavasya' : 'amavasya',
-        title: isSomavati ? 'Сомавати Амавасья 🕉' : 'Амавасья (Новолуние)',
-        date: checkDate,
-        description: isSomavati
-          ? 'Новолуние в понедельник — особо священна для Шивы.'
-          : 'Новолуние. День поминовения предков (Питри Тарпана).',
-        details: null, importance: isSomavati ? 'high' : 'medium',
-      });
+      if (solarMonth.index === 6) { // Тула / Картика
+        events.push({
+          type: 'diwali',
+          title: 'Дивали (Фестиваль огней) 🪔',
+          date: checkDate,
+          description: 'Великий фестиваль огней и поклонение Богине процветания Лакшми. Праздник победы света над тьмой и добра над злом.',
+          details: null,
+          importance: 'high',
+        });
+      } else {
+        events.push({
+          type: isSomavati ? 'somavati_amavasya' : 'amavasya',
+          title: isSomavati ? 'Сомавати Амавасья 🕉' : 'Амавасья (Новолуние)',
+          date: checkDate,
+          description: isSomavati
+            ? 'Новолуние в понедельник — особо священна для Шивы.'
+            : 'Новолуние. День поминовения предков (Питри Тарпана).',
+          details: null,
+          importance: isSomavati ? 'high' : 'medium',
+        });
+      }
     }
 
     // ── САНКАШТИ ЧАТУРТХИ (Кришна 4) ──
@@ -721,7 +822,6 @@ export function getUpcomingEvents(startDate: Date, days: number, location: GeoLo
 
     // ── НАКШАТРА АРДРА (управляется Рудрой/Шивой) ──
     if (nakshatra.isArdra) {
-      // Проверяем, не добавили ли уже (Ардра длится ~1 день)
       const alreadyAdded = events.some(e => e.type === 'ardra' && Math.abs(e.date.getTime() - checkDate.getTime()) < 24*60*60*1000);
       if (!alreadyAdded) {
         events.push({
@@ -732,7 +832,7 @@ export function getUpcomingEvents(startDate: Date, days: number, location: GeoLo
       }
     }
 
-    if (events.length >= 12) break;
+    if (events.length >= 15) break;
   }
 
   events.sort((a, b) => a.date.getTime() - b.date.getTime());
