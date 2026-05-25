@@ -55,8 +55,6 @@ export default function PushSettings({ latitude, longitude, cityName }: PushSett
         }
     };
 
-    if (!isSupported) return null;
-
     return (
         <>
             <div className="relative flex items-center w-full sm:w-auto">
