@@ -552,7 +552,15 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
 
                     {!isSupported && (
                         <div className="w-full text-center text-xs text-red-400 p-2">
-                            Уведомления не поддерживаются в этом браузере. Используйте Safari на iOS (добавив сайт на экран Домой) или Chrome/Firefox на Android/ПК.
+                            {isIOS && isStandalone ? (
+                                <>
+                                    Уведомления не поддерживаются на вашем устройстве. Похоже, у вас старая версия iOS.
+                                    <br/><br/>
+                                    <span className="text-[#F5ECD7]/80">Для работы веб-уведомлений требуется <strong>iOS версии 16.4 или новее</strong>. Пожалуйста, обновите систему в настройках iPhone.</span>
+                                </>
+                            ) : (
+                                <>Уведомления не поддерживаются в этом браузере. Используйте Safari на iOS (добавив сайт на экран Домой) или Chrome/Firefox на Android/ПК.</>
+                            )}
                         </div>
                     )}
                 </div>
