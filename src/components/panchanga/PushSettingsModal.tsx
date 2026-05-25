@@ -561,6 +561,13 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
                             ) : (
                                 <>Уведомления не поддерживаются в этом браузере. Используйте Safari на iOS (добавив сайт на экран Домой) или Chrome/Firefox на Android/ПК.</>
                             )}
+                            <div className="mt-4 p-2 bg-black/50 text-left text-[9px] text-zinc-500 rounded font-mono break-all border border-white/5">
+                                Debug Info:<br/>
+                                UA: {typeof window !== 'undefined' ? navigator.userAgent : 'ssr'}<br/>
+                                SW: {typeof window !== 'undefined' ? ('serviceWorker' in navigator ? 'yes' : 'no') : 'ssr'}<br/>
+                                PM: {typeof window !== 'undefined' ? ('PushManager' in window ? 'yes' : 'no') : 'ssr'}<br/>
+                                iOS: {isIOS ? 'yes' : 'no'}, Standalone: {isStandalone ? 'yes' : 'no'}
+                            </div>
                         </div>
                     )}
                 </div>
