@@ -921,7 +921,13 @@ export function getUpcomingEvents(startDate: Date, days: number, location: GeoLo
 
   for (let i = 1; i <= days; i++) {
     const checkDate = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
-    const dayEvents = getEventsForDate(checkDate, location);
+    
+    // Используем Udaya Tithi (время рассвета) как в getDailyPanchanga
+    const sunTimes = getSunTimes(checkDate, location);
+    const udayaDate = sunTimes.sunrise ? new Date(sunTimes.sunrise.getTime() + 60000) : checkDate;
+    
+    // Передаем udayaDate для получения праздников, но сохраняем оригинальный checkDate для UI
+    const dayEvents = getEventsForDate(udayaDate, location).map(e => ({...e, date: checkDate}));
     
     for (const e of dayEvents) {
       if (e.type === 'ardra') {
