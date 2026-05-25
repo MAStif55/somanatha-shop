@@ -61,12 +61,7 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
         const pushSupported = 'serviceWorker' in navigator && 'PushManager' in window;
         setIsSupported(pushSupported);
 
-        if (!pushSupported) return;
-
-        // 2. Check current notification permission
-        setPermissionStatus(Notification.permission);
-
-        // 3. Detect iOS and Standalone PWA mode
+        // Detect iOS and Standalone PWA mode (Must be done before returning)
         const ua = window.navigator.userAgent.toLowerCase();
         const iosDetected = /iphone|ipad|ipod/.test(ua);
         setIsIOS(iosDetected);
@@ -74,6 +69,11 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
         const iosStandalone = (window.navigator as any).standalone === true;
         const displayStandalone = window.matchMedia('(display-mode: standalone)').matches;
         setIsStandalone(iosStandalone || displayStandalone);
+
+        if (!pushSupported) return;
+
+        // 2. Check current notification permission
+        setPermissionStatus(Notification.permission);
 
         // 4. Check if currently subscribed in browser and sync preferences
         navigator.serviceWorker.ready.then(async (registration) => {
