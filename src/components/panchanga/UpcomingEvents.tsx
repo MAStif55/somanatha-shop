@@ -40,7 +40,12 @@ const eventStyles: Record<string, { icon: React.ReactNode; bg: string; border: s
     kartik_purnima:     { icon: <span className="text-xl leading-none">🔱</span>, bg: 'bg-[#C9A227]/20', border: 'border-[#C9A227]/45', dot: 'bg-[#C9A227] shadow-[0_0_8px_#C9A227]' },
     ganesh_chaturthi:   { icon: <span className="text-xl leading-none">🐘</span>, bg: 'bg-orange-500/10', border: 'border-orange-400/20', dot: 'bg-orange-400 shadow-[0_0_5px_#fb923c]' },
     diwali:             { icon: <span className="text-xl leading-none">🪔</span>, bg: 'bg-yellow-500/10', border: 'border-yellow-400/20', dot: 'bg-yellow-400 shadow-[0_0_5px_#eab308]' },
-    ardra:              { icon: <span className="text-xl leading-none">🕉</span>, bg: 'bg-[#C9A227]/10', border: 'border-[#C9A227]/25', dot: 'bg-[#C9A227] shadow-[0_0_5px_#C9A227]' }
+    ardra:              { icon: <span className="text-xl leading-none">🕉</span>, bg: 'bg-[#C9A227]/10', border: 'border-[#C9A227]/25', dot: 'bg-[#C9A227] shadow-[0_0_5px_#C9A227]' },
+    hanuman_jayanti:    { icon: <span className="text-xl leading-none">🐒</span>, bg: 'bg-[#C9A227]/10', border: 'border-[#C9A227]/25', dot: 'bg-[#C9A227] shadow-[0_0_5px_#C9A227]' },
+    kubera_jayanti:     { icon: <span className="text-xl leading-none">💰</span>, bg: 'bg-yellow-500/10', border: 'border-yellow-400/20', dot: 'bg-yellow-400 shadow-[0_0_5px_#eab308]' },
+    dhanteras:          { icon: <span className="text-xl leading-none">🪔</span>, bg: 'bg-yellow-500/10', border: 'border-yellow-400/20', dot: 'bg-yellow-400 shadow-[0_0_5px_#eab308]' },
+    shani_jayanti:      { icon: <span className="text-xl leading-none">🪐</span>, bg: 'bg-indigo-500/10', border: 'border-indigo-400/20', dot: 'bg-indigo-400 shadow-[0_0_5px_#818cf8]' },
+    ganga_dussehra:     { icon: <span className="text-xl leading-none">🌊</span>, bg: 'bg-sky-500/10', border: 'border-sky-400/20', dot: 'bg-sky-400 shadow-[0_0_5px_#38bdf8]' }
 };
 
 export default function UpcomingEvents({ location }: UpcomingEventsProps) {

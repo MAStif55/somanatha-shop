@@ -198,6 +198,39 @@ export default function HeroWidget({ panchanga, momentPanchanga, location }: Her
             })()}
           </div>
 
+          {/* Активные праздники и события дня */}
+          {(() => {
+            const displayEvents = panchanga.events?.filter(e => e.type !== 'ardra' && e.type !== 'pradosham') || [];
+            if (displayEvents.length === 0) return null;
+            return (
+              <div className="space-y-3">
+                {displayEvents.map((event, idx) => (
+                  <div key={idx} className="relative rounded-xl overflow-hidden border border-[#C9A227]/30 p-4"
+                       style={{ background: 'linear-gradient(135deg, rgba(201,162,39,0.12) 0%, rgba(45,27,31,0.5) 100%)' }}>
+                    <div className="flex items-center gap-2 text-[#E8D48B] mb-1">
+                      <span className="text-lg">🎉</span>
+                      <h4 className="font-semibold text-base font-ornamental">
+                        Сегодня: <VedicTermTooltip termName={event.title}>
+                          <span className="border-b border-dashed border-[#C9A227]/30 hover:border-[#C9A227] cursor-pointer">
+                            {event.title}
+                          </span>
+                        </VedicTermTooltip>
+                      </h4>
+                      {event.importance === 'high' && (
+                        <span className="text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full border bg-[#C9A227]/15 text-[#C9A227] border-[#C9A227]/30">
+                          Важно
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[#F5ECD7]/70 text-sm leading-relaxed">
+                      {event.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+
           {/* Шиваитские маркеры (если есть) */}
           {(currentTithi.isBhairavaAshtami || isArdraNakshatra || isShivaYoga || isSomvar) && (
             <div className="relative rounded-xl overflow-hidden border border-[#C9A227]/25 p-4"
