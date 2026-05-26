@@ -63,10 +63,14 @@ export default function HeroWidget({ panchanga, momentPanchanga, location }: Her
   const currentTithi = dynamicPanchanga ? dynamicPanchanga.tithi : panchanga.tithi;
   const tithiBoundaries = dynamicPanchanga ? dynamicPanchanga.tithiBoundaries : null;
 
-  // Exact illumination: 0 = new moon, 1 = full moon
+  // Астрономическая (геометрическая) освещенность: 0 = новолуние, 1 = полнолуние
+  // 1 Титхи = 12 градусов. Вычисляем текущий угол и применяем косинусную формулу.
+  const angleDegrees = (currentTithi.number - 1 + currentTithi.progress) * 12;
+  const angleRadians = angleDegrees * (Math.PI / 180);
+  
   const exactPhase = currentTithi.isShukla
-    ? (currentTithi.number - 1 + currentTithi.progress) / 15
-    : 1 - ((currentTithi.number - 1 + currentTithi.progress) / 15);
+    ? (1 - Math.cos(angleRadians)) / 2
+    : (1 + Math.cos(angleRadians)) / 2;
 
   const isShukla = currentTithi.isShukla;
 
