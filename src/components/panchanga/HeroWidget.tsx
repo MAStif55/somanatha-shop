@@ -109,14 +109,14 @@ export default function HeroWidget({ panchanga, momentPanchanga, location }: Her
               }}
             />
 
-            {/* Phase shadow overlay */}
+            {/* Phase shadow overlay (Curved for 2D fallback) */}
             {exactPhase < 0.98 && (
               <div
-                className="absolute inset-0 pointer-events-none"
+                className="absolute inset-0 pointer-events-none rounded-full"
                 style={{
-                  background: isShukla
-                    ? `linear-gradient(to right, rgba(5,3,4,0.95) 0%, rgba(5,3,4,0.95) ${darkPercent - 15}%, rgba(5,3,4,0) ${Math.min(darkPercent + 10, 100)}%)`
-                    : `linear-gradient(to left, rgba(5,3,4,0.95) 0%, rgba(5,3,4,0.95) ${darkPercent - 15}%, rgba(5,3,4,0) ${Math.min(darkPercent + 10, 100)}%)`,
+                  boxShadow: isShukla
+                    ? `inset ${darkPercent * 1.5}px 0px ${darkPercent}px calc(${darkPercent * -0.2}px) rgba(5,3,4,0.95)`
+                    : `inset -${darkPercent * 1.5}px 0px ${darkPercent}px calc(${darkPercent * -0.2}px) rgba(5,3,4,0.95)`,
                 }}
               />
             )}
