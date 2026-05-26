@@ -76,10 +76,10 @@ export default function ThreeMoon({ exactPhase, isShukla }: ThreeMoonProps) {
     scene.add(moonMesh);
 
     // Lighting - Adjusted for realistic physical rendering without overexposure
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.02); // Deep space is dark
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.05); // Deep space is dark
     scene.add(ambientLight);
 
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.8); // Realistic intensity
+    const sunLight = new THREE.DirectionalLight(0xffffff, 4.5); // Realistic intensity
     scene.add(sunLight);
     sunLightRef.current = sunLight;
 
