@@ -535,7 +535,12 @@ export function getMomentPanchanga(date: Date, location: GeoLocation) {
 export function getDailyPanchanga(date: Date, location: GeoLocation) {
   const sunTimes = getSunTimes(date, location);
   
-  // Правило: привязка к началу Титхи. Ищем Титхи, который начинается в этот день.
+  // ============================================================================
+  // ВНИМАНИЕ РАЗРАБОТЧИКАМ И ИИ: 
+  // ЭТО ШИВАИТСКИЙ КАЛЕНДАРЬ! НИКАКИХ КРИШНАИТСКИХ (ВАЙШНАВСКИХ) РАСЧЕТОВ!
+  // КАТЕГОРИЧЕСКИ ЗАПРЕЩАЕТСЯ использовать правило "Удайя Титхи" (привязку к рассвету).
+  // Праздники и события жестко привязываются к тому дню, когда нужный Титхи НАЧИНАЕТСЯ.
+  // ============================================================================
   const dateNoon = new Date(date);
   dateNoon.setHours(12, 0, 0, 0);
   const boundsNoon = findTithiBoundaries(dateNoon);
@@ -932,7 +937,11 @@ export function getUpcomingEvents(startDate: Date, days: number, location: GeoLo
 
   for (let i = 1; i <= days; i++) {
     const checkDate = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
-    // Правило: привязка к началу Титхи
+    
+    // ============================================================================
+    // ВНИМАНИЕ! НЕ ИСПОЛЬЗОВАТЬ УДАЙЯ ТИТХИ (ПРИВЯЗКУ К РАССВЕТУ) ДЛЯ ПРАЗДНИКОВ.
+    // Шиваитская логика: событие назначается на тот день, когда Титхи стартует.
+    // ============================================================================
     const checkDateNoon = new Date(checkDate);
     checkDateNoon.setHours(12, 0, 0, 0);
     const boundsNoon = findTithiBoundaries(checkDateNoon);
