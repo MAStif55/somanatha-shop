@@ -84,7 +84,13 @@ export default function ThreeMoon({ exactPhase, isShukla }: ThreeMoonProps) {
     sunLightRef.current = sunLight;
 
     // Initial light positioning
-    const initialAngle = (isShukla ? 1 : -1) * Math.acos(2 * exactPhase - 1);
+    let initialVisualPhase = exactPhase;
+    if (exactPhase > 0.5) {
+      initialVisualPhase = 1 - Math.pow(1 - exactPhase, 0.7);
+    } else if (exactPhase < 0.5) {
+      initialVisualPhase = Math.pow(exactPhase, 0.7);
+    }
+    const initialAngle = (isShukla ? 1 : -1) * Math.acos(2 * initialVisualPhase - 1);
     const lx = Math.sin(initialAngle);
     const lz = Math.cos(initialAngle);
     sunLight.position.set(lx, 0, lz).normalize().multiplyScalar(5);
@@ -155,7 +161,16 @@ export default function ThreeMoon({ exactPhase, isShukla }: ThreeMoonProps) {
     if (!sunLightRef.current) return;
     const sunLight = sunLightRef.current;
     
-    const angle = (isShukla ? 1 : -1) * Math.acos(2 * exactPhase - 1);
+    // Visual correction: WebGL sRGB gamma correction makes the shadow terminator look squished to the edge.
+    // We apply a power curve to exactPhase to pull the terminator visually towards the center.
+    let visualPhase = exactPhase;
+    if (exactPhase > 0.5) {
+      visualPhase = 1 - Math.pow(1 - exactPhase, 0.7);
+    } else if (exactPhase < 0.5) {
+      visualPhase = Math.pow(exactPhase, 0.7);
+    }
+    
+    const angle = (isShukla ? 1 : -1) * Math.acos(2 * visualPhase - 1);
     const lx = Math.sin(angle);
     const lz = Math.cos(angle);
     
