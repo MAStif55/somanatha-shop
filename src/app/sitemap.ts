@@ -7,7 +7,12 @@ import { CATEGORIES } from '@/types/category';
 const BASE_URL = 'https://somanatha.ru';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const products = await ProductRepository.getAll() as Product[];
+    let products: Product[] = [];
+    try {
+        products = await ProductRepository.getAll() as Product[];
+    } catch (e) {
+        console.warn('Failed to fetch products for sitemap during build. Check MongoDB connection.');
+    }
 
     // Deduplicate products by slug to prevent duplicate sitemap entries
     const seenSlugs = new Set<string>();

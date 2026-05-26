@@ -194,6 +194,12 @@ This template uses `output: 'export'` for static hosting. Works with:
 - GitHub Pages
 - Any static hosting
 
+### Local Builds and Database (MongoDB)
+
+When running `npm run build` locally without a connected MongoDB database (e.g. `MONGODB_URI` is missing or local MongoDB service is down), Next.js might log warnings:
+`Failed to fetch products for sitemap during build. Check MongoDB connection.`
+These warnings are safely caught by `try/catch` blocks in `src/app/page.tsx` and `src/app/sitemap.ts`. The build will still succeed (✓ Compiled successfully) and generate fallback empty lists for static routes. This ensures local development and automated deployment pipelines don't crash when compiling code without a live database.
+
 ---
 
 ## Usage Examples

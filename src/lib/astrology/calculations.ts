@@ -535,8 +535,19 @@ export function getMomentPanchanga(date: Date, location: GeoLocation) {
 export function getDailyPanchanga(date: Date, location: GeoLocation) {
   const sunTimes = getSunTimes(date, location);
   
-  // Удайя время: Титхи и другие панчанги считаются на момент рассвета текущего дня
-  const udayaDate = sunTimes.sunrise ? new Date(sunTimes.sunrise.getTime() + 60000) : date; // 1 минута после рассвета
+  // Правило: привязка к началу Титхи. Ищем Титхи, который начинается в этот день.
+  const dateNoon = new Date(date);
+  dateNoon.setHours(12, 0, 0, 0);
+  const boundsNoon = findTithiBoundaries(dateNoon);
+  
+  let evaluationDate = dateNoon;
+  if (boundsNoon.start.getDate() === date.getDate()) {
+    evaluationDate = new Date(boundsNoon.start.getTime() + 60000); // 1 минута после начала
+  } else if (boundsNoon.end.getDate() === date.getDate()) {
+    evaluationDate = new Date(boundsNoon.end.getTime() + 60000);
+  }
+
+  const udayaDate = evaluationDate; // Оставляем имя переменной для совместимости ниже
 
   const tithi = getTithi(udayaDate);
   const nakshatra = getNakshatra(udayaDate);
@@ -921,13 +932,20 @@ export function getUpcomingEvents(startDate: Date, days: number, location: GeoLo
 
   for (let i = 1; i <= days; i++) {
     const checkDate = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
+    // Правило: привязка к началу Титхи
+    const checkDateNoon = new Date(checkDate);
+    checkDateNoon.setHours(12, 0, 0, 0);
+    const boundsNoon = findTithiBoundaries(checkDateNoon);
     
-    // Используем Udaya Tithi (время рассвета) как в getDailyPanchanga
-    const sunTimes = getSunTimes(checkDate, location);
-    const udayaDate = sunTimes.sunrise ? new Date(sunTimes.sunrise.getTime() + 60000) : checkDate;
+    let evaluationDate = checkDateNoon;
+    if (boundsNoon.start.getDate() === checkDate.getDate()) {
+      evaluationDate = new Date(boundsNoon.start.getTime() + 60000);
+    } else if (boundsNoon.end.getDate() === checkDate.getDate()) {
+      evaluationDate = new Date(boundsNoon.end.getTime() + 60000);
+    }
     
-    // Передаем udayaDate для получения праздников, но сохраняем оригинальный checkDate для UI
-    const dayEvents = getEventsForDate(udayaDate, location).map(e => ({...e, date: checkDate}));
+    // Передаем evaluationDate для получения праздников, но сохраняем оригинальный checkDate для UI
+    const dayEvents = getEventsForDate(evaluationDate, location).map(e => ({...e, date: checkDate}));
     
     for (const e of dayEvents) {
       if (e.type === 'ardra') {

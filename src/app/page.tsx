@@ -10,7 +10,12 @@ import { ProductRepository } from '@/lib/data';
  * All interactive UI lives in HomePageContent (client component).
  */
 export default async function HomePage() {
-    const products = await ProductRepository.getNewest(4);
+    let products: Product[] = [];
+    try {
+        products = await ProductRepository.getNewest(4) as Product[];
+    } catch (e) {
+        console.warn('Failed to fetch newest products during build/render. Check MongoDB connection.');
+    }
 
-    return <HomePageContent initialProducts={products as Product[]} />;
+    return <HomePageContent initialProducts={products} />;
 }
