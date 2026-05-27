@@ -474,6 +474,8 @@ const handlePrintProductBarcode = (productName: string, barcode: string) => {
 function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }) {
     const [labelLoading, setLabelLoading] = useState(false);
     const [labelError, setLabelError] = useState<string | null>(null);
+    const [shipLoading, setShipLoading] = useState(false);
+    const [shipError, setShipError] = useState<string | null>(null);
     const [isPacked, setIsPacked] = useState(false);
     const [deducting, setDeducting] = useState<Record<string, boolean>>({});
     const [localStock, setLocalStock] = useState<Record<string, number>>(() => {
@@ -516,6 +518,34 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
             console.error('Deduct error:', error);
         } finally {
             setDeducting(prev => ({ ...prev, [p.offerId]: false }));
+        }
+    };
+
+    const handleShipOrder = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!confirm(locale === 'ru' ? 'Собрать этот заказ и отправить данные в Озон? Все товары будут упакованы в одну коробку.' : 'Pack this order and send to Ozon? All items will be packed in one box.')) return;
+        
+        setShipLoading(true);
+        setShipError(null);
+        try {
+            const res = await fetch('/api/ozon-orders/ship', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    posting_number: order.postingNumber,
+                    products: order.products 
+                })
+            });
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || errData.details || `HTTP ${res.status}`);
+            }
+            alert(locale === 'ru' ? 'Заказ успешно собран! Обновите страницу.' : 'Order packed successfully! Refresh the page.');
+        } catch (err: any) {
+            setShipError(err.message || 'Ошибка');
+            setTimeout(() => setShipError(null), 5000);
+        } finally {
+            setShipLoading(false);
         }
     };
 
@@ -640,18 +670,36 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
 
             <div className="p-4 bg-gray-50 border-t border-gray-100 mt-auto">
                 {labelError && <div className="text-xs text-red-600 mb-2">{labelError}</div>}
-                <button
-                    onClick={handlePrintLabel}
-                    disabled={labelLoading}
-                    className="w-full flex justify-center items-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-70 shadow-sm"
-                >
-                    {labelLoading ? (
-                        <RefreshCw size={16} className="animate-spin" />
-                    ) : (
-                        <Printer size={16} />
+                {shipError && <div className="text-xs text-red-600 mb-2">{shipError}</div>}
+                
+                <div className="flex flex-col gap-2">
+                    {order.status === 'awaiting_packaging' && (
+                        <button
+                            onClick={handleShipOrder}
+                            disabled={shipLoading}
+                            className="w-full flex justify-center items-center gap-2 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-70 shadow-sm"
+                        >
+                            {shipLoading ? (
+                                <RefreshCw size={16} className="animate-spin" />
+                            ) : (
+                                <Package size={16} />
+                            )}
+                            {locale === 'ru' ? 'Собрать для Озон' : 'Pack for Ozon'}
+                        </button>
                     )}
-                    {locale === 'ru' ? 'Этикетка заказа' : 'Order Label'}
-                </button>
+                    <button
+                        onClick={handlePrintLabel}
+                        disabled={labelLoading}
+                        className="w-full flex justify-center items-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-70 shadow-sm"
+                    >
+                        {labelLoading ? (
+                            <RefreshCw size={16} className="animate-spin" />
+                        ) : (
+                            <Printer size={16} />
+                        )}
+                        {locale === 'ru' ? 'Этикетка заказа' : 'Order Label'}
+                    </button>
+                </div>
             </div>
         </div>
     );
