@@ -121,8 +121,8 @@ export async function GET(request: Request) {
                         image: `https://somanatha.ru${getMoonImageForTithi(daily.tithi.number)}`,
                         url: '/panchanga',
                         actions: [
-                            { action: 'open_calendar', title: '🗓️ Открыть календарь', url: '/panchanga' },
-                            { action: 'open_catalog', title: '🛍️ Перейти в каталог', url: '/catalog' }
+                            { action: 'open_calendar', title: '🗓️ Календарь', url: '/panchanga' },
+                            { action: 'open_catalog', title: '🛍️ Каталог', url: '/catalog' }
                         ]
                     };
 
@@ -177,8 +177,8 @@ export async function GET(request: Request) {
                         image: `https://somanatha.ru${getMoonImageForTithi(panchanga.tithi.number)}`,
                         url: '/panchanga',
                         actions: [
-                            { action: 'open_calendar', title: '🗓️ Открыть календарь', url: '/panchanga' },
-                            { action: 'open_catalog', title: '🛍️ Перейти в каталог', url: '/catalog' }
+                            { action: 'open_calendar', title: '🗓️ Календарь', url: '/panchanga' },
+                            { action: 'open_catalog', title: '🛍️ Каталог', url: '/catalog' }
                         ]
                     };
 
@@ -213,8 +213,8 @@ export async function GET(request: Request) {
                         badge: '/logo.png',
                         url: '/panchanga',
                         actions: [
-                            { action: 'open_calendar', title: '🗓️ Открыть календарь', url: '/panchanga' },
-                            { action: 'open_catalog', title: '🛍️ Перейти в каталог', url: '/catalog' }
+                            { action: 'open_calendar', title: '🗓️ Календарь', url: '/panchanga' },
+                            { action: 'open_catalog', title: '🛍️ Каталог', url: '/catalog' }
                         ]
                     };
 
