@@ -91,7 +91,7 @@ export async function GET(request: Request) {
             const currentNakshatra = panchanga.nakshatra.name;
 
             // 2. DAILY DIGEST FLOW
-            if (user.preferences.frequency === 'daily') {
+            if (user.preferences.frequency === 'daily' || isForce) {
                 // Send once a day between 7:00 and 8:00 AM local time
                 if ((hour === 7 || isForce) && (user.lastSentDailyDate !== localDateStr || isForce)) {
                     const daily = getDailyPanchanga(new Date(), {
