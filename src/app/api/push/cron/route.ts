@@ -14,6 +14,14 @@ if (publicKey && privateKey) {
     );
 }
 
+function formatTime(date: Date, timeZone: string) {
+    try {
+        return date.toLocaleString('ru-RU', { timeZone, hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+        return date.toLocaleString('ru-RU', { timeZone: 'Europe/Moscow', hour: '2-digit', minute: '2-digit' });
+    }
+}
+
 function getMoonImageForTithi(tithiNumber: number): string {
     if (tithiNumber === 30) return '/images/moon/new_moon.png';
     if (tithiNumber >= 1 && tithiNumber <= 5) return '/images/moon/waxing_crescent.png';
@@ -91,7 +99,7 @@ export async function GET(request: Request) {
                         longitude: user.location.lon
                     });
 
-                    let description = `Сегодня ${daily.vara}. Титхи: ${daily.tithi.name} лунные сутки.`;
+                    let description = `Сегодня ${daily.vara}. Луна в знаке ${daily.lunarRashi.fullName}. Титхи: ${daily.tithi.name} лунные сутки.`;
                     if (daily.pradosham?.isPradoshamDay) {
                         description += ' Благоприятный день Прадошам!';
                     } else if (daily.isBhairavaAshtami) {
@@ -100,13 +108,22 @@ export async function GET(request: Request) {
                         description += ' Сегодня день поста Экадаши.';
                     }
 
+                    let extraInfo = '';
+                    if (daily.brahmaMuhurta) {
+                        extraInfo += ` Брахма-мухурта: ${formatTime(daily.brahmaMuhurta.start, user.timezone)}-${formatTime(daily.brahmaMuhurta.end, user.timezone)}.`;
+                    }
+
                     const payload = {
                         title: `🗓️ Ведическая сводка дня`,
-                        body: `${description} Накшатра: ${daily.nakshatra.name}.`,
+                        body: `${description} Накшатра: ${daily.nakshatra.name}.${extraInfo}`,
                         icon: '/logo.png',
                         badge: '/logo.png',
                         image: `https://somanatha.ru${getMoonImageForTithi(daily.tithi.number)}`,
-                        url: '/panchanga'
+                        url: '/panchanga',
+                        actions: [
+                            { action: 'open_calendar', title: '🗓️ Открыть календарь', url: '/panchanga' },
+                            { action: 'open_catalog', title: '🛍️ Перейти в каталог', url: '/catalog' }
+                        ]
                     };
 
                     try {
@@ -148,13 +165,21 @@ export async function GET(request: Request) {
 
                 // Tithi Change
                 if ((user.preferences.tithi && currentTithi !== user.lastSentTithi) || isForceInstant) {
+                    let body = `Наступили ${currentTithi} (${panchanga.tithi.pakshaName}). Продлятся до ${formatTime(panchanga.tithiBoundaries.end, user.timezone)}.`;
+                    if (panchanga.isBhairavaAshtami) {
+                        body += ' Особый день Калаштами (Бхайрава Аштами).';
+                    }
                     const payload = {
                         title: `🌙 Смена лунных суток (Титхи)${isForceInstant ? ' [Тест]' : ''}`,
-                        body: `Наступили ${currentTithi} (${panchanga.tithi.pakshaName}) для г. ${user.location.cityName}.`,
+                        body: body,
                         icon: '/logo.png',
                         badge: '/logo.png',
                         image: `https://somanatha.ru${getMoonImageForTithi(panchanga.tithi.number)}`,
-                        url: '/panchanga'
+                        url: '/panchanga',
+                        actions: [
+                            { action: 'open_calendar', title: '🗓️ Открыть календарь', url: '/panchanga' },
+                            { action: 'open_catalog', title: '🛍️ Перейти в каталог', url: '/catalog' }
+                        ]
                     };
 
                     try {
@@ -177,12 +202,20 @@ export async function GET(request: Request) {
 
                 // Nakshatra Change
                 if ((user.preferences.nakshatra && currentNakshatra !== user.lastSentNakshatra) || isForceInstant) {
+                    let body = `Луна вошла в созвездие ${currentNakshatra} (покровитель: ${panchanga.nakshatra.deity}). Продлится до ${formatTime(panchanga.nakshatraBoundaries.end, user.timezone)}.`;
+                    if (panchanga.isArdraNakshatra) {
+                        body += ' 🔱 Накшатра управляется Рудрой (Шивой).';
+                    }
                     const payload = {
                         title: `✨ Переход в новую Накшатру${isForceInstant ? ' [Тест]' : ''}`,
-                        body: `Луна вошла в созвездие ${currentNakshatra} (покровитель: ${panchanga.nakshatra.deity}).`,
+                        body: body,
                         icon: '/logo.png',
                         badge: '/logo.png',
-                        url: '/panchanga'
+                        url: '/panchanga',
+                        actions: [
+                            { action: 'open_calendar', title: '🗓️ Открыть календарь', url: '/panchanga' },
+                            { action: 'open_catalog', title: '🛍️ Перейти в каталог', url: '/catalog' }
+                        ]
                     };
 
                     try {
