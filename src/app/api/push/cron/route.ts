@@ -22,6 +22,46 @@ function formatTime(date: Date, timeZone: string) {
     }
 }
 
+function formatEndDateTime(endDate: Date, timeZone: string, userLocalDateStr: string) {
+    try {
+        // Resolve target local time date elements
+        const tzString = endDate.toLocaleString('en-US', { timeZone });
+        const endLocalDate = new Date(tzString);
+        const year = endLocalDate.getFullYear();
+        const month = String(endLocalDate.getMonth() + 1).padStart(2, '0');
+        const day = String(endLocalDate.getDate()).padStart(2, '0');
+        const endLocalDateStr = `${year}-${month}-${day}`;
+        
+        const timeStr = endDate.toLocaleString('ru-RU', { timeZone, hour: '2-digit', minute: '2-digit' });
+        
+        if (endLocalDateStr === userLocalDateStr) {
+            return `${timeStr} (сегодня)`;
+        }
+        
+        // Parse user local date to calculate tomorrow's date
+        const [y, m, d] = userLocalDateStr.split('-').map(Number);
+        const userDate = new Date(y, m - 1, d);
+        userDate.setDate(userDate.getDate() + 1);
+        const tomorrowYear = userDate.getFullYear();
+        const tomorrowMonth = String(userDate.getMonth() + 1).padStart(2, '0');
+        const tomorrowDay = String(userDate.getDate()).padStart(2, '0');
+        const tomorrowLocalDateStr = `${tomorrowYear}-${tomorrowMonth}-${tomorrowDay}`;
+        
+        if (endLocalDateStr === tomorrowLocalDateStr) {
+            return `${timeStr} (завтра)`;
+        }
+        
+        const dateStr = endDate.toLocaleString('ru-RU', { timeZone, day: 'numeric', month: 'short' });
+        return `${timeStr} (${dateStr})`;
+    } catch (e) {
+        try {
+            return endDate.toLocaleString('ru-RU', { timeZone, hour: '2-digit', minute: '2-digit' });
+        } catch (err) {
+            return endDate.toLocaleString('ru-RU', { timeZone: 'Europe/Moscow', hour: '2-digit', minute: '2-digit' });
+        }
+    }
+}
+
 function getMoonImageForTithi(tithiNumber: number): string {
     if (tithiNumber === 30) return '/images/moon/new_moon.png';
     if (tithiNumber >= 1 && tithiNumber <= 5) return '/images/moon/waxing_crescent.png';
@@ -168,7 +208,7 @@ export async function GET(request: Request) {
                 // Tithi Change
                 if ((user.preferences.tithi && currentTithi !== user.lastSentTithi) || isForceInstant) {
                     let body = `🌓 Наступили: ${currentTithi} (${panchanga.tithi.pakshaName})\n` +
-                               `⏳ Продлятся до: ${formatTime(panchanga.tithiBoundaries.end, user.timezone)}`;
+                               `⏳ Продлятся до: ${formatEndDateTime(panchanga.tithiBoundaries.end, user.timezone, localDateStr)}`;
                     if (panchanga.isBhairavaAshtami) {
                         body += '\n💀 Особый день Калаштами (Бхайрава Аштами).';
                     }
@@ -205,7 +245,7 @@ export async function GET(request: Request) {
                 // Nakshatra Change
                 if ((user.preferences.nakshatra && currentNakshatra !== user.lastSentNakshatra) || isForceInstant) {
                     let body = `✨ Накшатра: ${currentNakshatra} (покровитель: ${panchanga.nakshatra.deity})\n` +
-                               `⏳ Продлится до: ${formatTime(panchanga.nakshatraBoundaries.end, user.timezone)}`;
+                               `⏳ Продлится до: ${formatEndDateTime(panchanga.nakshatraBoundaries.end, user.timezone, localDateStr)}`;
                     if (panchanga.isArdraNakshatra) {
                         body += '\n🔱 Накшатра управляется Рудрой (Шивой).';
                     }
