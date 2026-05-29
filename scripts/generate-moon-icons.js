@@ -15,13 +15,13 @@ const unlitSphere = '<circle cx="256" cy="256" r="180" fill="rgba(255, 255, 255,
 
 const phases = {
     new_moon: '',
-    waxing_crescent: '<path d="M 256,76 A 180,180 0 0,1 256,436 A 90,180 0 0,1 256,76 Z" fill="#FFFFFF" />',
+    waxing_crescent: '<path d="M 256,76 A 180,180 0 0,1 256,436 A 90,180 0 0,0 256,76 Z" fill="#FFFFFF" />',
     first_quarter: '<path d="M 256,76 A 180,180 0 0,1 256,436 Z" fill="#FFFFFF" />',
-    waxing_gibbous: '<path d="M 256,76 A 180,180 0 0,1 256,436 A 90,180 0 0,0 256,76 Z" fill="#FFFFFF" />',
+    waxing_gibbous: '<path d="M 256,76 A 180,180 0 0,1 256,436 A 90,180 0 0,1 256,76 Z" fill="#FFFFFF" />',
     full_moon: '<circle cx="256" cy="256" r="180" fill="#FFFFFF" />',
-    waning_gibbous: '<path d="M 256,76 A 180,180 0 0,0 256,436 A 90,180 0 0,1 256,76 Z" fill="#FFFFFF" />',
+    waning_gibbous: '<path d="M 256,76 A 180,180 0 0,0 256,436 A 90,180 0 0,0 256,76 Z" fill="#FFFFFF" />',
     last_quarter: '<path d="M 256,76 A 180,180 0 0,0 256,436 Z" fill="#FFFFFF" />',
-    waning_crescent: '<path d="M 256,76 A 180,180 0 0,0 256,436 A 90,180 0 0,0 256,76 Z" fill="#FFFFFF" />'
+    waning_crescent: '<path d="M 256,76 A 180,180 0 0,0 256,436 A 90,180 0 0,1 256,76 Z" fill="#FFFFFF" />'
 };
 
 async function generate() {
