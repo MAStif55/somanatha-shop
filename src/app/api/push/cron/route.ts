@@ -116,9 +116,8 @@ export async function GET(request: Request) {
                     const payload = {
                         title: `🗓️ Ведическая сводка дня`,
                         body: `${description} Накшатра: ${daily.nakshatra.name}.${extraInfo}`,
-                        icon: '/logo.png',
+                        icon: getMoonImageForTithi(daily.tithi.number),
                         badge: '/logo.png',
-                        image: `https://somanatha.ru${getMoonImageForTithi(daily.tithi.number)}`,
                         url: '/panchanga',
                         actions: [
                             { action: 'open_calendar', title: '🗓️ Календарь', url: '/panchanga' },
@@ -172,9 +171,8 @@ export async function GET(request: Request) {
                     const payload = {
                         title: `🌙 Смена лунных суток (Титхи)${isForceInstant ? ' [Тест]' : ''}`,
                         body: body,
-                        icon: '/logo.png',
+                        icon: getMoonImageForTithi(panchanga.tithi.number),
                         badge: '/logo.png',
-                        image: `https://somanatha.ru${getMoonImageForTithi(panchanga.tithi.number)}`,
                         url: '/panchanga',
                         actions: [
                             { action: 'open_calendar', title: '🗓️ Календарь', url: '/panchanga' },
