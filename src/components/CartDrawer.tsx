@@ -25,10 +25,16 @@ export default function CartDrawer() {
         getFinalPrice,
         getTotalItems,
         getShippingCost,
-        setShippingConfig
+        setShippingConfig,
+        appliedPromo,
+        applyPromoCode,
+        removePromoCode
     } = useCartStore();
     const { isDrawerOpen, closeDrawer } = useCartUIStore();
     const [mounted, setMounted] = useState(false);
+    const [promoInput, setPromoInput] = useState('');
+    const [isApplyingPromo, setIsApplyingPromo] = useState(false);
+    const [promoMessage, setPromoMessage] = useState<{text: string, type: 'error' | 'success'} | null>(null);
     const pathname = usePathname();
 
     const { settings } = useStoreSettings();
@@ -85,6 +91,31 @@ export default function CartDrawer() {
     // Same logic as CartPage
     const isGiftSuccess = totalItems > 0 && totalItems % 11 === 0;
     const giftProgress = isGiftSuccess ? 100 : ((totalItems % 11) / 11) * 100;
+
+    const handleApplyPromo = async () => {
+        if (!promoInput.trim()) return;
+        setIsApplyingPromo(true);
+        setPromoMessage(null);
+        try {
+            const res = await fetch('/api/checkout/apply-promo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: promoInput.trim(), cartTotal: subtotal })
+            });
+            const data = await res.json();
+            if (res.ok && data.promo) {
+                applyPromoCode(data.promo);
+                setPromoMessage({ text: 'Промокод применен!', type: 'success' });
+                setPromoInput('');
+            } else {
+                setPromoMessage({ text: data.error || 'Ошибка', type: 'error' });
+            }
+        } catch (err) {
+            setPromoMessage({ text: 'Ошибка сети', type: 'error' });
+        } finally {
+            setIsApplyingPromo(false);
+        }
+    };
 
     return (
         <>
@@ -263,6 +294,48 @@ export default function CartDrawer() {
                 {/* Footer */}
                 {!isEmpty && (
                     <div className="p-4 border-t border-[#C9A227]/20 space-y-4 bg-[#0D0A0B]/80">
+                        {/* Promo Code Input */}
+                        <div className="space-y-2 mb-4">
+                            {appliedPromo ? (
+                                <div className="flex items-center justify-between bg-green-500/10 border border-green-500/30 rounded-lg p-2 px-3 text-sm">
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-green-400">{appliedPromo.code}</span>
+                                        <span className="text-green-500/80 text-xs">
+                                            {appliedPromo.type === 'free_shipping' ? 'Бесплатная доставка' : 'Скидка применена'}
+                                        </span>
+                                    </div>
+                                    <button 
+                                        onClick={removePromoCode}
+                                        className="text-red-400 hover:text-red-300 p-1"
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="text"
+                                        placeholder={locale === 'ru' ? "Промокод" : "Promo code"}
+                                        value={promoInput}
+                                        onChange={(e) => setPromoInput(e.target.value)}
+                                        className="flex-1 bg-[#2A2527] border border-[#C9A227]/20 rounded-lg px-3 py-2 text-sm text-[#F5ECD7] placeholder:text-[#F5ECD7]/30 focus:outline-none focus:border-[#C9A227]"
+                                    />
+                                    <button 
+                                        onClick={handleApplyPromo}
+                                        disabled={isApplyingPromo || !promoInput.trim()}
+                                        className="bg-[#C9A227] hover:bg-[#E8D48B] text-[#0D0A0B] px-4 py-2 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
+                                    >
+                                        {isApplyingPromo ? '...' : (locale === 'ru' ? 'Применить' : 'Apply')}
+                                    </button>
+                                </div>
+                            )}
+                            {promoMessage && !appliedPromo && (
+                                <div className={`text-xs ${promoMessage.type === 'error' ? 'text-red-400' : 'text-green-400'}`}>
+                                    {promoMessage.text}
+                                </div>
+                            )}
+                        </div>
+
                         {/* Summary breakdown */}
                         <div className="space-y-2 text-sm">
                             <div className="flex justify-between items-center text-[#F5ECD7]/60">

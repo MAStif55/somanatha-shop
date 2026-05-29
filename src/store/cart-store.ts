@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { PromoCode } from '../types/promo';
 
 /**
  * Cart Store with Zustand
@@ -27,6 +28,9 @@ interface CartState {
     items: CartItem[];
     _shippingPrice: number;
     _shippingFreeThreshold: number;
+    appliedPromo: PromoCode | null;
+    applyPromoCode: (promo: PromoCode) => void;
+    removePromoCode: () => void;
     addItem: (item: Omit<CartItem, 'id'>) => void;
     removeItem: (itemId: string) => void;
     updateQuantity: (itemId: string, quantity: number) => void;
@@ -55,6 +59,15 @@ export const useCartStore = create<CartState>()(
             items: [],
             _shippingPrice: 350,
             _shippingFreeThreshold: 3000,
+            appliedPromo: null,
+
+            applyPromoCode: (promo) => {
+                set({ appliedPromo: promo });
+            },
+
+            removePromoCode: () => {
+                set({ appliedPromo: null });
+            },
 
             addItem: (newItem) => {
                 const { items } = get();
@@ -114,7 +127,7 @@ export const useCartStore = create<CartState>()(
             },
 
             clearCart: () => {
-                set({ items: [] });
+                set({ items: [], appliedPromo: null });
             },
 
             getTotalPrice: () => {
@@ -153,46 +166,61 @@ export const useCartStore = create<CartState>()(
             getDiscount: () => {
                 const items = get().items;
                 const totalItems = get().getTotalItems();
+                const subtotal = get().getTotalPrice();
+
+                let discount = 0;
 
                 // Gift Logic: 1 free for every 11 items
                 const freeItemCount = Math.floor(totalItems / 11);
 
-                if (freeItemCount === 0) return 0;
+                if (freeItemCount > 0) {
+                    // Flatten items into a list of individual units with their prices and original index
+                    // We need original index to break ties (last added gets discount)
+                    // Since items array order represents addition order (roughly), we use that.
+                    const individualUnits: { price: number; originalIndex: number }[] = [];
 
-                // Flatten items into a list of individual units with their prices and original index
-                // We need original index to break ties (last added gets discount)
-                // Since items array order represents addition order (roughly), we use that.
-                const individualUnits: { price: number; originalIndex: number }[] = [];
+                    items.forEach((item, index) => {
+                        for (let i = 0; i < item.quantity; i++) {
+                            individualUnits.push({
+                                price: item.price,
+                                originalIndex: index
+                            });
+                        }
+                    });
 
-                items.forEach((item, index) => {
-                    for (let i = 0; i < item.quantity; i++) {
-                        individualUnits.push({
-                            price: item.price,
-                            originalIndex: index
-                        });
+                    // Sort by price (ASC) first, then by originalIndex (DESC) for tie-breaking
+                    individualUnits.sort((a, b) => {
+                        if (a.price !== b.price) {
+                            return a.price - b.price; // Lowest price first
+                        }
+                        return b.originalIndex - a.originalIndex; // Last added first (higher index)
+                    });
+
+                    // Sum the prices of the top 'freeItemCount' items
+                    for (let i = 0; i < freeItemCount; i++) {
+                        discount += individualUnits[i].price;
                     }
-                });
+                }
 
-                // Sort by price (ASC) first, then by originalIndex (DESC) for tie-breaking
-                // "The discount must strictly apply to the item with the lowest price."
-                // "If multiple items share the lowest price... apply the discount to the last added item"
-                individualUnits.sort((a, b) => {
-                    if (a.price !== b.price) {
-                        return a.price - b.price; // Lowest price first
+                // Promo Code Logic
+                const promo = get().appliedPromo;
+                if (promo) {
+                    const subtotalAfterGift = subtotal - discount;
+                    if (promo.type === 'percentage') {
+                        discount += (subtotalAfterGift * promo.value) / 100;
+                    } else if (promo.type === 'fixed_amount') {
+                        discount += Math.min(promo.value, subtotalAfterGift);
                     }
-                    return b.originalIndex - a.originalIndex; // Last added first (higher index)
-                });
-
-                // Sum the prices of the top 'freeItemCount' items
-                let discount = 0;
-                for (let i = 0; i < freeItemCount; i++) {
-                    discount += individualUnits[i].price;
                 }
 
                 return discount;
             },
 
             getShippingCost: () => {
+                const promo = get().appliedPromo;
+                if (promo && promo.type === 'free_shipping') {
+                    return 0;
+                }
                 const price = get()._shippingPrice;
                 return get().isFreeShippingEligible() ? 0 : price;
             },

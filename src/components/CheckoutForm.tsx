@@ -29,7 +29,7 @@ const DELIVERY_OPTIONS = [
 export default function CheckoutForm() {
     const { locale, t } = useLanguage();
     const router = useRouter();
-    const { items, clearCart, getFinalPrice } = useCartStore();
+    const { items, clearCart, getFinalPrice, appliedPromo } = useCartStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -111,6 +111,7 @@ export default function CheckoutForm() {
                     cartItems: items,
                     customerInfo: data,
                     locale,
+                    promoCode: appliedPromo ? appliedPromo.code : null,
                 }),
             });
 

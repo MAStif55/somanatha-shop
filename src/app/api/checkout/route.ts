@@ -3,12 +3,12 @@ import { validateOrder, serializeProductTitle, calculateGiftDiscount } from '@/u
 import { sendTelegramOrderNotification } from '@/lib/telegram';
 import { sendEmailOrderNotification } from '@/lib/mailer';
 import { createYooKassaPayment } from '@/lib/yookassa';
-import { OrderRepository } from '@/lib/data';
+import { OrderRepository, PromoRepository } from '@/lib/data';
 
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { cartItems, customerInfo, locale } = body;
+        const { cartItems, customerInfo, promoCode } = body;
 
         // Validation
         const error = validateOrder(customerInfo);
@@ -29,15 +29,43 @@ export async function POST(request: Request) {
         const giftDiscount = calculateGiftDiscount(orderItems);
         let baseTotal = Math.max(0, subtotal - giftDiscount);
 
+        let promoDiscount = 0;
+        let appliedPromo = null;
+
+        // Validate promo code
+        if (promoCode) {
+            const promo = await PromoRepository.getPromoByCode(promoCode);
+            const now = Date.now();
+            if (promo && promo.isActive && 
+                (!promo.validFrom || now >= promo.validFrom) && 
+                (!promo.validUntil || now <= promo.validUntil) &&
+                (!promo.maxUses || promo.usesCount < promo.maxUses) &&
+                (!promo.minOrderAmount || baseTotal >= promo.minOrderAmount)) {
+                
+                appliedPromo = promo;
+                if (promo.type === 'percentage') {
+                    promoDiscount = (baseTotal * promo.value) / 100;
+                } else if (promo.type === 'fixed_amount') {
+                    promoDiscount = Math.min(promo.value, baseTotal);
+                }
+                baseTotal = Math.max(0, baseTotal - promoDiscount);
+            }
+        }
+
         // Fetch settings for shipping calculations
         const { SettingsRepository } = await import('@/lib/data');
         const settings = await SettingsRepository.getSettings();
         const shippingCost = settings.shipping?.price ?? 350;
         const freeShippingThreshold = settings.shipping?.freeThreshold ?? 3000;
 
-        if (baseTotal < freeShippingThreshold) {
-            baseTotal += shippingCost;
+        let finalShippingCost = 0;
+        if (appliedPromo && appliedPromo.type === 'free_shipping') {
+            finalShippingCost = 0;
+        } else if (baseTotal < freeShippingThreshold) {
+            finalShippingCost = shippingCost;
         }
+
+        baseTotal += finalShippingCost;
 
         const paymentMethod = customerInfo.paymentMethod; // 'card' or 'bank_transfer'
         
@@ -60,6 +88,8 @@ export async function POST(request: Request) {
             contactPreferences: contactPreferences,
             customerNotes: customerInfo.notes || null,
             items: orderItems,
+            promoCode: appliedPromo ? appliedPromo.code : null,
+            promoDiscount: promoDiscount > 0 ? promoDiscount : null,
             total,
             paymentMethod: paymentMethod,
             paymentStatus: paymentMethod === 'card' ? 'pending' : 'awaiting_transfer',
@@ -67,6 +97,10 @@ export async function POST(request: Request) {
 
         // 1. Save order to MongoDB (or fallback)
         const orderId = await OrderRepository.create(orderData as any);
+
+        if (appliedPromo) {
+            await PromoRepository.incrementUsesCount(appliedPromo.id);
+        }
         
         // Let's create a full mock of the orderData so the emails fire nicely
         const fullOrderData = { ...orderData, id: orderId, status: 'pending', createdAt: Date.now() };

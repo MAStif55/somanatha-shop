@@ -52,6 +52,8 @@ export interface Order {
     notes?: string; // Manager notes (admin only)
     customerNotes?: string; // Customer entered notes
     attachments?: string[]; // URLs of uploaded images
+    promoCode?: string; // Applied promo code
+    promoDiscount?: number; // Discount amount from promo code
     createdAt: number; // Timestamp
 }
 

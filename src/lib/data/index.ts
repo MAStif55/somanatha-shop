@@ -8,6 +8,7 @@ import { MongoAuthRepository } from './yandex/MongoAuthRepository';
 import { YandexFunctionsRepository } from './yandex/YandexFunctionsRepository';
 import { MongoInventoryRepository } from './yandex/MongoInventoryRepository';
 import { MongoPushRepository } from './yandex/MongoPushRepository';
+import { MongoPromoRepository } from './yandex/MongoPromoRepository';
 
 // ============================================================================
 // DATA ACCESS LAYER
@@ -24,4 +25,4 @@ export const AuthRepository = new MongoAuthRepository();
 export const FunctionsRepository = new YandexFunctionsRepository();
 export const InventoryRepository = new MongoInventoryRepository();
 export const PushRepository = new MongoPushRepository();
-
+export const PromoRepository = new MongoPromoRepository();
