@@ -99,23 +99,26 @@ export async function GET(request: Request) {
                         longitude: user.location.lon
                     });
 
-                    let description = `Сегодня ${daily.vara}. Луна в знаке ${daily.lunarRashi.fullName}. Титхи: ${daily.tithi.name} лунные сутки.`;
-                    if (daily.pradosham?.isPradoshamDay) {
-                        description += ' Благоприятный день Прадошам!';
-                    } else if (daily.isBhairavaAshtami) {
-                        description += ' Сегодня день Калаштами (Бхайрава Аштами).';
-                    } else if (daily.tithi.number === 11) {
-                        description += ' Сегодня день поста Экадаши.';
+                    let body = `📅 День: ${daily.vara}\n` +
+                               `🌙 Луна: ${daily.lunarRashi.fullName}\n` +
+                               `🌓 Титхи: ${daily.tithi.name} лунные сутки\n` +
+                               `✨ Накшатра: ${daily.nakshatra.name}`;
+
+                    if (daily.brahmaMuhurta) {
+                        body += `\n🌅 Брахма-мухурта: ${formatTime(daily.brahmaMuhurta.start, user.timezone)} - ${formatTime(daily.brahmaMuhurta.end, user.timezone)}`;
                     }
 
-                    let extraInfo = '';
-                    if (daily.brahmaMuhurta) {
-                        extraInfo += ` Брахма-мухурта: ${formatTime(daily.brahmaMuhurta.start, user.timezone)}-${formatTime(daily.brahmaMuhurta.end, user.timezone)}.`;
+                    if (daily.pradosham?.isPradoshamDay) {
+                        body += '\n🔱 Благоприятный день Прадошам!';
+                    } else if (daily.isBhairavaAshtami) {
+                        body += '\n💀 День Калаштами (Бхайрава Аштами).';
+                    } else if (daily.tithi.number === 11) {
+                        body += '\n🌾 День поста Экадаши.';
                     }
 
                     const payload = {
                         title: `🗓️ Ведическая сводка дня`,
-                        body: `${description} Накшатра: ${daily.nakshatra.name}.${extraInfo}`,
+                        body: body,
                         icon: getMoonImageForTithi(daily.tithi.number),
                         badge: '/logo.png',
                         url: '/panchanga',
@@ -164,9 +167,10 @@ export async function GET(request: Request) {
 
                 // Tithi Change
                 if ((user.preferences.tithi && currentTithi !== user.lastSentTithi) || isForceInstant) {
-                    let body = `Наступили ${currentTithi} (${panchanga.tithi.pakshaName}). Продлятся до ${formatTime(panchanga.tithiBoundaries.end, user.timezone)}.`;
+                    let body = `🌓 Наступили: ${currentTithi} (${panchanga.tithi.pakshaName})\n` +
+                               `⏳ Продлятся до: ${formatTime(panchanga.tithiBoundaries.end, user.timezone)}`;
                     if (panchanga.isBhairavaAshtami) {
-                        body += ' Особый день Калаштами (Бхайрава Аштами).';
+                        body += '\n💀 Особый день Калаштами (Бхайрава Аштами).';
                     }
                     const payload = {
                         title: `🌙 Смена лунных суток (Титхи)${isForceInstant ? ' [Тест]' : ''}`,
@@ -200,9 +204,10 @@ export async function GET(request: Request) {
 
                 // Nakshatra Change
                 if ((user.preferences.nakshatra && currentNakshatra !== user.lastSentNakshatra) || isForceInstant) {
-                    let body = `Луна вошла в созвездие ${currentNakshatra} (покровитель: ${panchanga.nakshatra.deity}). Продлится до ${formatTime(panchanga.nakshatraBoundaries.end, user.timezone)}.`;
+                    let body = `✨ Накшатра: ${currentNakshatra} (покровитель: ${panchanga.nakshatra.deity})\n` +
+                               `⏳ Продлится до: ${formatTime(panchanga.nakshatraBoundaries.end, user.timezone)}`;
                     if (panchanga.isArdraNakshatra) {
-                        body += ' 🔱 Накшатра управляется Рудрой (Шивой).';
+                        body += '\n🔱 Накшатра управляется Рудрой (Шивой).';
                     }
                     const payload = {
                         title: `✨ Переход в новую Накшатру${isForceInstant ? ' [Тест]' : ''}`,
