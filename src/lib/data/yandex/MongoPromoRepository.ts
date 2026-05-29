@@ -1,10 +1,10 @@
-import { getMongoDb } from './mongodb';
+import { getDb } from './mongo-client';
 import { PromoCode } from '../../../types/promo';
 import { Collection } from 'mongodb';
 
 export class MongoPromoRepository {
     private getCollection(): Promise<Collection<PromoCode>> {
-        return getMongoDb().then(db => db.collection<PromoCode>('promos'));
+        return getDb().then(db => db.collection<PromoCode>('promos'));
     }
 
     async getPromos(): Promise<PromoCode[]> {
