@@ -52,6 +52,16 @@
     background-color: var(--admin-content-bg);
     height: 100vh;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-shell-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    height: 100%;
+    position: relative;
 }
 
 /* Override heading fonts inside admin */
@@ -482,10 +492,10 @@
 
 .admin-main {
     flex: 1;
-    padding: 0 2rem 2rem 2rem;
+    padding: 1.5rem 2rem 2rem 2rem;
     overflow-y: auto;
     background-color: var(--admin-content-bg);
-    height: 100vh;
+    height: 100%;
 }
 
 
@@ -551,4 +561,91 @@
     border-color: var(--admin-accent);
     color: var(--admin-accent);
     background-color: var(--admin-accent-light);
+}
+
+
+/* ============================================================================
+   RESPONSIVENESS (MOBILE DEVICES)
+   ============================================================================ */
+
+.admin-mobile-header {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .admin-mobile-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        background: linear-gradient(135deg, var(--admin-sidebar-bg) 0%, var(--admin-sidebar-bg-end) 100%);
+        border-bottom: 1px solid var(--admin-sidebar-border);
+        color: white;
+        flex-shrink: 0;
+        z-index: 30;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .admin-mobile-header button {
+        background: transparent;
+        border: none;
+        color: var(--admin-sidebar-text);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.4rem;
+        border-radius: var(--admin-radius-sm);
+        transition: all 0.2s ease;
+    }
+
+    .admin-mobile-header button:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: var(--admin-sidebar-text-hover);
+    }
+
+    .admin-mobile-header h2 {
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        margin: 0;
+        color: white;
+    }
+
+    /* Fixed floating sidebar on mobile */
+    .admin-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        height: 100vh;
+        z-index: 50;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 15px 0 35px rgba(0, 0, 0, 0.25);
+    }
+
+    .admin-sidebar.open {
+        transform: translateX(0);
+    }
+
+    /* Sidebar overlay backdrop */
+    .admin-sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(3px);
+        z-index: 45;
+        animation: adminFadeIn 0.25s ease;
+    }
+
+    /* Adjust main content padding on mobile */
+    .admin-main {
+        padding: 1rem;
+    }
+
+    /* Breadcrumbs spacing */
+    .admin-main > div.space-y-6 {
+        margin-top: 0.25rem;
+    }
 }

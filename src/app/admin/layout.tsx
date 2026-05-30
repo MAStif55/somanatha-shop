@@ -18,7 +18,9 @@ import {
     Star,
     Store,
     Bell,
-    Tag
+    Tag,
+    Menu,
+    X
 } from "lucide-react";
 import { useTranslation } from "@/contexts/LanguageContext";
 
@@ -75,6 +77,11 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     const normalizedPath = pathname?.endsWith('/') ? pathname.slice(0, -1) : pathname;
 
     const [showForceLogout, setShowForceLogout] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [pathname]);
 
     useEffect(() => {
         let timeout: NodeJS.Timeout;
@@ -128,67 +135,91 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     const navGroups = getNavGroups(t, locale);
 
     return (
-        <div className="admin-shell flex min-h-screen">
-            {/* Sidebar */}
-            <aside className="admin-sidebar">
-                {/* Header */}
-                <div className="admin-sidebar-header">
-                    <Link href="/admin" className="block">
-                        <h2>{t('admin.title')}</h2>
-                    </Link>
-                </div>
+        <div className="admin-shell">
+            {/* Mobile Header */}
+            <header className="admin-mobile-header">
+                <button
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    aria-label="Toggle Menu"
+                >
+                    {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                </button>
+                <Link href="/admin">
+                    <h2>{t('admin.title')}</h2>
+                </Link>
+                <div style={{ width: 32 }}></div>
+            </header>
 
-                {/* Dashboard link (standalone, above groups) */}
-                <div className="px-2 pt-3">
-                    <Link
-                        href="/admin"
-                        className={`admin-nav-item ${pathname === '/admin' ? 'active' : ''}`}
-                    >
-                        <LayoutDashboard size={18} className="admin-nav-icon" />
-                        <span>{t('admin.dashboard')}</span>
-                    </Link>
-                </div>
+            <div className="admin-shell-body flex">
+                {/* Backdrop for mobile */}
+                {isMobileMenuOpen && (
+                    <div
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="admin-sidebar-backdrop"
+                    />
+                )}
 
-                {/* Grouped navigation */}
-                <nav className="flex-1 pb-4">
-                    {navGroups.map((group) => (
-                        <div key={group.label}>
-                            <div className="admin-nav-group-label">{group.label}</div>
-                            {group.items.map((item) => {
-                                const Icon = item.icon;
-                                const isActive = pathname === item.href ||
-                                    (item.href !== '/admin' && pathname?.startsWith(item.href));
-                                return (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        className={`admin-nav-item ${isActive ? 'active' : ''}`}
-                                    >
-                                        <Icon size={18} className="admin-nav-icon" />
-                                        <span>{item.label}</span>
-                                    </Link>
-                                );
-                            })}
-                        </div>
-                    ))}
-                </nav>
+                {/* Sidebar */}
+                <aside className={`admin-sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
+                    {/* Header */}
+                    <div className="admin-sidebar-header">
+                        <Link href="/admin" className="block">
+                            <h2>{t('admin.title')}</h2>
+                        </Link>
+                    </div>
 
-                {/* Footer / Logout */}
-                <div className="admin-sidebar-footer">
-                    <button
-                        onClick={() => logout()}
-                        className="admin-logout-btn"
-                    >
-                        <LogOut size={18} />
-                        <span>{t('admin.logout')}</span>
-                    </button>
-                </div>
-            </aside>
+                    {/* Dashboard link (standalone, above groups) */}
+                    <div className="px-2 pt-3">
+                        <Link
+                            href="/admin"
+                            className={`admin-nav-item ${pathname === '/admin' ? 'active' : ''}`}
+                        >
+                            <LayoutDashboard size={18} className="admin-nav-icon" />
+                            <span>{t('admin.dashboard')}</span>
+                        </Link>
+                    </div>
 
-            {/* Main Content */}
-            <main className="admin-main">
-                {children}
-            </main>
+                    {/* Grouped navigation */}
+                    <nav className="flex-1 pb-4">
+                        {navGroups.map((group) => (
+                            <div key={group.label}>
+                                <div className="admin-nav-group-label">{group.label}</div>
+                                {group.items.map((item) => {
+                                    const Icon = item.icon;
+                                    const isActive = pathname === item.href ||
+                                        (item.href !== '/admin' && pathname?.startsWith(item.href));
+                                    return (
+                                        <Link
+                                            key={item.href}
+                                            href={item.href}
+                                            className={`admin-nav-item ${isActive ? 'active' : ''}`}
+                                        >
+                                            <Icon size={18} className="admin-nav-icon" />
+                                            <span>{item.label}</span>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        ))}
+                    </nav>
+
+                    {/* Footer / Logout */}
+                    <div className="admin-sidebar-footer">
+                        <button
+                            onClick={() => logout()}
+                            className="admin-logout-btn"
+                        >
+                            <LogOut size={18} />
+                            <span>{t('admin.logout')}</span>
+                        </button>
+                    </div>
+                </aside>
+
+                {/* Main Content */}
+                <main className="admin-main">
+                    {children}
+                </main>
+            </div>
         </div>
     );
 }
