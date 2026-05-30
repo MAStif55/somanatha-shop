@@ -65,7 +65,7 @@ export default function HomeTeaser() {
 
   return (
     <Link href="/panchanga" className="block w-full max-w-xl mx-auto my-1 px-4 sm:px-0">
-      <div className={`group relative overflow-hidden rounded-2xl p-5 sm:p-6 flex items-center justify-between border backdrop-blur-md transition-all duration-500 hover:-translate-y-1 ${
+      <div className={`group relative overflow-hidden rounded-2xl p-6 sm:p-8 flex flex-col items-center text-center border backdrop-blur-md transition-all duration-500 hover:-translate-y-1 ${
         highlight 
           ? 'bg-gradient-to-r from-[#2d1b1f]/90 via-[#2a1e12]/80 to-[#2d1b1f]/90 border-[#C9A227]/50 shadow-[0_8px_32px_rgba(201,162,39,0.2)] hover:shadow-[0_12px_40px_rgba(201,162,39,0.35)] hover:border-[#C9A227]' 
           : 'bg-gradient-to-r from-[#2d1b1f]/60 via-[#1a1517]/85 to-[#2d1b1f]/60 border-[#C9A227]/25 border-t-[#E8D48B]/40 shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_15px_rgba(201,162,39,0.08)] hover:shadow-[0_12px_40px_rgba(201,162,39,0.22)] hover:border-[#C9A227]/50 hover:bg-[#1a1517]/95'
@@ -80,40 +80,46 @@ export default function HomeTeaser() {
           }`} />
         </div>
 
-        <div className="flex items-start gap-4 sm:gap-6 relative z-10 w-full">
-          <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shrink-0 shadow-inner transition-all duration-500 group-hover:scale-110 ${
-            highlight 
-              ? 'bg-gradient-to-br from-[#C9A227]/30 to-[#0D0A0B]/85 border border-[#C9A227]/50 group-hover:border-[#C9A227]' 
-              : 'bg-[#0D0A0B]/85 border border-[#C9A227]/30 group-hover:border-[#C9A227]/60 group-hover:bg-[#C9A227]/10'
-          }`}>
-            <img 
-              src={moonImage} 
-              alt="Moon Phase" 
-              className={`w-8 h-8 sm:w-10 sm:h-10 transition-all duration-500 object-contain ${
-                highlight 
-                  ? 'drop-shadow-[0_0_8px_rgba(201,162,39,0.8)] group-hover:drop-shadow-[0_0_12px_rgba(201,162,39,1)]' 
-                  : 'opacity-90 group-hover:opacity-100 group-hover:drop-shadow-[0_0_8px_rgba(232,212,139,0.7)]'
-              }`}
-            />
-          </div>
-          <div className="flex flex-col justify-start text-left flex-1">
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E8D48B] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#C9A227]"></span>
-              </span>
-              <p className="text-xs font-bold text-[#C9A227] uppercase tracking-[0.25em] opacity-90 select-none">
-                {isRu ? 'Ведический Календарь' : 'Vedic Calendar'}
-              </p>
-            </div>
-            <p className={`text-sm sm:text-base leading-snug ${highlight ? 'text-[#F5ECD7] font-medium' : 'text-[#F5ECD7]/95 font-light'}`}>
-              {message}
+        {/* 1. Large Dynamic Moon Icon */}
+        <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center shrink-0 shadow-inner mb-4 transition-all duration-500 group-hover:scale-110 ${
+          highlight 
+            ? 'bg-gradient-to-br from-[#C9A227]/30 to-[#0D0A0B]/85 border border-[#C9A227]/50 group-hover:border-[#C9A227]' 
+            : 'bg-[#0D0A0B]/85 border border-[#C9A227]/30 group-hover:border-[#C9A227]/60 group-hover:bg-[#C9A227]/10'
+        }`}>
+          <img 
+            src={moonImage} 
+            alt="Moon Phase" 
+            className={`w-11 h-11 sm:w-14 sm:h-14 transition-all duration-500 object-contain ${
+              highlight 
+                ? 'drop-shadow-[0_0_10px_rgba(201,162,39,0.8)] group-hover:drop-shadow-[0_0_14px_rgba(201,162,39,1)]' 
+                : 'opacity-90 group-hover:opacity-100 group-hover:drop-shadow-[0_0_8px_rgba(232,212,139,0.7)]'
+            }`}
+          />
+        </div>
+
+        {/* 2. Text Container */}
+        <div className="flex flex-col items-center justify-center w-full relative z-10">
+          {/* Header Label with Pulsing Dot */}
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E8D48B] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#C9A227]"></span>
+            </span>
+            <p className="text-xs sm:text-sm font-bold text-[#C9A227] uppercase tracking-[0.25em] opacity-90 select-none">
+              {isRu ? 'Ведический Календарь' : 'Vedic Calendar'}
             </p>
-            
-            {/* Open Action Link at the bottom of the card, aligned with text */}
-            <div className="text-[#C9A227]/70 text-xs sm:text-sm flex items-center gap-2 group-hover:text-[#E8D48B] transition-colors mt-3.5 font-medium tracking-wide">
-              <span>{isRu ? 'Открыть' : 'Open'}</span>
-              <span className="transform group-hover:translate-x-1.5 transition-transform duration-300">&rarr;</span>
+          </div>
+          
+          {/* Message */}
+          <p className={`text-base sm:text-lg leading-relaxed max-w-md ${highlight ? 'text-[#F5ECD7] font-medium' : 'text-[#F5ECD7]/95 font-light'}`}>
+            {message}
+          </p>
+          
+          {/* 3. Styled Button */}
+          <div className="mt-5">
+            <div className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full border border-[#C9A227]/40 bg-[#C9A227]/10 text-xs sm:text-sm text-[#E8D48B] font-semibold tracking-wider uppercase transition-all duration-300 group-hover:bg-[#C9A227]/25 group-hover:border-[#C9A227]/80 group-hover:text-white group-hover:shadow-[0_0_15px_rgba(201,162,39,0.3)]">
+              <span>{isRu ? 'Открыть календарь' : 'Open calendar'}</span>
+              <span className="transform group-hover:translate-x-1 transition-transform duration-300">&rarr;</span>
             </div>
           </div>
         </div>
