@@ -41,8 +41,28 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
     const [mounted, setMounted] = useState(false);
 
     // Lunar Birthday details
-    const [birthDate, setBirthDate] = useState<string>('');
-    const [birthTime, setBirthTime] = useState<string>('');
+    const [bDay, setBDay] = useState<string>('');
+    const [bMonth, setBMonth] = useState<string>('');
+    const [bYear, setBYear] = useState<string>('');
+    const [bHour, setBHour] = useState<string>('');
+    const [bMinute, setBMinute] = useState<string>('');
+    
+    // Derived values to send to backend
+    const birthDate = (bDay && bMonth && bYear) ? `${bYear}-${bMonth.padStart(2, '0')}-${bDay.padStart(2, '0')}` : '';
+    const birthTime = (bHour && bMinute) ? `${bHour.padStart(2, '0')}:${bMinute.padStart(2, '0')}` : '';
+
+    const days = Array.from({length: 31}, (_, i) => String(i + 1));
+    const months = [
+        { val: '1', label: 'Января' }, { val: '2', label: 'Февраля' }, { val: '3', label: 'Марта' },
+        { val: '4', label: 'Апреля' }, { val: '5', label: 'Мая' }, { val: '6', label: 'Июня' },
+        { val: '7', label: 'Июля' }, { val: '8', label: 'Августа' }, { val: '9', label: 'Сентября' },
+        { val: '10', label: 'Октября' }, { val: '11', label: 'Ноября' }, { val: '12', label: 'Декабря' }
+    ];
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({length: 100}, (_, i) => String(currentYear - i));
+    
+    const hours = Array.from({length: 24}, (_, i) => String(i).padStart(2, '0'));
+    const minutes = Array.from({length: 60}, (_, i) => String(i).padStart(2, '0'));
 
     useEffect(() => {
         setMounted(true);
@@ -101,11 +121,24 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
                         const saved = localStorage.getItem('push_preferences');
                         if (saved) setPreferences(JSON.parse(saved));
                         
-                        const savedBirthDate = localStorage.getItem('push_birthDate');
-                        if (savedBirthDate) setBirthDate(savedBirthDate);
+                        const savedBirthDate = data.birthDate || localStorage.getItem('push_birthDate');
+                        if (savedBirthDate) {
+                            const [y, m, d] = savedBirthDate.split('-');
+                            if (y && m && d) {
+                                setBYear(y);
+                                setBMonth(parseInt(m).toString()); // remove leading zero
+                                setBDay(parseInt(d).toString());
+                            }
+                        }
                         
-                        const savedBirthTime = localStorage.getItem('push_birthTime');
-                        if (savedBirthTime) setBirthTime(savedBirthTime);
+                        const savedBirthTime = data.birthTime || localStorage.getItem('push_birthTime');
+                        if (savedBirthTime) {
+                            const [h, min] = savedBirthTime.split(':');
+                            if (h && min) {
+                                setBHour(h);
+                                setBMinute(min);
+                            }
+                        }
                     }
                 } catch (e) {
                     console.error('Error syncing subscription:', e);
@@ -509,27 +542,88 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
                                 <p className="text-xs text-[#F5ECD7]/70 leading-relaxed">
                                     Укажите данные своего рождения, чтобы мы могли рассчитать ваш личный лунный день (Титхи) и прислать напоминание и сюрприз, когда он наступит.
                                 </p>
-                                <div className="space-y-3 mt-2">
+                                <div className="space-y-4 mt-2">
                                     <div>
-                                        <label className="block text-xs text-[#C9A227]/80 mb-1">Дата рождения *</label>
-                                        <input 
-                                            type="date" 
-                                            value={birthDate}
-                                            onChange={(e) => setBirthDate(e.target.value)}
-                                            className="w-full bg-[#0D0A0B] border border-[#C9A227]/30 rounded-lg p-2 text-sm text-[#F5ECD7] focus:border-[#C9A227] focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50"
-                                        />
+                                        <label className="block text-xs font-medium text-[#C9A227]/80 mb-2">Дата рождения *</label>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <div className="relative">
+                                                <select 
+                                                    value={bDay}
+                                                    onChange={(e) => setBDay(e.target.value)}
+                                                    className="w-full appearance-none bg-[#0D0A0B]/80 border border-[#C9A227]/30 rounded-lg p-2.5 text-sm text-[#F5ECD7] focus:border-[#C9A227] focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50 transition-colors cursor-pointer"
+                                                >
+                                                    <option value="" disabled>День</option>
+                                                    {days.map(d => <option key={d} value={d}>{d}</option>)}
+                                                </select>
+                                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#C9A227]/50">
+                                                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                                                </div>
+                                            </div>
+                                            <div className="relative">
+                                                <select 
+                                                    value={bMonth}
+                                                    onChange={(e) => setBMonth(e.target.value)}
+                                                    className="w-full appearance-none bg-[#0D0A0B]/80 border border-[#C9A227]/30 rounded-lg p-2.5 text-sm text-[#F5ECD7] focus:border-[#C9A227] focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50 transition-colors cursor-pointer"
+                                                >
+                                                    <option value="" disabled>Месяц</option>
+                                                    {months.map(m => <option key={m.val} value={m.val}>{m.label}</option>)}
+                                                </select>
+                                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#C9A227]/50">
+                                                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                                                </div>
+                                            </div>
+                                            <div className="relative">
+                                                <select 
+                                                    value={bYear}
+                                                    onChange={(e) => setBYear(e.target.value)}
+                                                    className="w-full appearance-none bg-[#0D0A0B]/80 border border-[#C9A227]/30 rounded-lg p-2.5 text-sm text-[#F5ECD7] focus:border-[#C9A227] focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50 transition-colors cursor-pointer"
+                                                >
+                                                    <option value="" disabled>Год</option>
+                                                    {years.map(y => <option key={y} value={y}>{y}</option>)}
+                                                </select>
+                                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#C9A227]/50">
+                                                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
+
                                     <div>
-                                        <label className="block text-xs text-[#C9A227]/80 mb-1">Время рождения (необязательно)</label>
-                                        <input 
-                                            type="time" 
-                                            value={birthTime}
-                                            onChange={(e) => setBirthTime(e.target.value)}
-                                            className="w-full bg-[#0D0A0B] border border-[#C9A227]/30 rounded-lg p-2 text-sm text-[#F5ECD7] focus:border-[#C9A227] focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50"
-                                        />
-                                        <p className="text-[10px] text-zinc-500 mt-1">
-                                            Для точного астрологического расчета. Если неизвестно, мы рассчитаем по 12:00.
-                                        </p>
+                                        <div className="flex justify-between items-end mb-2">
+                                            <label className="block text-xs font-medium text-[#C9A227]/80">Время рождения (необязательно)</label>
+                                            { (bHour || bMinute) && (
+                                                <button onClick={() => { setBHour(''); setBMinute(''); }} className="text-[10px] text-red-400/80 hover:text-red-400">Сбросить</button>
+                                            )}
+                                        </div>
+                                        <div className="flex gap-2 items-center">
+                                            <div className="relative w-24">
+                                                <select 
+                                                    value={bHour}
+                                                    onChange={(e) => setBHour(e.target.value)}
+                                                    className="w-full appearance-none bg-[#0D0A0B]/80 border border-[#C9A227]/30 rounded-lg p-2.5 text-sm text-[#F5ECD7] focus:border-[#C9A227] focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50 transition-colors cursor-pointer text-center"
+                                                >
+                                                    <option value="" disabled>Часы</option>
+                                                    {hours.map(h => <option key={h} value={h}>{h}</option>)}
+                                                </select>
+                                            </div>
+                                            <span className="text-[#C9A227]/50 font-bold">:</span>
+                                            <div className="relative w-24">
+                                                <select 
+                                                    value={bMinute}
+                                                    onChange={(e) => setBMinute(e.target.value)}
+                                                    className="w-full appearance-none bg-[#0D0A0B]/80 border border-[#C9A227]/30 rounded-lg p-2.5 text-sm text-[#F5ECD7] focus:border-[#C9A227] focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50 transition-colors cursor-pointer text-center"
+                                                >
+                                                    <option value="" disabled>Мин</option>
+                                                    {minutes.map(m => <option key={m} value={m}>{m}</option>)}
+                                                </select>
+                                            </div>
+                                            
+                                            <div className="ml-2 flex-1">
+                                                <p className="text-[10px] text-zinc-500 leading-tight">
+                                                    Для точного расчета Титхи. По умолчанию 12:00.
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
