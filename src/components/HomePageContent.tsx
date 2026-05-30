@@ -114,17 +114,17 @@ export default function HomePageContent({ initialProducts }: HomePageContentProp
                             </Link>
 
                         </div>
+
+                        {/* Calendar Teaser */}
+                        <div className="mt-10 relative z-20 max-w-xl mx-auto">
+                            <HomeTeaser />
+                        </div>
                     </div>
                 </div>
 
                 {/* Smooth transition to next section */}
                 <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-[#1A1517] via-[#1A1517]/60 to-transparent pointer-events-none z-10"></div>
             </section>
-
-            {/* ASTROLOGY TEASER */}
-            <div className="bg-transparent pt-8 -mb-8 relative z-20">
-                <HomeTeaser />
-            </div>
 
             {/* TRUST SIGNALS - Immediately build credibility */}
             <TrustSignals />
