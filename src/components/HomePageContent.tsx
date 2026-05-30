@@ -62,7 +62,7 @@ export default function HomePageContent({ initialProducts }: HomePageContentProp
                 HERO SECTION - 70vh Premium Design
                 ================================================================ */}
             <section
-                className="relative min-h-[60vh] flex flex-col bg-hero-premium"
+                className="relative min-h-[50vh] flex flex-col bg-hero-premium"
             >
                 {/* Ambient glow effects */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -74,7 +74,7 @@ export default function HomePageContent({ initialProducts }: HomePageContentProp
                 <Header variant="transparent" />
 
                 {/* Hero Content */}
-                <div className="flex-1 flex items-center justify-center px-4 sm:px-6 pb-12 md:pb-16 relative z-10">
+                <div className="flex-1 flex items-center justify-center px-4 sm:px-6 pb-4 md:pb-4 relative z-10">
                     <div className="text-center max-w-5xl w-full">
                         {/* Ornamental Divider */}
                         <div className="divider-ornamental mb-8">
@@ -116,14 +116,14 @@ export default function HomePageContent({ initialProducts }: HomePageContentProp
                         </div>
 
                         {/* Calendar Teaser */}
-                        <div className="mt-10 relative z-20 max-w-xl mx-auto">
+                        <div className="mt-8 relative z-20 max-w-xl mx-auto">
                             <HomeTeaser />
                         </div>
                     </div>
                 </div>
 
                 {/* Smooth transition to next section */}
-                <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-[#1A1517] via-[#1A1517]/60 to-transparent pointer-events-none z-10"></div>
+                <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-[#1A1517] via-[#1A1517]/60 to-transparent pointer-events-none z-10"></div>
             </section>
 
             {/* TRUST SIGNALS - Immediately build credibility */}
