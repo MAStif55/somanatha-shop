@@ -114,8 +114,18 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
                     const data = await res.json();
                     if (data.success && data.exists) {
                         setPreferences(data.preferences);
-                        if (data.birthDate) setBirthDate(data.birthDate);
-                        if (data.birthTime) setBirthTime(data.birthTime);
+                        if (data.birthDate) {
+                            const [y, m, d] = data.birthDate.split('-');
+                            if (y && m && d) {
+                                setBYear(y); setBMonth(parseInt(m).toString()); setBDay(parseInt(d).toString());
+                            }
+                        }
+                        if (data.birthTime) {
+                            const [h, min] = data.birthTime.split(':');
+                            if (h && min) {
+                                setBHour(h); setBMinute(min);
+                            }
+                        }
                     } else {
                         // Local storage fallback
                         const saved = localStorage.getItem('push_preferences');
