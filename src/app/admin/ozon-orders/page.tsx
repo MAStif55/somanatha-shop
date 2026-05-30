@@ -561,6 +561,17 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
             }
             const blob = await res.blob();
             const url = URL.createObjectURL(blob);
+
+            const productsHtml = order.products.map(p => {
+                const safeName = p.name.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const skuInfo = p.offerId ? `<span class="product-sku">${p.offerId}</span>` : '';
+                return `<div class="product-badge">
+                    <span class="product-qty">${p.quantity} шт</span>
+                    <span class="product-name" title="${safeName}">${safeName}</span>
+                    ${skuInfo}
+                </div>`;
+            }).join('');
+
             const printWindow = window.open('', '_blank');
             if (printWindow) {
                 printWindow.document.write(`<!DOCTYPE html>
@@ -569,10 +580,64 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, 'Inter', sans-serif; background: #f5f5f5; }
     .toolbar { display: flex; align-items: center; gap: 12px; padding: 10px 20px; background: #1e1d2b; color: white; position: sticky; top: 0; z-index: 10; }
-    .toolbar button { padding: 8px 20px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+    .toolbar button { padding: 8px 20px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
     .toolbar button:hover { background: #2563eb; }
-    .toolbar .num { font-size: 13px; font-family: monospace; color: #d1d5db; }
-    .tip { margin-left: auto; font-size: 11px; color: #fbbf24; background: rgba(251, 191, 36, 0.1); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(251, 191, 36, 0.2); }
+    .toolbar .num { font-size: 13px; font-family: monospace; color: #d1d5db; flex-shrink: 0; }
+    .products-list {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-grow: 1;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        margin: 0 10px;
+    }
+    .products-list::-webkit-scrollbar {
+        height: 4px;
+    }
+    .products-list::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.02);
+    }
+    .products-list::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 2px;
+    }
+    .product-badge {
+        background: rgba(255, 255, 255, 0.08);
+        padding: 4px 8px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        color: #e5e7eb;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .product-qty {
+        font-weight: 700;
+        color: #60a5fa;
+        background: rgba(96, 165, 250, 0.15);
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-family: monospace;
+    }
+    .product-name {
+        max-width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .product-sku {
+        font-size: 10px;
+        color: #9ca3af;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1px 4px;
+        border-radius: 3px;
+        font-family: monospace;
+    }
+    .tip { margin-left: auto; font-size: 11px; color: #fbbf24; background: rgba(251, 191, 36, 0.1); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(251, 191, 36, 0.2); flex-shrink: 0; }
     iframe { width: 100%; height: calc(100vh - 50px); border: none; }
     @media print { .toolbar { display: none !important; } iframe { height: 100vh; } }
 </style></head>
@@ -580,6 +645,9 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
     <div class="toolbar">
         <button onclick="try{document.getElementById('pdf').contentWindow.print()}catch(e){window.print()}">🖨️ Печать</button>
         <span class="num">${order.postingNumber}</span>
+        <div class="products-list">
+            ${productsHtml}
+        </div>
         <span class="tip">💡 Выберите «По размеру страницы» в настройках печати</span>
     </div>
     <iframe id="pdf" src="${url}#view=Fit"></iframe>
@@ -759,6 +827,16 @@ function OzonOrderRow({ order, isExpanded, onToggle, formatDate, formatPrice, lo
             const blob = await res.blob();
             const url = URL.createObjectURL(blob);
 
+            const productsHtml = order.products.map(p => {
+                const safeName = p.name.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const skuInfo = p.offerId ? `<span class="product-sku">${p.offerId}</span>` : '';
+                return `<div class="product-badge">
+                    <span class="product-qty">${p.quantity} шт</span>
+                    <span class="product-name" title="${safeName}">${safeName}</span>
+                    ${skuInfo}
+                </div>`;
+            }).join('');
+
             // Open a wrapper page with the PDF in an iframe + print controls
             const printWindow = window.open('', '_blank');
             if (printWindow) {
@@ -776,14 +854,68 @@ function OzonOrderRow({ order, isExpanded, onToggle, formatDate, formatPrice, lo
         padding: 8px 20px; background: #3b82f6; color: white;
         border: none; border-radius: 6px; font-weight: 700;
         cursor: pointer; font-size: 14px; display: flex;
-        align-items: center; gap: 6px;
+        align-items: center; gap: 6px; flex-shrink: 0;
     }
     .toolbar button:hover { background: #2563eb; }
-    .toolbar .num { font-size: 13px; font-family: monospace; color: #d1d5db; }
+    .toolbar .num { font-size: 13px; font-family: monospace; color: #d1d5db; flex-shrink: 0; }
+    .products-list {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-grow: 1;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        margin: 0 10px;
+    }
+    .products-list::-webkit-scrollbar {
+        height: 4px;
+    }
+    .products-list::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.02);
+    }
+    .products-list::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 2px;
+    }
+    .product-badge {
+        background: rgba(255, 255, 255, 0.08);
+        padding: 4px 8px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        color: #e5e7eb;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .product-qty {
+        font-weight: 700;
+        color: #60a5fa;
+        background: rgba(96, 165, 250, 0.15);
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-family: monospace;
+    }
+    .product-name {
+        max-width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .product-sku {
+        font-size: 10px;
+        color: #9ca3af;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1px 4px;
+        border-radius: 3px;
+        font-family: monospace;
+    }
     .tip {
         margin-left: auto; font-size: 11px; color: #fbbf24;
         background: rgba(251, 191, 36, 0.1); padding: 6px 12px;
-        border-radius: 6px; border: 1px solid rgba(251, 191, 36, 0.2);
+        border-radius: 6px; border: 1px solid rgba(251, 191, 36, 0.2); flex-shrink: 0;
     }
     iframe { width: 100%; height: calc(100vh - 50px); border: none; }
     @media print {
@@ -797,6 +929,9 @@ function OzonOrderRow({ order, isExpanded, onToggle, formatDate, formatPrice, lo
             🖨️ Печать
         </button>
         <span class="num">${order.postingNumber}</span>
+        <div class="products-list">
+            ${productsHtml}
+        </div>
         <span class="tip">💡 Выберите «По размеру страницы» в настройках печати</span>
     </div>
     <iframe id="pdf" src="${url}#view=Fit"></iframe>
