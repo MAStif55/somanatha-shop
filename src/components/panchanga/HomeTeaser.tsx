@@ -80,7 +80,7 @@ export default function HomeTeaser() {
           }`} />
         </div>
 
-        <div className="flex items-center gap-4 sm:gap-6 relative z-10">
+        <div className="flex items-start gap-4 sm:gap-6 relative z-10 w-full">
           <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shrink-0 shadow-inner transition-all duration-500 group-hover:scale-110 ${
             highlight 
               ? 'bg-gradient-to-br from-[#C9A227]/30 to-[#0D0A0B]/85 border border-[#C9A227]/50 group-hover:border-[#C9A227]' 
@@ -96,7 +96,7 @@ export default function HomeTeaser() {
               }`}
             />
           </div>
-          <div className="flex flex-col justify-center text-left">
+          <div className="flex flex-col justify-start text-left flex-1">
             <div className="flex items-center gap-2 mb-1.5">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E8D48B] opacity-75"></span>
@@ -109,12 +109,13 @@ export default function HomeTeaser() {
             <p className={`text-sm sm:text-base leading-snug ${highlight ? 'text-[#F5ECD7] font-medium' : 'text-[#F5ECD7]/95 font-light'}`}>
               {message}
             </p>
+            
+            {/* Open Action Link at the bottom of the card, aligned with text */}
+            <div className="text-[#C9A227]/70 text-xs sm:text-sm flex items-center gap-2 group-hover:text-[#E8D48B] transition-colors mt-3.5 font-medium tracking-wide">
+              <span>{isRu ? 'Открыть' : 'Open'}</span>
+              <span className="transform group-hover:translate-x-1.5 transition-transform duration-300">&rarr;</span>
+            </div>
           </div>
-        </div>
-        
-        <div className="text-[#C9A227]/60 text-sm sm:text-base hidden sm:flex items-center gap-2 group-hover:text-[#C9A227] transition-colors relative z-10 font-medium tracking-wide">
-          <span>{isRu ? 'Открыть' : 'Open'}</span>
-          <span className="transform group-hover:translate-x-1.5 transition-transform duration-300">&rarr;</span>
         </div>
       </div>
     </Link>
