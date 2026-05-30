@@ -8,6 +8,7 @@ import CartDrawer from '@/components/CartDrawer';
 import dynamic from 'next/dynamic';
 import YandexMetrika from '@/components/YandexMetrika';
 import JsonLd from '@/components/JsonLd';
+import PromoUrlHandler from '@/components/PromoUrlHandler';
 
 const BASE_URL = 'https://somanatha.ru';
 
@@ -115,6 +116,7 @@ export default function RootLayout({
                         {children}
                         <UnderConstructionPopup />
                         <CartDrawer />
+                        <PromoUrlHandler />
                         <ToastContainer />
                     </LiveVideoProvider>
                 </LanguageProvider>

@@ -22,6 +22,10 @@ export interface PushSubscriptionDoc {
         lon: number;
         cityName: string;
     };
+    birthDate?: string; // YYYY-MM-DD
+    birthTime?: string; // HH:MM, optional
+    birthTithi?: number; // 0-29
+    lastSentLunarBirthdayDate?: string; // YYYY-MM-DD to avoid sending multiple times
     lastSentTithi?: string;
     lastSentNakshatra?: string;
     createdAt: Date;
@@ -67,6 +71,10 @@ export class MongoPushRepository {
                         preferences: data.preferences,
                         timezone: data.timezone,
                         location: data.location,
+                        birthDate: data.birthDate,
+                        birthTime: data.birthTime,
+                        birthTithi: data.birthTithi,
+                        lastSentLunarBirthdayDate: data.lastSentLunarBirthdayDate,
                         lastSentTithi: data.lastSentTithi,
                         lastSentNakshatra: data.lastSentNakshatra,
                         updatedAt: now

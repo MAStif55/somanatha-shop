@@ -40,6 +40,10 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
     const [showInstructions, setShowInstructions] = useState(false);
     const [mounted, setMounted] = useState(false);
 
+    // Lunar Birthday details
+    const [birthDate, setBirthDate] = useState<string>('');
+    const [birthTime, setBirthTime] = useState<string>('');
+
     useEffect(() => {
         setMounted(true);
     }, []);
@@ -90,10 +94,18 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
                     const data = await res.json();
                     if (data.success && data.exists) {
                         setPreferences(data.preferences);
+                        if (data.birthDate) setBirthDate(data.birthDate);
+                        if (data.birthTime) setBirthTime(data.birthTime);
                     } else {
                         // Local storage fallback
                         const saved = localStorage.getItem('push_preferences');
                         if (saved) setPreferences(JSON.parse(saved));
+                        
+                        const savedBirthDate = localStorage.getItem('push_birthDate');
+                        if (savedBirthDate) setBirthDate(savedBirthDate);
+                        
+                        const savedBirthTime = localStorage.getItem('push_birthTime');
+                        if (savedBirthTime) setBirthTime(savedBirthTime);
                     }
                 } catch (e) {
                     console.error('Error syncing subscription:', e);
@@ -169,7 +181,9 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
                     lat: latitude,
                     lon: longitude,
                     cityName: cityName
-                }
+                },
+                birthDate,
+                birthTime
             };
 
             const response = await fetch('/api/push/subscribe', {
@@ -183,6 +197,8 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
                 setIsSubscribed(true);
                 setPermissionStatus(Notification.permission);
                 localStorage.setItem('push_preferences', JSON.stringify(preferences));
+                if (birthDate) localStorage.setItem('push_birthDate', birthDate);
+                if (birthTime) localStorage.setItem('push_birthTime', birthTime);
             } else {
                 setErrorDetails(`Ошибка на стороне сервера: ${data.error || 'Неизвестная ошибка'}`);
             }
@@ -225,6 +241,8 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
 
             setIsSubscribed(false);
             localStorage.removeItem('push_preferences');
+            localStorage.removeItem('push_birthDate');
+            localStorage.removeItem('push_birthTime');
             alert('Вы успешно отписались от уведомлений.');
             onClose();
         } catch (error) {
@@ -481,6 +499,39 @@ export default function PushSettingsModal({ isOpen, onClose, latitude, longitude
                                         </div>
                                     </div>
                                 )}
+                            </div>
+
+                            {/* Lunar Birthday Settings */}
+                            <div className="flex flex-col gap-3 bg-[#1A1517]/30 border border-[#C9A227]/20 p-4 rounded-xl">
+                                <h3 className="text-sm font-semibold text-[#E8D48B] flex items-center gap-2">
+                                    <span className="text-lg">🌙</span> Индивидуальный Лунный День Рождения
+                                </h3>
+                                <p className="text-xs text-[#F5ECD7]/70 leading-relaxed">
+                                    Укажите данные своего рождения, чтобы мы могли рассчитать ваш личный лунный день (Титхи) и прислать напоминание и сюрприз, когда он наступит.
+                                </p>
+                                <div className="space-y-3 mt-2">
+                                    <div>
+                                        <label className="block text-xs text-[#C9A227]/80 mb-1">Дата рождения *</label>
+                                        <input 
+                                            type="date" 
+                                            value={birthDate}
+                                            onChange={(e) => setBirthDate(e.target.value)}
+                                            className="w-full bg-[#0D0A0B] border border-[#C9A227]/30 rounded-lg p-2 text-sm text-[#F5ECD7] focus:border-[#C9A227] focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-[#C9A227]/80 mb-1">Время рождения (необязательно)</label>
+                                        <input 
+                                            type="time" 
+                                            value={birthTime}
+                                            onChange={(e) => setBirthTime(e.target.value)}
+                                            className="w-full bg-[#0D0A0B] border border-[#C9A227]/30 rounded-lg p-2 text-sm text-[#F5ECD7] focus:border-[#C9A227] focus:outline-none focus:ring-1 focus:ring-[#C9A227]/50"
+                                        />
+                                        <p className="text-[10px] text-zinc-500 mt-1">
+                                            Для точного астрологического расчета. Если неизвестно, мы рассчитаем по 12:00.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Location Details Info */}

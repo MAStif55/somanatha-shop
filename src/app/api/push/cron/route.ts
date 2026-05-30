@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import webpush from 'web-push';
-import { PushRepository } from '@/lib/data';
+import { PushRepository, PromoRepository } from '@/lib/data';
 import { getMomentPanchanga, getDailyPanchanga } from '@/lib/astrology/calculations';
+import { randomUUID } from 'crypto';
 
 // Set VAPID keys if present in env (prevent build-time crash when variables aren't loaded)
 const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -129,6 +130,62 @@ export async function GET(request: Request) {
 
             const currentTithi = panchanga.tithi.name;
             const currentNakshatra = panchanga.nakshatra.name;
+
+            // 1.5 LUNAR BIRTHDAY FLOW
+            if (user.birthTithi !== undefined && (hour === 7 || isForce)) {
+                if (user.lastSentLunarBirthdayDate !== localDateStr || isForce) {
+                    if (panchanga.tithi.index === user.birthTithi) {
+                        
+                        // Generate unique one-time promo code valid for 48 hours
+                        const uniqueCode = `BDAY-${randomUUID().substring(0, 8).toUpperCase()}`;
+                        const now = Date.now();
+                        
+                        await PromoRepository.createPromo({
+                            id: randomUUID(),
+                            code: uniqueCode,
+                            type: 'percentage',
+                            value: 15, // 15% discount
+                            isActive: true,
+                            maxUses: 1,
+                            usesCount: 0,
+                            validFrom: now,
+                            validUntil: now + 48 * 60 * 60 * 1000, // 48 hours
+                            createdAt: now,
+                            updatedAt: now
+                        });
+
+                        const payload = {
+                            title: `🌙 С индивидуальным Лунным Днем Рождения!`,
+                            body: `Сегодня ваш персональный лунный день (Титхи). Мы приготовили для вас подарок — автоматическую скидку на ваш заказ!`,
+                            icon: getMoonImageForTithi(panchanga.tithi.number),
+                            badge: '/logo.png',
+                            url: `/?promo=${uniqueCode}`,
+                            actions: [
+                                { action: 'open_catalog', title: '🎁 Забрать подарок', url: `/?promo=${uniqueCode}` }
+                            ]
+                        };
+
+                        try {
+                            await webpush.sendNotification(pushSub, JSON.stringify(payload), {
+                                headers: { 'Urgency': 'high' }
+                            });
+                            notificationsSent++;
+                            
+                            if (!isForce) {
+                                const db = await (PushRepository as any).getCollection('push_subscriptions');
+                                await db.updateOne(
+                                    { endpoint: user.endpoint },
+                                    { $set: { lastSentLunarBirthdayDate: localDateStr, updatedAt: new Date() } }
+                                );
+                            }
+                        } catch (err: any) {
+                            if (err.statusCode === 410 || err.statusCode === 404) {
+                                deadEndpoints.push(user.endpoint);
+                            }
+                        }
+                    }
+                }
+            }
 
             // 2. DAILY DIGEST FLOW
             if (user.preferences.frequency === 'daily' || isForce) {

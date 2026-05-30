@@ -8,6 +8,7 @@ export default function AdminPromosPage() {
     const [promos, setPromos] = useState<PromoCode[]>([]);
     const [loading, setLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<'manual' | 'auto'>('manual');
     
     // Form state
     const [formData, setFormData] = useState<Partial<PromoCode>>({
@@ -175,6 +176,21 @@ export default function AdminPromosPage() {
                 <div>Загрузка...</div>
             ) : (
                 <div className="bg-white rounded-lg shadow overflow-hidden">
+                    <div className="flex border-b">
+                        <button
+                            onClick={() => setActiveTab('manual')}
+                            className={`px-6 py-3 font-medium text-sm transition-colors ${activeTab === 'manual' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            Основные промокоды
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('auto')}
+                            className={`px-6 py-3 font-medium text-sm transition-colors ${activeTab === 'auto' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            Сгенерированные (Подарки)
+                        </button>
+                    </div>
+
                     <table className="w-full text-left">
                         <thead className="bg-gray-50 border-b">
                             <tr>
@@ -187,7 +203,7 @@ export default function AdminPromosPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {promos.map(promo => (
+                            {(activeTab === 'manual' ? promos.filter(p => !p.code.startsWith('BDAY-')) : promos.filter(p => p.code.startsWith('BDAY-'))).map(promo => (
                                 <tr key={promo.id} className="border-b hover:bg-gray-50">
                                     <td className="p-4 font-bold">{promo.code}</td>
                                     <td className="p-4">
@@ -219,10 +235,10 @@ export default function AdminPromosPage() {
                                     </td>
                                 </tr>
                             ))}
-                            {promos.length === 0 && (
+                            {(activeTab === 'manual' ? promos.filter(p => !p.code.startsWith('BDAY-')) : promos.filter(p => p.code.startsWith('BDAY-'))).length === 0 && (
                                 <tr>
                                     <td colSpan={6} className="p-8 text-center text-gray-500">
-                                        Промокоды пока не созданы
+                                        {activeTab === 'manual' ? 'Основные промокоды пока не созданы' : 'Сгенерированных промокодов пока нет'}
                                     </td>
                                 </tr>
                             )}
