@@ -13,10 +13,17 @@ function PromoHandlerInner() {
 
     useEffect(() => {
         const promoCode = searchParams.get('promo');
-        if (promoCode && !appliedPromo) {
+        
+        if (promoCode) {
             // Remove promo from URL to clean it up
             const newUrl = window.location.pathname;
             window.history.replaceState({}, '', newUrl);
+
+            // If already applied, just show the bubble
+            if (appliedPromo && appliedPromo.code === promoCode) {
+                setPromoBubbleVisible(true);
+                return;
+            }
 
             // Fetch and apply promo
             const applyPromo = async () => {
