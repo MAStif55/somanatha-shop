@@ -875,7 +875,7 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
                             className="flex-1 flex justify-center items-center gap-2 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-70 shadow-sm"
                         >
                             {couponLoading ? <RefreshCw size={16} className="animate-spin" /> : <Gift size={16} />}
-                            {locale === 'ru' ? 'Купон (20%)' : 'Promo (20%)'}
+                            {locale === 'ru' ? 'Купон (15%)' : 'Promo (15%)'}
                         </button>
                     </div>
                 </div>

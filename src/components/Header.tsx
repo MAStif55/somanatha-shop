@@ -126,8 +126,8 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                             </button>
 
                             {/* Promo Bubble */}
-                            {promoBubbleVisible && appliedPromo && (
-                                <div className="absolute top-full right-0 mt-4 p-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.3)] text-sm w-48 z-40 transition-all">
+                            {mounted && promoBubbleVisible && appliedPromo && (
+                                <div className="absolute top-full right-0 mt-4 p-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.3)] text-sm w-48 z-[100] transition-all">
                                     <div className="absolute -top-2 right-12 w-4 h-4 bg-green-500 rotate-45 rounded-sm"></div>
                                     <p className="font-bold mb-1 leading-tight">Промокод применен!</p>
                                     <p className="text-xs text-green-100 font-medium leading-tight">Скидка {appliedPromo.code} активирована.</p>
@@ -167,8 +167,8 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                             </button>
 
                             {/* Promo Bubble Mobile */}
-                            {promoBubbleVisible && appliedPromo && (
-                                <div className="absolute top-full right-0 mt-2 p-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.3)] text-sm w-48 z-40 transition-all">
+                            {mounted && promoBubbleVisible && appliedPromo && (
+                                <div className="absolute top-full right-0 mt-2 p-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.3)] text-sm w-48 z-[100] transition-all">
                                     <div className="absolute -top-2 right-4 w-4 h-4 bg-green-500 rotate-45 rounded-sm"></div>
                                     <p className="font-bold mb-1 leading-tight">Промокод применен!</p>
                                     <p className="text-xs text-green-100 font-medium leading-tight">Скидка {appliedPromo.code} активирована.</p>
