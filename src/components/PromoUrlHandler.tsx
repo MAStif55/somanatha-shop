@@ -30,11 +30,6 @@ function PromoHandlerInner() {
                     if (res.ok && data.promo) {
                         applyPromoCode(data.promo);
                         setPromoBubbleVisible(true);
-                        
-                        // Auto-hide bubble after 10 seconds
-                        setTimeout(() => {
-                            setPromoBubbleVisible(false);
-                        }, 10000);
                     } else {
                         console.error('Failed to apply promo from URL:', data.error);
                     }

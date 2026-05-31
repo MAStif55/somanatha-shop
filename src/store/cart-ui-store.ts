@@ -12,8 +12,8 @@ interface CartUIState {
 export const useCartUIStore = create<CartUIState>((set) => ({
     isDrawerOpen: false,
     promoBubbleVisible: false,
-    openDrawer: () => set({ isDrawerOpen: true }),
+    openDrawer: () => set({ isDrawerOpen: true, promoBubbleVisible: false }),
     closeDrawer: () => set({ isDrawerOpen: false }),
-    toggleDrawer: () => set((state) => ({ isDrawerOpen: !state.isDrawerOpen })),
+    toggleDrawer: () => set((state) => ({ isDrawerOpen: !state.isDrawerOpen, promoBubbleVisible: false })),
     setPromoBubbleVisible: (visible) => set({ promoBubbleVisible: visible }),
 }));
