@@ -127,13 +127,15 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
 
                             {/* Promo Bubble */}
                             {mounted && promoBubbleVisible && appliedPromo && (
-                                <div className="absolute top-full right-0 mt-4 p-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.3)] text-sm w-48 z-[100] transition-all">
-                                    <div className="absolute -top-2 right-12 w-4 h-4 bg-green-500 rotate-45 rounded-sm"></div>
-                                    <p className="font-bold mb-1 leading-tight">Промокод применен!</p>
-                                    <p className="text-xs text-green-100 font-medium leading-tight">Скидка {appliedPromo.code} активирована.</p>
-                                    <button onClick={(e) => { e.stopPropagation(); setPromoBubbleVisible(false); }} className="absolute top-1.5 right-2 text-green-200 hover:text-white p-1">
-                                        <X size={14} />
-                                    </button>
+                                <div className="absolute top-full right-0 mt-4 p-4 rounded-xl bg-[#1A1517] border border-[#C9A227]/40 shadow-[0_0_20px_rgba(201,162,39,0.15)] text-sm w-56 z-[100] transition-all">
+                                    <div className="absolute -top-[7px] right-12 w-3 h-3 bg-[#1A1517] border-t border-l border-[#C9A227]/40 rotate-45"></div>
+                                    <div className="flex justify-between items-start mb-1.5">
+                                        <p className="font-bold text-[#E8D48B] leading-tight">Промокод применен!</p>
+                                        <button onClick={(e) => { e.stopPropagation(); setPromoBubbleVisible(false); }} className="text-[#C9A227]/50 hover:text-[#C9A227] -mt-1.5 -mr-1.5 p-1.5 transition-colors">
+                                            <X size={16} />
+                                        </button>
+                                    </div>
+                                    <p className="text-xs text-[#F5ECD7]/80 leading-tight">Скидка <span className="text-[#C9A227] font-semibold">{appliedPromo.code}</span> активирована.</p>
                                 </div>
                             )}
                         </div>
@@ -168,13 +170,15 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
 
                             {/* Promo Bubble Mobile */}
                             {mounted && promoBubbleVisible && appliedPromo && (
-                                <div className="absolute top-full right-0 mt-2 p-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.3)] text-sm w-48 z-[100] transition-all">
-                                    <div className="absolute -top-2 right-4 w-4 h-4 bg-green-500 rotate-45 rounded-sm"></div>
-                                    <p className="font-bold mb-1 leading-tight">Промокод применен!</p>
-                                    <p className="text-xs text-green-100 font-medium leading-tight">Скидка {appliedPromo.code} активирована.</p>
-                                    <button onClick={(e) => { e.stopPropagation(); setPromoBubbleVisible(false); }} className="absolute top-1.5 right-2 text-green-200 hover:text-white p-1">
-                                        <X size={14} />
-                                    </button>
+                                <div className="absolute top-full right-0 mt-3 p-4 rounded-xl bg-[#1A1517] border border-[#C9A227]/40 shadow-[0_0_20px_rgba(201,162,39,0.15)] text-sm w-56 z-[100] transition-all">
+                                    <div className="absolute -top-[7px] right-[14px] w-3 h-3 bg-[#1A1517] border-t border-l border-[#C9A227]/40 rotate-45"></div>
+                                    <div className="flex justify-between items-start mb-1.5">
+                                        <p className="font-bold text-[#E8D48B] leading-tight">Промокод применен!</p>
+                                        <button onClick={(e) => { e.stopPropagation(); setPromoBubbleVisible(false); }} className="text-[#C9A227]/50 hover:text-[#C9A227] -mt-1.5 -mr-1.5 p-1.5 transition-colors">
+                                            <X size={16} />
+                                        </button>
+                                    </div>
+                                    <p className="text-xs text-[#F5ECD7]/80 leading-tight">Скидка <span className="text-[#C9A227] font-semibold">{appliedPromo.code}</span> активирована.</p>
                                 </div>
                             )}
                         </div>
