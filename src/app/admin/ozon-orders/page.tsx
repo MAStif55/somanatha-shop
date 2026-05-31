@@ -709,8 +709,8 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
         justify-content: center;
     }
     
-    .qr { width: 22mm; height: 22mm; object-fit: contain; } 
-    .qr-text { font-size: 7px; font-weight: 600; margin-top: 2px; text-align: center; line-height: 1.1; }
+    .qr { width: 28mm; height: 28mm; object-fit: contain; margin-bottom: 2px; } 
+    .qr-text { font-size: 9px; font-weight: 700; text-align: center; line-height: 1.1; }
     
     .text-side {
         width: 53%;
@@ -720,15 +720,15 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
         text-align: left;
     }
     
-    .title { font-size: 11px; font-weight: 900; line-height: 1; margin-bottom: 2px; }
-    .subtitle { font-size: 9px; font-weight: 700; line-height: 1.1; margin-bottom: 4px; }
+    .title { font-size: 14px; font-weight: 900; line-height: 1; margin-bottom: 3px; }
+    .subtitle { font-size: 11px; font-weight: 700; line-height: 1.1; margin-bottom: 6px; }
     .code-box {
-        font-size: 10px; font-weight: 800; padding: 2px 4px; 
-        border: 1.5px solid #000; border-radius: 3px; font-family: monospace;
-        display: inline-block; margin-bottom: 3px;
+        font-size: 12px; font-weight: 800; padding: 4px 6px; 
+        border: 1.5px solid #000; border-radius: 4px; font-family: monospace;
+        display: inline-block; margin-bottom: 5px;
         background: #000; color: #fff;
     }
-    .desc { font-size: 7px; line-height: 1.1; font-weight: 500; }
+    .desc { font-size: 9px; line-height: 1.1; font-weight: 500; }
     
     @media print {
         .toolbar { display: none !important; }
