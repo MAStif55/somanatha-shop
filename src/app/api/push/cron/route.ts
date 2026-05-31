@@ -157,7 +157,7 @@ export async function GET(request: Request) {
                         const payload = {
                             title: `🌙 С индивидуальным Лунным Днем Рождения!`,
                             body: `Сегодня ваш персональный лунный день (Титхи). Мы приготовили для вас подарок — автоматическую скидку на ваш заказ!`,
-                            icon: getMoonImageForTithi(panchanga.tithi.number),
+                            icon: getMoonImageForTithi(panchanga.tithi.index + 1),
                             badge: '/logo.png',
                             url: `/?promo=${uniqueCode}`,
                             actions: [
@@ -216,7 +216,7 @@ export async function GET(request: Request) {
                     const payload = {
                         title: `🗓️ Ведическая сводка дня`,
                         body: body,
-                        icon: getMoonImageForTithi(daily.tithi.number),
+                        icon: getMoonImageForTithi(daily.tithi.index + 1),
                         badge: '/logo.png',
                         url: '/panchanga',
                         actions: [
@@ -272,7 +272,7 @@ export async function GET(request: Request) {
                     const payload = {
                         title: `🌙 Смена лунных суток (Титхи)${isForceInstant ? ' [Тест]' : ''}`,
                         body: body,
-                        icon: getMoonImageForTithi(panchanga.tithi.number),
+                        icon: getMoonImageForTithi(panchanga.tithi.index + 1),
                         badge: '/logo.png',
                         url: '/panchanga',
                         actions: [
