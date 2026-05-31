@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '@/contexts/LanguageContext';
 import Breadcrumbs from '@/components/admin/Breadcrumbs';
-import { RefreshCw, Search, ChevronDown, ChevronUp, ExternalLink, Package, ChevronLeft, ChevronRight, Printer, LayoutList, LayoutGrid, Archive, Link as LinkIcon } from 'lucide-react';
+import { RefreshCw, Search, ChevronDown, ChevronUp, ExternalLink, Package, ChevronLeft, ChevronRight, Printer, LayoutList, LayoutGrid, Archive, Link as LinkIcon, Gift } from 'lucide-react';
 import OzonInventoryTab from './OzonInventoryTab';
 import OzonMappingTab from './OzonMappingTab';
 
@@ -474,6 +474,7 @@ const handlePrintProductBarcode = (productName: string, barcode: string) => {
 function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }) {
     const [labelLoading, setLabelLoading] = useState(false);
     const [labelError, setLabelError] = useState<string | null>(null);
+    const [couponLoading, setCouponLoading] = useState(false);
     const [shipLoading, setShipLoading] = useState(false);
     const [shipError, setShipError] = useState<string | null>(null);
     const [isPacked, setIsPacked] = useState(false);
@@ -662,6 +663,68 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
         }
     };
 
+    const handlePrintCoupon = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setCouponLoading(true);
+        try {
+            const res = await fetch('/api/admin/promos/generate-slip', { method: 'POST' });
+            if (!res.ok) throw new Error('Ошибка создания купона');
+            const data = await res.json();
+            const code = data.code;
+            
+            const printWindow = window.open('', '_blank');
+            if (printWindow) {
+                printWindow.document.write(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Купон ${code}</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, 'Inter', sans-serif; background: #fff; display: flex; flex-direction: column; align-items: center; text-align: center; color: #000; }
+    .toolbar {
+        display: flex; align-items: center; justify-content: center; gap: 12px;
+        padding: 15px; background: #1e1d2b; color: white; width: 100%;
+        position: fixed; top: 0; z-index: 10;
+    }
+    .toolbar button {
+        padding: 8px 20px; background: #3b82f6; color: white;
+        border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px;
+    }
+    .content { margin-top: 80px; padding: 15px; width: 100%; max-width: 58mm; display: flex; flex-direction: column; align-items: center; border: 2px dashed #000; margin-bottom: 20px; }
+    .title { font-size: 16px; font-weight: 800; margin-bottom: 5px; text-transform: uppercase; }
+    .subtitle { font-size: 12px; margin-bottom: 10px; font-weight: 600;}
+    .qr { width: 120px; height: 120px; margin: 10px 0; }
+    .code { font-size: 14px; font-weight: bold; padding: 4px 8px; border: 1px solid #000; margin: 5px 0; font-family: monospace; }
+    .desc { font-size: 10px; line-height: 1.3; margin-top: 10px; font-weight: 500; }
+    
+    @media print {
+        .toolbar { display: none !important; }
+        .content { margin-top: 0; border: none; }
+        @page { margin: 0; size: auto; }
+    }
+</style>
+</head>
+<body>
+    <div class="toolbar">
+        <button onclick="window.print()">🖨️ Печать купона</button>
+    </div>
+    <div class="content">
+        <div class="title">СПАСИБО ЗА ЗАКАЗ!</div>
+        <div class="subtitle">Дарим скидку 20%<br/>на следующую покупку</div>
+        <img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://somanatha.ru/?promo=${code}" />
+        <div class="desc">Наведите камеру телефона<br/>или введите код на сайте:</div>
+        <div class="code">${code}</div>
+        <div class="desc">somanatha.ru<br/>(Скидка действует 30 дней)</div>
+    </div>
+</body></html>`);
+                printWindow.document.close();
+            }
+        } catch (err) {
+            console.error('Coupon generation error:', err);
+            alert('Не удалось сгенерировать купон');
+        } finally {
+            setCouponLoading(false);
+        }
+    };
+
     return (
         <div className={`rounded-xl shadow-sm border overflow-hidden flex flex-col transition-colors ${isPacked ? 'bg-green-50/40 border-green-200' : 'bg-white border-gray-200'}`}>
             <div className={`p-4 border-b flex justify-between items-start ${isPacked ? 'bg-green-100/40 border-green-100' : 'border-gray-100 bg-gray-50/50'}`}>
@@ -755,18 +818,24 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
                             {locale === 'ru' ? 'Собрать для Озон' : 'Pack for Ozon'}
                         </button>
                     )}
-                    <button
-                        onClick={handlePrintLabel}
-                        disabled={labelLoading}
-                        className="w-full flex justify-center items-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-70 shadow-sm"
-                    >
-                        {labelLoading ? (
-                            <RefreshCw size={16} className="animate-spin" />
-                        ) : (
-                            <Printer size={16} />
-                        )}
-                        {locale === 'ru' ? 'Этикетка заказа' : 'Order Label'}
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handlePrintLabel}
+                            disabled={labelLoading}
+                            className="flex-1 flex justify-center items-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-70 shadow-sm"
+                        >
+                            {labelLoading ? <RefreshCw size={16} className="animate-spin" /> : <Printer size={16} />}
+                            {locale === 'ru' ? 'Этикетка' : 'Label'}
+                        </button>
+                        <button
+                            onClick={handlePrintCoupon}
+                            disabled={couponLoading}
+                            className="flex-1 flex justify-center items-center gap-2 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-70 shadow-sm"
+                        >
+                            {couponLoading ? <RefreshCw size={16} className="animate-spin" /> : <Gift size={16} />}
+                            {locale === 'ru' ? 'Купон (20%)' : 'Promo (20%)'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
