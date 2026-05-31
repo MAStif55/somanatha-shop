@@ -702,22 +702,23 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
     }
     
     .qr-side {
-        width: 45%;
+        width: 40%;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
     }
     
-    .qr { width: 28mm; height: 28mm; object-fit: contain; margin-bottom: 2px; } 
+    .qr { width: 22mm; height: 22mm; object-fit: contain; margin-bottom: 2px; } 
     .qr-text { font-size: 9px; font-weight: 700; text-align: center; line-height: 1.1; }
     
     .text-side {
-        width: 53%;
+        width: 60%;
         display: flex;
         flex-direction: column;
+        align-items: center;
         justify-content: center;
-        text-align: left;
+        text-align: center;
     }
     
     .title { font-size: 14px; font-weight: 900; line-height: 1; margin-bottom: 3px; }
