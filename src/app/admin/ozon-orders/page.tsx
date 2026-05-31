@@ -751,7 +751,7 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
         </div>
         <div class="text-side">
             <div class="title">СПАСИБО ЗА ЗАКАЗ</div>
-            <div class="subtitle">Дарим скидку 20%</div>
+            <div class="subtitle">Дарим скидку 15%</div>
             <div class="code-box">${code}</div>
             <div class="desc">somanatha.ru<br/>(действует 30 дней)</div>
         </div>

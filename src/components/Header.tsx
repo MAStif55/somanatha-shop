@@ -16,8 +16,8 @@ interface HeaderProps {
 export default function Header({ variant = 'solid' }: HeaderProps) {
     const { locale, setLocale, t } = useLanguage();
     const pathname = usePathname();
-    const { getTotalItems } = useCartStore();
-    const { openDrawer } = useCartUIStore();
+    const { getTotalItems, appliedPromo } = useCartStore();
+    const { openDrawer, promoBubbleVisible, setPromoBubbleVisible } = useCartUIStore();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
 
@@ -106,23 +106,37 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                         ))}
 
                         {/* Cart */}
-                        <button
-                            onClick={openDrawer}
-                            className={`flex items-center gap-2 font-medium transition-all duration-300 relative text-[#F5ECD7]/80 hover:text-[#E8D48B]`}
-                            aria-label={locale === 'ru' ? 'Открыть корзину' : 'Open cart'}
-                        >
-                            <div className="relative">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                                </svg>
-                                {totalItems > 0 && (
-                                    <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border border-[#0D0A0B]">
-                                        {totalItems}
-                                    </span>
-                                )}
-                            </div>
-                            {t('nav.cart')}
-                        </button>
+                        <div className="relative">
+                            <button
+                                onClick={openDrawer}
+                                className={`flex items-center gap-2 font-medium transition-all duration-300 relative text-[#F5ECD7]/80 hover:text-[#E8D48B]`}
+                                aria-label={locale === 'ru' ? 'Открыть корзину' : 'Open cart'}
+                            >
+                                <div className="relative">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                    </svg>
+                                    {totalItems > 0 && (
+                                        <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border border-[#0D0A0B]">
+                                            {totalItems}
+                                        </span>
+                                    )}
+                                </div>
+                                {t('nav.cart')}
+                            </button>
+
+                            {/* Promo Bubble */}
+                            {promoBubbleVisible && appliedPromo && (
+                                <div className="absolute top-full right-0 mt-4 p-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.3)] text-sm w-48 z-40 transition-all">
+                                    <div className="absolute -top-2 right-12 w-4 h-4 bg-green-500 rotate-45 rounded-sm"></div>
+                                    <p className="font-bold mb-1 leading-tight">Промокод применен!</p>
+                                    <p className="text-xs text-green-100 font-medium leading-tight">Скидка {appliedPromo.code} активирована.</p>
+                                    <button onClick={(e) => { e.stopPropagation(); setPromoBubbleVisible(false); }} className="absolute top-1.5 right-2 text-green-200 hover:text-white p-1">
+                                        <X size={14} />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
 
                         {/* Language Toggle - Metallic Style */}
                         <button
@@ -140,16 +154,30 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                     {/* Mobile Menu Controls */}
                     <div className="md:hidden flex items-center gap-3">
                         {/* Cart Icon */}
-                        <button onClick={openDrawer} className="text-[#E8D48B] relative p-2" aria-label={locale === 'ru' ? 'Открыть корзину' : 'Open cart'}>
-                            <div className="relative">
-                                <ShoppingBag className="w-6 h-6" />
-                                {totalItems > 0 && (
-                                    <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border border-[#0D0A0B]">
-                                        {totalItems}
-                                    </span>
-                                )}
-                            </div>
-                        </button>
+                        <div className="relative">
+                            <button onClick={openDrawer} className="text-[#E8D48B] relative p-2" aria-label={locale === 'ru' ? 'Открыть корзину' : 'Open cart'}>
+                                <div className="relative">
+                                    <ShoppingBag className="w-6 h-6" />
+                                    {totalItems > 0 && (
+                                        <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border border-[#0D0A0B]">
+                                            {totalItems}
+                                        </span>
+                                    )}
+                                </div>
+                            </button>
+
+                            {/* Promo Bubble Mobile */}
+                            {promoBubbleVisible && appliedPromo && (
+                                <div className="absolute top-full right-0 mt-2 p-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.3)] text-sm w-48 z-40 transition-all">
+                                    <div className="absolute -top-2 right-4 w-4 h-4 bg-green-500 rotate-45 rounded-sm"></div>
+                                    <p className="font-bold mb-1 leading-tight">Промокод применен!</p>
+                                    <p className="text-xs text-green-100 font-medium leading-tight">Скидка {appliedPromo.code} активирована.</p>
+                                    <button onClick={(e) => { e.stopPropagation(); setPromoBubbleVisible(false); }} className="absolute top-1.5 right-2 text-green-200 hover:text-white p-1">
+                                        <X size={14} />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
 
                         {/* Hamburger Button */}
                         <button

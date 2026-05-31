@@ -12,7 +12,7 @@ export async function POST(request: Request) {
             id: randomUUID(),
             code: uniqueCode,
             type: 'percentage',
-            value: 20, // 20% discount default
+            value: 15, // 15% discount default
             isActive: true,
             maxUses: 1, // Single use only
             usesCount: 0,

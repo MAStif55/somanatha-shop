@@ -9,7 +9,7 @@ function PromoHandlerInner() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const { applyPromoCode, getTotalPrice, appliedPromo } = useCartStore();
-    const { openDrawer } = useCartUIStore();
+    const { setPromoBubbleVisible } = useCartUIStore();
 
     useEffect(() => {
         const promoCode = searchParams.get('promo');
@@ -29,8 +29,12 @@ function PromoHandlerInner() {
                     const data = await res.json();
                     if (res.ok && data.promo) {
                         applyPromoCode(data.promo);
-                        // Open cart drawer to show the success
-                        openDrawer();
+                        setPromoBubbleVisible(true);
+                        
+                        // Auto-hide bubble after 10 seconds
+                        setTimeout(() => {
+                            setPromoBubbleVisible(false);
+                        }, 10000);
                     } else {
                         console.error('Failed to apply promo from URL:', data.error);
                     }
@@ -41,7 +45,7 @@ function PromoHandlerInner() {
 
             applyPromo();
         }
-    }, [searchParams, applyPromoCode, getTotalPrice, appliedPromo, openDrawer, router]);
+    }, [searchParams, applyPromoCode, getTotalPrice, appliedPromo, setPromoBubbleVisible, router]);
 
     return null;
 }
