@@ -8,7 +8,16 @@ export default function AdminPromosPage() {
     const [promos, setPromos] = useState<PromoCode[]>([]);
     const [loading, setLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<'manual' | 'auto'>('manual');
+    const [activeTab, setActiveTab] = useState<'manual' | 'bday' | 'ozon'>('manual');
+    
+    const getFilteredPromos = () => {
+        if (activeTab === 'manual') return promos.filter(p => !p.code.startsWith('BDAY-') && !p.code.startsWith('OZON-'));
+        if (activeTab === 'bday') return promos.filter(p => p.code.startsWith('BDAY-'));
+        if (activeTab === 'ozon') return promos.filter(p => p.code.startsWith('OZON-'));
+        return promos;
+    };
+    
+    const filteredPromos = getFilteredPromos();
     
     // Form state
     const [formData, setFormData] = useState<Partial<PromoCode>>({
@@ -184,10 +193,16 @@ export default function AdminPromosPage() {
                             Основные промокоды
                         </button>
                         <button
-                            onClick={() => setActiveTab('auto')}
-                            className={`px-6 py-3 font-medium text-sm transition-colors ${activeTab === 'auto' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                            onClick={() => setActiveTab('bday')}
+                            className={`px-6 py-3 font-medium text-sm transition-colors ${activeTab === 'bday' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
                         >
-                            Сгенерированные (Подарки)
+                            Дни Рождения
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('ozon')}
+                            className={`px-6 py-3 font-medium text-sm transition-colors ${activeTab === 'ozon' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            Ozon (Купоны)
                         </button>
                     </div>
 
@@ -203,7 +218,7 @@ export default function AdminPromosPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {(activeTab === 'manual' ? promos.filter(p => !p.code.startsWith('BDAY-')) : promos.filter(p => p.code.startsWith('BDAY-'))).map(promo => (
+                            {filteredPromos.map(promo => (
                                 <tr key={promo.id} className="border-b hover:bg-gray-50">
                                     <td className="p-4 font-bold">{promo.code}</td>
                                     <td className="p-4">
@@ -235,7 +250,7 @@ export default function AdminPromosPage() {
                                     </td>
                                 </tr>
                             ))}
-                            {(activeTab === 'manual' ? promos.filter(p => !p.code.startsWith('BDAY-')) : promos.filter(p => p.code.startsWith('BDAY-'))).length === 0 && (
+                            {filteredPromos.length === 0 && (
                                 <tr>
                                     <td colSpan={6} className="p-8 text-center text-gray-500">
                                         {activeTab === 'manual' ? 'Основные промокоды пока не созданы' : 'Сгенерированных промокодов пока нет'}
