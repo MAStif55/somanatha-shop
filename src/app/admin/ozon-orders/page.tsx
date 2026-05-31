@@ -678,7 +678,7 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
 <html><head><meta charset="utf-8"><title>Купон ${code}</title>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, 'Inter', sans-serif; background: #fff; display: flex; flex-direction: column; align-items: center; text-align: center; color: #000; }
+    body { font-family: -apple-system, 'Inter', sans-serif; background: #fff; color: #000; }
     .toolbar {
         display: flex; align-items: center; justify-content: center; gap: 12px;
         padding: 15px; background: #1e1d2b; color: white; width: 100%;
@@ -688,31 +688,72 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
         padding: 8px 20px; background: #3b82f6; color: white;
         border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px;
     }
-    .content { margin-top: 80px; padding: 15px; width: 100%; max-width: 58mm; display: flex; flex-direction: column; align-items: center; border: 2px dashed #000; margin-bottom: 20px; }
-    .title { font-size: 16px; font-weight: 800; margin-bottom: 5px; text-transform: uppercase; }
-    .subtitle { font-size: 12px; margin-bottom: 10px; font-weight: 600;}
-    .qr { width: 120px; height: 120px; margin: 10px 0; }
-    .code { font-size: 14px; font-weight: bold; padding: 4px 8px; border: 1px solid #000; margin: 5px 0; font-family: monospace; }
-    .desc { font-size: 10px; line-height: 1.3; margin-top: 10px; font-weight: 500; }
+    
+    .label-container {
+        width: 56mm; 
+        height: 38mm; 
+        margin: 80px auto 20px; 
+        border: 1px dashed #ccc;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1mm 2mm;
+        overflow: hidden;
+    }
+    
+    .qr-side {
+        width: 45%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .qr { width: 22mm; height: 22mm; object-fit: contain; } 
+    .qr-text { font-size: 7px; font-weight: 600; margin-top: 2px; text-align: center; line-height: 1.1; }
+    
+    .text-side {
+        width: 53%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: left;
+    }
+    
+    .title { font-size: 11px; font-weight: 900; line-height: 1; margin-bottom: 2px; }
+    .subtitle { font-size: 9px; font-weight: 700; line-height: 1.1; margin-bottom: 4px; }
+    .code-box {
+        font-size: 10px; font-weight: 800; padding: 2px 4px; 
+        border: 1.5px solid #000; border-radius: 3px; font-family: monospace;
+        display: inline-block; margin-bottom: 3px;
+        background: #000; color: #fff;
+    }
+    .desc { font-size: 7px; line-height: 1.1; font-weight: 500; }
     
     @media print {
         .toolbar { display: none !important; }
-        .content { margin-top: 0; border: none; }
-        @page { margin: 0; size: auto; }
+        .label-container { margin: 0; border: none; padding: 1mm; width: 58mm; height: 40mm; }
+        body { margin: 0; }
+        @page { margin: 0; size: 58mm 40mm; } 
     }
 </style>
 </head>
 <body>
     <div class="toolbar">
         <button onclick="window.print()">🖨️ Печать купона</button>
+        <span style="font-size: 12px; color: #fbbf24; margin-left: 10px;">В настройках выберите "Поля: Нет"</span>
     </div>
-    <div class="content">
-        <div class="title">СПАСИБО ЗА ЗАКАЗ!</div>
-        <div class="subtitle">Дарим скидку 20%<br/>на следующую покупку</div>
-        <img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://somanatha.ru/?promo=${code}" />
-        <div class="desc">Наведите камеру телефона<br/>или введите код на сайте:</div>
-        <div class="code">${code}</div>
-        <div class="desc">somanatha.ru<br/>(Скидка действует 30 дней)</div>
+    <div class="label-container">
+        <div class="qr-side">
+            <img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0&data=https://somanatha.ru/?promo=${code}" />
+            <div class="qr-text">Наведи камеру</div>
+        </div>
+        <div class="text-side">
+            <div class="title">СПАСИБО ЗА ЗАКАЗ</div>
+            <div class="subtitle">Дарим скидку 20%</div>
+            <div class="code-box">${code}</div>
+            <div class="desc">somanatha.ru<br/>(действует 30 дней)</div>
+        </div>
     </div>
 </body></html>`);
                 printWindow.document.close();
