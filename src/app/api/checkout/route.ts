@@ -98,7 +98,7 @@ export async function POST(request: Request) {
         // 1. Save order to MongoDB (or fallback)
         const orderId = await OrderRepository.create(orderData as any);
 
-        if (appliedPromo) {
+        if (appliedPromo && paymentMethod !== 'card') {
             await PromoRepository.incrementUsesCount(appliedPromo.id);
         }
         

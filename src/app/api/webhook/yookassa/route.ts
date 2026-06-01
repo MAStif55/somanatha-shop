@@ -82,6 +82,14 @@ export async function POST(request: Request) {
                 paidAt: Date.now(),
             });
 
+            if (orderData.promoCode) {
+                const { PromoRepository } = await import('@/lib/data');
+                const promo = await PromoRepository.getPromoByCode(orderData.promoCode);
+                if (promo) {
+                    await PromoRepository.incrementUsesCount(promo.id);
+                }
+            }
+
             // Send notifications after card payment confirmed
             const [telegramResult, emailResult] = await Promise.allSettled([
                 sendTelegramOrderNotification(orderData, orderId, true),
