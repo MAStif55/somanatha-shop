@@ -17,7 +17,7 @@ export async function POST(request: Request) {
             maxUses: 1, // Single use only
             usesCount: 0,
             validFrom: now,
-            validUntil: now + 30 * 24 * 60 * 60 * 1000, // Valid for 30 days
+            validUntil: now + 365 * 24 * 60 * 60 * 1000, // Valid for 1 year
             createdAt: now,
             updatedAt: now
         });
