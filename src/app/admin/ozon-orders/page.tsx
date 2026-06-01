@@ -77,7 +77,111 @@ export default function OzonOrdersPage() {
     const [offset, setOffset] = useState(0);
     const [hasNext, setHasNext] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [globalCouponLoading, setGlobalCouponLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<'orders' | 'inventory' | 'mapping'>('orders');
+
+    const handlePrintGlobalCoupon = async () => {
+        setGlobalCouponLoading(true);
+        try {
+            const res = await fetch('/api/admin/promos/generate-slip', { method: 'POST' });
+            if (!res.ok) throw new Error('Ошибка создания купона');
+            const data = await res.json();
+            const code = data.code;
+            
+            const printWindow = window.open('', '_blank');
+            if (printWindow) {
+                printWindow.document.write(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Купон ${code}</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, 'Inter', sans-serif; background: #fff; color: #000; }
+    .toolbar {
+        display: flex; align-items: center; justify-content: center; gap: 12px;
+        padding: 15px; background: #1e1d2b; color: white; width: 100%;
+        position: fixed; top: 0; z-index: 10;
+    }
+    .toolbar button {
+        padding: 8px 20px; background: #3b82f6; color: white;
+        border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px;
+    }
+    
+    .label-container {
+        width: 56mm; 
+        height: 38mm; 
+        margin: 80px auto 20px; 
+        border: 1px dashed #ccc;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1mm 2mm;
+        overflow: hidden;
+    }
+    
+    .qr-side {
+        width: 40%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .qr { width: 22mm; height: 22mm; object-fit: contain; margin-bottom: 2px; } 
+    .qr-text { font-size: 9px; font-weight: 700; text-align: center; line-height: 1.1; }
+    
+    .text-side {
+        width: 60%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+    
+    .title { font-size: 14px; font-weight: 900; line-height: 1; margin-bottom: 3px; }
+    .subtitle { font-size: 11px; font-weight: 700; line-height: 1.1; margin-bottom: 6px; }
+    .code-box {
+        font-size: 12px; font-weight: 800; padding: 4px 6px; 
+        border: 1.5px solid #000; border-radius: 4px; font-family: monospace;
+        display: inline-block; margin-bottom: 5px;
+        background: #000; color: #fff;
+    }
+    .desc { font-size: 9px; line-height: 1.1; font-weight: 500; }
+    
+    @media print {
+        .toolbar { display: none !important; }
+        .label-container { margin: 0; border: none; padding: 1mm; width: 58mm; height: 40mm; }
+        body { margin: 0; }
+        @page { margin: 0; size: 58mm 40mm; } 
+    }
+</style>
+</head>
+<body>
+    <div class="toolbar">
+        <button onclick="window.print()">🖨️ Печать купона</button>
+        <span style="font-size: 12px; color: #fbbf24; margin-left: 10px;">В настройках выберите "Поля: Нет"</span>
+    </div>
+    <div class="label-container">
+        <div class="qr-side">
+            <img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0&data=https://somanatha.ru/?promo=${code}" />
+            <div class="qr-text">Наведи камеру</div>
+        </div>
+        <div class="text-side">
+            <div class="title">СПАСИБО ЗА ЗАКАЗ</div>
+            <div class="subtitle">Дарим скидку 15%</div>
+            <div class="code-box">${code}</div>
+            <div class="desc">somanatha.ru</div>
+        </div>
+    </div>
+</body></html>`);
+                printWindow.document.close();
+            }
+        } catch (err) {
+            console.error('Coupon generation error:', err);
+            alert('Не удалось сгенерировать купон');
+        } finally {
+            setGlobalCouponLoading(false);
+        }
+    };
 
     const fetchOrders = useCallback(async (currentOffset = 0, isRefresh = false) => {
         if (isRefresh) setRefreshing(true);
@@ -200,34 +304,44 @@ export default function OzonOrdersPage() {
                     </div>
                 </div>
                 
-                {activeTab === 'orders' && (
-                <div className="flex items-center gap-2">
-                    <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200">
-                        <button
-                            onClick={() => setViewMode('simple')}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'simple' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                        >
-                            <LayoutGrid size={16} />
-                            <span className="hidden sm:inline">{locale === 'ru' ? 'Простой' : 'Simple'}</span>
-                        </button>
-                        <button
-                            onClick={() => setViewMode('advanced')}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'advanced' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                        >
-                            <LayoutList size={16} />
-                            <span className="hidden sm:inline">{locale === 'ru' ? 'Расширенный' : 'Advanced'}</span>
-                        </button>
-                    </div>
+                <div className="flex flex-wrap items-center gap-2 justify-end">
                     <button
-                        onClick={() => fetchOrders(offset, true)}
-                        disabled={refreshing}
-                        className="admin-btn-secondary"
+                        onClick={handlePrintGlobalCoupon}
+                        disabled={globalCouponLoading}
+                        className="admin-btn-secondary flex items-center gap-2 border-0 bg-purple-600 hover:bg-purple-700 text-white shadow-[0_0_15px_rgba(147,51,234,0.3)] transition-all"
                     >
-                        <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
-                        {locale === 'ru' ? 'Обновить' : 'Refresh'}
+                        {globalCouponLoading ? <RefreshCw size={16} className="animate-spin" /> : <Gift size={16} />}
+                        <span className="hidden sm:inline">{locale === 'ru' ? 'Сгенерировать купон' : 'Generate Promo'}</span>
                     </button>
+                    {activeTab === 'orders' && (
+                        <div className="flex items-center gap-2">
+                            <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200">
+                                <button
+                                    onClick={() => setViewMode('simple')}
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'simple' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                >
+                                    <LayoutGrid size={16} />
+                                    <span className="hidden sm:inline">{locale === 'ru' ? 'Простой' : 'Simple'}</span>
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('advanced')}
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'advanced' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                >
+                                    <LayoutList size={16} />
+                                    <span className="hidden sm:inline">{locale === 'ru' ? 'Расширенный' : 'Advanced'}</span>
+                                </button>
+                            </div>
+                            <button
+                                onClick={() => fetchOrders(offset, true)}
+                                disabled={refreshing}
+                                className="admin-btn-secondary"
+                            >
+                                <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+                                <span className="hidden sm:inline">{locale === 'ru' ? 'Обновить' : 'Refresh'}</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
-                )}
             </div>
 
             {activeTab === 'mapping' ? (
