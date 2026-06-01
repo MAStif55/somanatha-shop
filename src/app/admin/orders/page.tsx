@@ -131,6 +131,14 @@ export default function AdminOrdersPage() {
                 {order.items.length} {locale === 'ru' ? 'шт.' : 'items'} • <span className="font-medium text-gray-900">{formatPrice(order.total)}</span>
             </div>
 
+            {order.promoCode && (
+                <div className="mb-2">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded uppercase">
+                        🎫 {order.promoCode}
+                    </span>
+                </div>
+            )}
+
             {/* Payment Status Badge */}
             <div className="mb-3">
                 {order.paymentStatus === 'paid' ? (
