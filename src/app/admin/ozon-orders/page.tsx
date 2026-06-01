@@ -145,7 +145,7 @@ export default function OzonOrdersPage() {
         display: inline-block; margin-bottom: 5px;
         background: #000; color: #fff;
     }
-    .desc { font-size: 9px; line-height: 1.1; font-weight: 500; }
+    .desc { font-size: 9px; line-height: 1.1; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 4px; }
     
     @media print {
         .toolbar { display: none !important; }
@@ -169,7 +169,10 @@ export default function OzonOrdersPage() {
             <div class="title">СПАСИБО ЗА ЗАКАЗ</div>
             <div class="subtitle">Дарим скидку 15%</div>
             <div class="code-box">${code}</div>
-            <div class="desc">somanatha.ru</div>
+            <div class="desc">
+                <img src="${window.location.origin}/logo.png" style="height: 10px; width: auto; object-fit: contain; filter: brightness(0);" />
+                <span>somanatha.ru</span>
+            </div>
         </div>
     </div>
 </body></html>`);
@@ -843,7 +846,7 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
         display: inline-block; margin-bottom: 5px;
         background: #000; color: #fff;
     }
-    .desc { font-size: 9px; line-height: 1.1; font-weight: 500; }
+    .desc { font-size: 9px; line-height: 1.1; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 4px; }
     
     @media print {
         .toolbar { display: none !important; }
@@ -867,7 +870,10 @@ function SimpleOrderCard({ order, locale }: { order: OzonOrder; locale: string }
             <div class="title">СПАСИБО ЗА ЗАКАЗ</div>
             <div class="subtitle">Дарим скидку 15%</div>
             <div class="code-box">${code}</div>
-            <div class="desc">somanatha.ru</div>
+            <div class="desc">
+                <img src="${window.location.origin}/logo.png" style="height: 10px; width: auto; object-fit: contain; filter: brightness(0);" />
+                <span>somanatha.ru</span>
+            </div>
         </div>
     </div>
 </body></html>`);
