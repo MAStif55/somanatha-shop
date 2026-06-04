@@ -196,9 +196,16 @@ export async function GET(request: Request) {
                         longitude: user.location.lon
                     });
 
+                    const rashiEmojis = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'];
+                    const rashiEmoji = rashiEmojis[daily.lunarRashi.index] || '🌙';
+
+                    const moonEmoji = daily.tithi.number === 15 
+                        ? (daily.tithi.isShukla ? '🌕' : '🌑') 
+                        : (daily.tithi.isShukla ? '🌒' : '🌘');
+
                     let body = `📅 День: ${daily.vara}\n` +
-                               `🌙 Луна: ${daily.lunarRashi.fullName}\n` +
-                               `🌓 Титхи: ${daily.tithi.name} лунные сутки\n` +
+                               `🌙 Месяц: ${daily.lunarMonth.name} (${daily.tithi.pakshaName})\n` +
+                               `${moonEmoji} Титхи: ${daily.tithi.name} лунные сутки [${daily.lunarRashi.name} ${rashiEmoji}]\n` +
                                `✨ Накшатра: ${daily.nakshatra.name}`;
 
                     if (daily.brahmaMuhurta) {
@@ -206,11 +213,11 @@ export async function GET(request: Request) {
                     }
 
                     if (daily.pradosham?.isPradoshamDay) {
-                        body += '\n🔱 Благоприятный день Прадошам!';
+                        body += '\n🔱 Сегодня Благоприятный день Прадошам!';
                     } else if (daily.isBhairavaAshtami) {
-                        body += '\n💀 День Калаштами (Бхайрава Аштами).';
+                        body += '\n💀 Сегодня день Калаштами (Бхайрава Аштами).';
                     } else if (daily.tithi.number === 11) {
-                        body += '\n🌾 День поста Экадаши.';
+                        body += '\n🌾 Сегодня день поста Экадаши.';
                     }
 
                     const payload = {
