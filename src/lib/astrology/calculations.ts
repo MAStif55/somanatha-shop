@@ -178,6 +178,33 @@ export function getSolarMonth(date: Date) {
   };
 }
 
+const LUNAR_MONTH_NAMES = [
+  'Вайшакха',
+  'Джьештха',
+  'Ашадха',
+  'Шравана',
+  'Бхадрапада',
+  'Ашвина',
+  'Картика',
+  'Маргаширша',
+  'Пауша',
+  'Магха',
+  'Пхалгуна',
+  'Чайтра'
+];
+
+export function getLunarMonth(date: Date) {
+  const tithi = getTithi(date);
+  const angleDegrees = (tithi.index + tithi.progress) * 12;
+  const daysSinceAmavasya = (angleDegrees / 360) * 29.53059;
+  const amavasyaDate = new Date(date.getTime() - daysSinceAmavasya * 24 * 60 * 60 * 1000);
+  const solarMonthAtAmavasya = getSolarMonth(amavasyaDate);
+  return {
+    index: solarMonthAtAmavasya.index,
+    name: LUNAR_MONTH_NAMES[solarMonthAtAmavasya.index]
+  };
+}
+
 export function getLunarRashi(date: Date) {
   const moonLon = getSiderealLongitude(Body.Moon, date);
   const index = Math.floor(moonLon / 30);
@@ -508,6 +535,7 @@ export function getMomentPanchanga(date: Date, location: GeoLocation) {
   const yoga = getYoga(date);
   const karana = getKarana(date);
   const solarMonth = getSolarMonth(date);
+  const lunarMonth = getLunarMonth(date);
   const lunarRashi = getLunarRashi(date);
   const vedicDay = getVedicDay(date, location);
 
@@ -521,6 +549,7 @@ export function getMomentPanchanga(date: Date, location: GeoLocation) {
     yoga,
     karana,
     solarMonth,
+    lunarMonth,
     lunarRashi,
     tithiBoundaries,
     nakshatraBoundaries,
@@ -559,6 +588,7 @@ export function getDailyPanchanga(date: Date, location: GeoLocation) {
   const yoga = getYoga(udayaDate);
   const karana = getKarana(udayaDate);
   const solarMonth = getSolarMonth(udayaDate);
+  const lunarMonth = getLunarMonth(udayaDate);
   const lunarRashi = getLunarRashi(udayaDate);
   
   const brahmaMuhurta = getBrahmaMuhurta(date, location);
@@ -585,6 +615,7 @@ export function getDailyPanchanga(date: Date, location: GeoLocation) {
     yoga,
     karana,
     solarMonth,
+    lunarMonth,
     lunarRashi,
     vara,
     sunTimes,

@@ -15,10 +15,12 @@ interface HeroWidgetProps {
 }
 
 export default function HeroWidget({ panchanga, momentPanchanga, location }: HeroWidgetProps) {
-  const { pradosham, vara, solarMonth, lunarRashi, isArdraNakshatra, isShivaYoga, isSomvar, isBhairavaAshtami } = panchanga;
+  const { pradosham, vara, solarMonth, lunarMonth, lunarRashi, isArdraNakshatra, isShivaYoga, isSomvar, isBhairavaAshtami } = panchanga;
   const [now, setNow] = useState<Date | null>(null);
   const [dynamicPanchanga, setDynamicPanchanga] = useState<ReturnType<typeof getMomentPanchanga> | null>(momentPanchanga || null);
   const [use3D, setUse3D] = useState(false);
+
+  const currentLunarMonth = dynamicPanchanga ? dynamicPanchanga.lunarMonth : lunarMonth;
 
   useEffect(() => {
     try {
@@ -136,6 +138,11 @@ export default function HeroWidget({ panchanga, momentPanchanga, location }: Her
           </div>
 
           <div className="text-center">
+            {currentLunarMonth && (
+              <p className="text-[#E8D48B] text-lg font-ornamental tracking-wide mb-1">
+                <VedicTermTooltip>{currentLunarMonth.name} Маса</VedicTermTooltip>
+              </p>
+            )}
             <p className="text-[#C9A227] text-sm tracking-[0.25em] uppercase font-bold">
               <VedicTermTooltip>{currentTithi.pakshaName}</VedicTermTooltip>
             </p>
