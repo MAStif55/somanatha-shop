@@ -536,7 +536,7 @@ export default function CheckoutForm() {
             {/* Submit Button */}
             <button
                 type="submit"
-                disabled={isSubmitting || items.length === 0 || uploadingCount > 0}
+                disabled={isSubmitting || items.length === 0}
                 className="w-full bg-gradient-to-r from-[#C9A227] to-[#8B7D4B] text-[#0D0A0B] py-4 rounded-xl font-bold hover:shadow-[0_0_20px_rgba(201,162,39,0.4)] transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1"
             >
                 {isSubmitting
