@@ -3,7 +3,7 @@ import { getDb } from '@/lib/data/yandex/mongo-client';
 import { OrderRepository } from '@/lib/data';
 import { getSession } from '@/actions/auth-actions';
 import { getCustomerSession } from '@/actions/customer-auth-actions';
-import { chatEmitter } from '@/utils/chat-emitter';
+import { chatEmitter, activeClientChats, emailTimers } from '@/utils/chat-emitter';
 import { sendEmailNewChatMessage } from '@/lib/mailer';
 import { cookies } from 'next/headers';
 
@@ -43,6 +43,13 @@ export async function GET(
         const acceptHeader = request.headers.get('accept');
         
         if (acceptHeader === 'text/event-stream') {
+            const isClient = !adminSession && (!!customerSession || hasOrderCookie);
+            
+            if (isClient) {
+                const currentCount = activeClientChats.get(orderId) || 0;
+                activeClientChats.set(orderId, currentCount + 1);
+            }
+
             const responseStream = new TransformStream();
             const writer = responseStream.writable.getWriter();
             const encoder = new TextEncoder();
@@ -64,6 +71,14 @@ export async function GET(
             // Clean up when client disconnects
             request.signal.addEventListener('abort', () => {
                 chatEmitter.off('newMessage', onNewMessage);
+                if (isClient) {
+                    const currentCount = activeClientChats.get(orderId) || 0;
+                    if (currentCount <= 1) {
+                        activeClientChats.delete(orderId);
+                    } else {
+                        activeClientChats.set(orderId, currentCount - 1);
+                    }
+                }
                 try {
                     writer.close();
                 } catch (e) {}
@@ -176,14 +191,31 @@ export async function POST(
 
         // 4. Send email alert to customer if master (admin) sent a message
         if (sender === 'admin' && order.email) {
-            const protocol = request.headers.get('x-forwarded-proto') || 'http';
-            const host = request.headers.get('host') || 'localhost:3000';
-            const orderLink = `${protocol}://${host}/orders/${orderId}`;
+            const clientActive = activeClientChats.has(orderId) && (activeClientChats.get(orderId) || 0) > 0;
             
-            // Send in background, do not block the chat response
-            sendEmailNewChatMessage(order.email, orderId, text || '[Вложение]', orderLink).catch(e => {
-                console.error('[API Chat POST] Failed to send email notification:', e);
-            });
+            if (!clientActive) {
+                // Debounce emails to prevent spamming while the admin writes multiple messages
+                const existingTimer = emailTimers.get(orderId);
+                if (existingTimer) {
+                    clearTimeout(existingTimer);
+                }
+
+                const protocol = request.headers.get('x-forwarded-proto') || 'http';
+                const host = request.headers.get('host') || 'localhost:3000';
+                const orderLink = `${protocol}://${host}/orders/${orderId}`;
+                const msgText = text || '[Вложение]';
+
+                const timer = setTimeout(async () => {
+                    emailTimers.delete(orderId);
+                    try {
+                        await sendEmailNewChatMessage(order.email, orderId, msgText, orderLink);
+                    } catch (e) {
+                        console.error('[API Chat POST Debounced] Failed to send email notification:', e);
+                    }
+                }, 2 * 60 * 1000); // 2 minutes debounce delay
+
+                emailTimers.set(orderId, timer);
+            }
         }
 
         return NextResponse.json({ success: true, message: savedMessage });
