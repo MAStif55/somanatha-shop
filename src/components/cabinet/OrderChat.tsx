@@ -350,7 +350,7 @@ export default function OrderChat({ orderId, userType }: OrderChatProps) {
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     disabled={isSending || !!uploadingFile}
-                    className="flex-1 px-4 py-3 bg-[#1A1517] border border-[#C9A227]/30 rounded-xl text-[#F5ECD7] placeholder-[#F5ECD7]/40 focus:ring-1 focus:ring-[#C9A227] focus:border-[#C9A227] transition-all text-sm outline-none"
+                    className="flex-1 px-4 py-3 bg-[#1A1517] border border-[#C9A227]/30 rounded-xl !text-[#F5ECD7] !placeholder-[#F5ECD7]/40 focus:ring-1 focus:ring-[#C9A227] focus:border-[#C9A227] transition-all text-sm outline-none"
                     placeholder={locale === 'ru' ? 'Введите сообщение...' : 'Type a message...'}
                 />
 
