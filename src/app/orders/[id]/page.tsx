@@ -6,23 +6,28 @@ import OrderChat from '@/components/cabinet/OrderChat';
 import { formatPrice } from '@/utils/currency';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 export default async function OrderDetailPage({ params }: { params: { id: string } }) {
     const session = await getCustomerSession();
-    if (!session) {
+    const orderId = params.id;
+    const isAllowedByCookie = cookies().has(`somanatha-allowed-order-${orderId}`);
+
+    if (!session && !isAllowedByCookie) {
         redirect('/cabinet');
     }
 
-    const orderId = params.id;
     const order = await OrderRepository.getById(orderId);
 
     if (!order) {
         redirect('/cabinet');
     }
 
-    // Verify session owner
-    if (order.email.toLowerCase() !== session.email.toLowerCase()) {
-        redirect('/cabinet');
+    // Verify session owner (if not using order-specific cookie authorization)
+    if (!isAllowedByCookie) {
+        if (!session || order.email.toLowerCase() !== session.email.toLowerCase()) {
+            redirect(`/cabinet?email=${encodeURIComponent(order.email)}`);
+        }
     }
 
     const displayId = order.id.slice(-8).toUpperCase();

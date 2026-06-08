@@ -107,7 +107,7 @@ function OrderSuccessContent() {
                     {/* Actions */}
                     <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center items-center">
                         <Link
-                            href={`/cabinet?email=${encodeURIComponent(email)}`}
+                            href={orderId ? `/orders/${orderId}` : '/cabinet'}
                             className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#C9A227] to-[#8B7D4B] text-[#0D0A0B] px-8 py-3 rounded-xl font-bold hover:shadow-[0_0_20px_rgba(201,162,39,0.4)] transition-all transform hover:-translate-y-1 w-full sm:w-auto"
                         >
                             {locale === 'ru' ? 'Личный кабинет (чат)' : 'Personal Cabinet (chat)'}

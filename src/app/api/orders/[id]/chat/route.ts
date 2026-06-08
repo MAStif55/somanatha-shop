@@ -5,6 +5,7 @@ import { getSession } from '@/actions/auth-actions';
 import { getCustomerSession } from '@/actions/customer-auth-actions';
 import { chatEmitter } from '@/utils/chat-emitter';
 import { sendEmailNewChatMessage } from '@/lib/mailer';
+import { cookies } from 'next/headers';
 
 export async function GET(
     request: Request,
@@ -12,11 +13,12 @@ export async function GET(
 ) {
     const orderId = params.id;
     
-    // 1. Authenticate user (either Admin or Owner of the order)
+    // 1. Authenticate user (either Admin, Owner of the order, or has order-specific cookie)
     const adminSession = await getSession();
     const customerSession = await getCustomerSession();
+    const hasOrderCookie = cookies().has(`somanatha-allowed-order-${orderId}`);
 
-    if (!adminSession && !customerSession) {
+    if (!adminSession && !customerSession && !hasOrderCookie) {
         return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -28,7 +30,7 @@ export async function GET(
         }
 
         // Customer can only view their own order
-        if (!adminSession && customerSession && order.email.toLowerCase() !== customerSession.email.toLowerCase()) {
+        if (!adminSession && !hasOrderCookie && customerSession && order.email.toLowerCase() !== customerSession.email.toLowerCase()) {
             return NextResponse.json({ success: false, error: 'Access denied' }, { status: 403 });
         }
 
@@ -108,8 +110,9 @@ export async function POST(
     // 1. Authenticate user
     const adminSession = await getSession();
     const customerSession = await getCustomerSession();
+    const hasOrderCookie = cookies().has(`somanatha-allowed-order-${orderId}`);
 
-    if (!adminSession && !customerSession) {
+    if (!adminSession && !customerSession && !hasOrderCookie) {
         return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -128,7 +131,7 @@ export async function POST(
         }
 
         // Customer can only write to their own order
-        if (!adminSession && customerSession && order.email.toLowerCase() !== customerSession.email.toLowerCase()) {
+        if (!adminSession && !hasOrderCookie && customerSession && order.email.toLowerCase() !== customerSession.email.toLowerCase()) {
             return NextResponse.json({ success: false, error: 'Access denied' }, { status: 403 });
         }
 
@@ -139,7 +142,7 @@ export async function POST(
             }
             sender = 'admin';
         } else {
-            if (!customerSession && !adminSession) {
+            if (!customerSession && !adminSession && !hasOrderCookie) {
                 return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
             }
             sender = 'client';

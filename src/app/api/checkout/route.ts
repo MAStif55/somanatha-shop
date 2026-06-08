@@ -212,12 +212,20 @@ export async function POST(request: Request) {
                     paymentUrl: payment.confirmation.confirmation_url,
                 });
 
-                return NextResponse.json({
+                const response = NextResponse.json({
                     success: true,
                     orderId,
                     paymentMethod: 'card',
                     paymentUrl: payment.confirmation.confirmation_url,
                 });
+                response.cookies.set(`somanatha-allowed-order-${orderId}`, 'true', {
+                    maxAge: 60 * 60 * 24 * 7, // 7 days
+                    httpOnly: true,
+                    path: '/',
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'lax',
+                });
+                return response;
             } catch (paymentError) {
                 console.error('Payment creation error:', paymentError);
                 await OrderRepository.update(orderId, { paymentStatus: 'failed' });
@@ -245,11 +253,19 @@ export async function POST(request: Request) {
                 await OrderRepository.update(orderId, { notificationStatus } as any);
             }
 
-            return NextResponse.json({
+            const response = NextResponse.json({
                 success: true,
                 orderId,
                 paymentMethod: 'bank_transfer',
             });
+            response.cookies.set(`somanatha-allowed-order-${orderId}`, 'true', {
+                maxAge: 60 * 60 * 24 * 7, // 7 days
+                httpOnly: true,
+                path: '/',
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+            });
+            return response;
         }
     } catch (error) {
         console.error('Create Checkout Error:', error);
