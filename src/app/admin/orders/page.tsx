@@ -40,6 +40,20 @@ export default function AdminOrdersPage() {
         fetchOrders();
     }, []);
 
+    // Auto-open order details if orderId is present in URL search parameters
+    useEffect(() => {
+        if (!loading && orders.length > 0) {
+            const params = new URLSearchParams(window.location.search);
+            const orderIdParam = params.get('orderId');
+            if (orderIdParam) {
+                const target = orders.find(o => o.id === orderIdParam);
+                if (target) {
+                    setSelectedOrder(target);
+                }
+            }
+        }
+    }, [loading, orders]);
+
     const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
         try {
             await updateOrder(orderId, { status: newStatus });
@@ -119,17 +133,35 @@ export default function AdminOrdersPage() {
     const OrderCard = ({ order }: { order: Order }) => (
         <div
             onClick={() => setSelectedOrder(order)}
-            className="bg-white p-4 rounded-lg border shadow-sm mb-3 hover:shadow-md transition-shadow cursor-pointer group"
+            className={`bg-white p-4 rounded-lg border shadow-sm mb-3 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden ${
+                order.hasUnreadChat ? 'border-amber-300 bg-amber-50/10' : ''
+            }`}
         >
             <div className="flex justify-between items-start mb-2">
                 <span className="text-xs font-mono text-gray-500 group-hover:text-primary transition-colors">#{order.id.slice(-8).toUpperCase()}</span>
-                <span className="text-xs text-gray-400">{formatDate(order.createdAt)}</span>
+                <div className="flex items-center gap-1.5">
+                    {order.hasUnreadChat && (
+                        <span className="flex h-2.5 w-2.5 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                        </span>
+                    )}
+                    <span className="text-xs text-gray-400">{formatDate(order.createdAt)}</span>
+                </div>
             </div>
 
             <h4 className="font-bold text-gray-900 mb-1">{order.customerName}</h4>
             <div className="text-sm text-gray-600 mb-1">
                 {order.items.length} {locale === 'ru' ? 'шт.' : 'items'} • <span className="font-medium text-gray-900">{formatPrice(order.total)}</span>
             </div>
+
+            {order.hasUnreadChat && (
+                <div className="mb-2">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-amber-100 text-[#8B7D4B] border border-amber-200 px-1.5 py-0.5 rounded">
+                        💬 {locale === 'ru' ? 'Новое сообщение' : 'New Message'}
+                    </span>
+                </div>
+            )}
 
             {order.promoCode && (
                 <div className="mb-2">

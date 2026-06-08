@@ -19,6 +19,7 @@ export default function AdminDashboard() {
     const [completedCount, setCompletedCount] = useState<number | null>(null);
     const [productCount, setProductCount] = useState<number | null>(null);
     const [ozonOrderCount, setOzonOrderCount] = useState<number | null>(null);
+    const [unreadOrders, setUnreadOrders] = useState<Order[]>([]);
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -31,6 +32,7 @@ export default function AdminDashboard() {
                 setPendingCount(orders.filter(o => o.status === 'pending').length);
                 setCompletedCount(orders.filter(o => o.status === 'completed').length);
                 setProductCount(products.length);
+                setUnreadOrders(orders.filter(o => o.hasUnreadChat));
                 
                 let unfulfilledOzon = 0;
                 if (ozonRes?.orders) {
@@ -43,6 +45,7 @@ export default function AdminDashboard() {
                 setCompletedCount(0);
                 setProductCount(0);
                 setOzonOrderCount(0);
+                setUnreadOrders([]);
             }
         };
 
@@ -94,6 +97,36 @@ export default function AdminDashboard() {
                 </p>
             </div>
 
+            {/* Unread Chat Messages Banner */}
+            {unreadOrders.length > 0 && (
+                <div className="bg-amber-500/10 border-2 border-[#C9A227]/40 rounded-xl p-5 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-[0_0_15px_rgba(201,162,39,0.1)]">
+                    <div className="flex items-center gap-3">
+                        <span className="text-3xl animate-bounce">💬</span>
+                        <div>
+                            <h3 className="font-bold text-[#C9A227] text-lg">
+                                {locale === 'ru' ? 'Новые сообщения в чатах!' : 'New chat messages!'}
+                            </h3>
+                            <p className="text-sm text-gray-700">
+                                {locale === 'ru' 
+                                    ? `Непрочитанные сообщения в ${unreadOrders.length} ${unreadOrders.length === 1 ? 'заказе' : 'заказах'}:` 
+                                    : `Unread messages in ${unreadOrders.length} ${unreadOrders.length === 1 ? 'order' : 'orders'}:`}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {unreadOrders.map(order => (
+                            <Link
+                                key={order.id}
+                                href={`/admin/orders?orderId=${order.id}`}
+                                className="bg-[#1A1517] border border-[#C9A227]/30 text-[#E8D48B] px-3.5 py-1.5 rounded-lg text-xs font-bold hover:bg-[#C9A227]/10 hover:text-white transition-colors shadow-sm"
+                            >
+                                #{order.id.slice(-8).toUpperCase()} ({order.customerName})
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Stat Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
                 {stats.map((stat, index) => {
@@ -113,6 +146,11 @@ export default function AdminDashboard() {
                                 </div>
                                 {isOrders && pendingCount !== null ? (
                                     <div className="flex items-center gap-3">
+                                        {unreadOrders.length > 0 && (
+                                            <span className="flex items-center gap-1 text-base font-bold text-[#C9A227] animate-pulse" title={locale === 'ru' ? 'Новые сообщения' : 'New messages'}>
+                                                💬 {unreadOrders.length}
+                                            </span>
+                                        )}
                                         <span className="flex items-center gap-1.5 text-lg font-bold text-red-600">
                                             <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>
                                             {pendingCount}

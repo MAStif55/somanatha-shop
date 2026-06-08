@@ -34,6 +34,11 @@ export async function GET(
             return NextResponse.json({ success: false, error: 'Access denied' }, { status: 403 });
         }
 
+        // If admin is viewing, reset unread flag
+        if (adminSession) {
+            await OrderRepository.update(orderId, { hasUnreadChat: false } as any);
+        }
+
         // 2. Check if client wants SSE (text/event-stream)
         const acceptHeader = request.headers.get('accept');
         
@@ -160,6 +165,11 @@ export async function POST(
         const db = await getDb();
         const result = await db.collection('order_messages').insertOne(messageDoc);
         const savedMessage = { id: result.insertedId.toString(), ...messageDoc };
+
+        // If client sends message, mark order as having unread chat for admin
+        if (sender === 'client') {
+            await OrderRepository.update(orderId, { hasUnreadChat: true } as any);
+        }
 
         // 3. Emit message event for active SSE connections
         chatEmitter.emit('newMessage', savedMessage);

@@ -37,7 +37,12 @@ export default function OrderDetailsModal({ order, isOpen, onClose, onUpdate }: 
         setNotesChanged(false);
         setIsEditing(false);
         setShowProductSelector(false);
-        setActiveTab('details');
+        
+        if (order?.hasUnreadChat) {
+            setActiveTab('chat');
+        } else {
+            setActiveTab('details');
+        }
     }, [order, isOpen]);
 
     if (!isOpen || !order || !editedOrder) return null;

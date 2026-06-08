@@ -55,6 +55,7 @@ export interface Order {
     promoCode?: string; // Applied promo code
     promoDiscount?: number; // Discount amount from promo code
     createdAt: number; // Timestamp
+    hasUnreadChat?: boolean; // True if customer has sent messages that admin hasn't read
 }
 
 export type OrderStatus = Order['status'];
