@@ -4,6 +4,77 @@ import { sendTelegramOrderNotification } from '@/lib/telegram';
 import { sendEmailOrderNotification } from '@/lib/mailer';
 import { createYooKassaPayment } from '@/lib/yookassa';
 import { OrderRepository, PromoRepository } from '@/lib/data';
+import { S3Client, CopyObjectCommand } from '@aws-sdk/client-s3';
+
+const BUCKET_NAME = process.env.YC_S3_BUCKET || 'somanatha-media';
+const REGION = process.env.YC_S3_REGION || 'ru-central1';
+const ENDPOINT = process.env.YC_S3_ENDPOINT || 'https://storage.yandexcloud.net';
+
+const s3Client = new S3Client({
+    region: REGION,
+    endpoint: ENDPOINT,
+    credentials: {
+        accessKeyId: process.env.YC_S3_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.YC_S3_SECRET_ACCESS_KEY || '',
+    },
+});
+
+async function copyAttachmentsToPermanent(attachments: string[], orderId: string): Promise<string[]> {
+    const permanentUrls: string[] = [];
+    
+    for (const url of attachments) {
+        if (!url.includes('temp-uploads/')) {
+            permanentUrls.push(url);
+            continue;
+        }
+
+        try {
+            const tempUploadsIndex = url.indexOf('temp-uploads/');
+            if (tempUploadsIndex === -1) {
+                permanentUrls.push(url);
+                continue;
+            }
+
+            const sourceKey = url.substring(tempUploadsIndex);
+            const filename = sourceKey.substring(sourceKey.lastIndexOf('/') + 1);
+            const targetKey = `orders/${orderId}/${filename}`;
+
+            await s3Client.send(new CopyObjectCommand({
+                Bucket: BUCKET_NAME,
+                CopySource: `/${BUCKET_NAME}/${sourceKey}`,
+                Key: targetKey,
+            }));
+
+            const permanentUrl = `${ENDPOINT}/${BUCKET_NAME}/${targetKey}`;
+            permanentUrls.push(permanentUrl);
+        } catch (err) {
+            console.error(`Failed to copy S3 attachment ${url} to permanent folder:`, err);
+            permanentUrls.push(url);
+        }
+    }
+
+    return permanentUrls;
+}
+
+async function verifyTurnstileToken(token: string) {
+    const secret = process.env.TURNSTILE_SECRET_KEY;
+    if (!secret) {
+        console.warn('[Turnstile] No TURNSTILE_SECRET_KEY configured, bypassing verification.');
+        return true;
+    }
+    try {
+        const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `secret=${encodeURIComponent(secret)}&response=${encodeURIComponent(token)}`,
+        });
+        const outcome = await response.json();
+        return outcome.success;
+    } catch (err) {
+        console.error('[Turnstile] Verification error:', err);
+        return false;
+    }
+}
 
 export async function POST(request: Request) {
     try {
@@ -14,6 +85,14 @@ export async function POST(request: Request) {
         const error = validateOrder(customerInfo);
         if (error) {
             return NextResponse.json({ success: false, error }, { status: 400 });
+        }
+
+        // Captcha validation
+        if (customerInfo.captchaToken) {
+            const isHuman = await verifyTurnstileToken(customerInfo.captchaToken);
+            if (!isHuman) {
+                return NextResponse.json({ success: false, error: 'CAPTCHA verification failed. Please try again.' }, { status: 400 });
+            }
         }
 
         const orderItems = cartItems.map((item: any) => ({
@@ -93,17 +172,25 @@ export async function POST(request: Request) {
             total,
             paymentMethod: paymentMethod,
             paymentStatus: paymentMethod === 'card' ? 'pending' : 'awaiting_transfer',
+            attachments: customerInfo.attachments || [],
         };
 
         // 1. Save order to MongoDB (or fallback)
         const orderId = await OrderRepository.create(orderData as any);
+
+        // Copy S3 attachments to permanent folder and update order doc
+        let finalAttachments = orderData.attachments;
+        if (orderData.attachments.length > 0) {
+            finalAttachments = await copyAttachmentsToPermanent(orderData.attachments, orderId);
+            await OrderRepository.update(orderId, { attachments: finalAttachments } as any);
+        }
 
         if (appliedPromo && paymentMethod !== 'card') {
             await PromoRepository.incrementUsesCount(appliedPromo.id);
         }
         
         // Let's create a full mock of the orderData so the emails fire nicely
-        const fullOrderData = { ...orderData, id: orderId, status: 'pending', createdAt: Date.now() };
+        const fullOrderData = { ...orderData, attachments: finalAttachments, id: orderId, status: 'pending', createdAt: Date.now() };
 
         // 2. Handle payment method
         if (paymentMethod === 'card') {
