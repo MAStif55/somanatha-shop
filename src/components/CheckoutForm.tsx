@@ -12,12 +12,6 @@ import CheckoutProgress from './CheckoutProgress';
 import { formatPrice } from '@/utils/currency';
 import { API } from '@/lib/config';
 
-interface UploadingFile {
-    name: string;
-    progress: number;
-    url?: string;
-    error?: string;
-}
 
 declare global {
     interface Window {
@@ -51,12 +45,6 @@ export default function CheckoutForm() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
 
-    // Draft Order ID to keep uploads grouped in S3
-    const [tempId] = useState(() => Math.random().toString(36).substring(2, 11) + Date.now().toString(36));
-
-    // S3 Attachments State
-    const [attachments, setAttachments] = useState<UploadingFile[]>([]);
-    const [uploadingCount, setUploadingCount] = useState(0);
 
     // Turnstile CAPTCHA State
     const [captchaToken, setCaptchaToken] = useState<string>('');
@@ -177,129 +165,16 @@ export default function CheckoutForm() {
     }, []);
 
     // File Upload Handler (Direct S3 uploads via Presigned URLs)
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (!files || files.length === 0) return;
-
-        const allowedExtensions = ['.cdr', '.dxf', '.ai', '.pdf', '.eps', '.png', '.jpg', '.jpeg'];
-        const maxSizeBytes = 50 * 1024 * 1024; // 50MB
-
-        const fileList = Array.from(files);
-
-        for (const file of fileList) {
-            const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-            if (!allowedExtensions.includes(ext)) {
-                alert(
-                    locale === 'ru'
-                        ? `Неподдерживаемый формат файла: ${file.name}. Разрешены только: ${allowedExtensions.join(', ')}`
-                        : `Unsupported file format: ${file.name}. Only: ${allowedExtensions.join(', ')} are allowed.`
-                );
-                continue;
-            }
-
-            if (file.size > maxSizeBytes) {
-                alert(
-                    locale === 'ru'
-                        ? `Файл ${file.name} слишком большой. Максимальный размер: 50 МБ`
-                        : `File ${file.name} is too large. Max size is 50MB`
-                );
-                continue;
-            }
-
-            // Add to state
-            const newFile: UploadingFile = { name: file.name, progress: 0 };
-            setAttachments(prev => [...prev, newFile]);
-            setUploadingCount(prev => prev + 1);
-
-            try {
-                // 1. Get Presigned URL from backend
-                const uploadResponse = await fetch('/api/upload', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        fileName: file.name,
-                        fileType: file.type,
-                        tempId,
-                    }),
-                });
-
-                const uploadData = await uploadResponse.json();
-                if (!uploadResponse.ok || !uploadData.success) {
-                    throw new Error(uploadData.error || 'Failed to get upload URL');
-                }
-
-                const { uploadUrl, publicUrl } = uploadData;
-
-                // 2. Upload file directly to Yandex Object Storage (S3) via XMLHttpRequest for progress tracking
-                const xhr = new XMLHttpRequest();
-                xhr.open('PUT', uploadUrl);
-                xhr.setRequestHeader('Content-Type', file.type);
-
-                xhr.upload.onprogress = (event) => {
-                    if (event.lengthComputable) {
-                        const percent = Math.round((event.loaded / event.total) * 100);
-                        setAttachments(prev =>
-                            prev.map(item => item.name === file.name ? { ...item, progress: percent } : item)
-                        );
-                    }
-                };
-
-                xhr.onload = () => {
-                    setUploadingCount(prev => Math.max(0, prev - 1));
-                    if (xhr.status === 200) {
-                        setAttachments(prev =>
-                            prev.map(item => item.name === file.name ? { ...item, url: publicUrl, progress: 100 } : item)
-                        );
-                    } else {
-                        setAttachments(prev =>
-                            prev.map(item => item.name === file.name ? { ...item, error: 'Upload failed', progress: 0 } : item)
-                        );
-                    }
-                };
-
-                xhr.onerror = () => {
-                    setUploadingCount(prev => Math.max(0, prev - 1));
-                    setAttachments(prev =>
-                        prev.map(item => item.name === file.name ? { ...item, error: 'Network error', progress: 0 } : item)
-                    );
-                };
-
-                xhr.send(file);
-            } catch (err: any) {
-                console.error('File upload error:', err);
-                setUploadingCount(prev => Math.max(0, prev - 1));
-                setAttachments(prev =>
-                    prev.map(item => item.name === file.name ? { ...item, error: err.message || 'Upload failed', progress: 0 } : item)
-                );
-            }
-        }
-    };
-
-    const removeAttachment = (fileName: string) => {
-        setAttachments(prev => prev.filter(item => item.name !== fileName));
-    };
-
     const onSubmit = async (data: CheckoutFormData) => {
-        if (uploadingCount > 0) {
-            alert(
-                locale === 'ru'
-                    ? 'Пожалуйста, дождитесь окончания загрузки всех файлов.'
-                    : 'Please wait until all files are uploaded.'
-            );
-            return;
-        }
-
         setIsSubmitting(true);
         setSubmitError(null);
 
         try {
-            const uploadedUrls = attachments.filter(a => a.url).map(a => a.url as string);
-
             const payload = {
                 cartItems: items,
                 customerInfo: {
                     ...data,
-                    attachments: uploadedUrls,
+                    attachments: [],
                     captchaToken,
                 },
                 locale,
@@ -539,67 +414,6 @@ export default function CheckoutForm() {
                 )}
             </div>
 
-            {/* Layout Attachment Upload Field */}
-            <div>
-                <label className="block text-sm font-medium text-[#E8D48B] mb-2">
-                    {locale === 'ru' ? 'Макеты для гравировки / Референсы' : 'Engraving Layouts / References'}
-                </label>
-                <div className="w-full border-2 border-dashed border-[#C9A227]/30 rounded-lg bg-[#0D0A0B]/50 p-6 text-center hover:border-[#C9A227] hover:bg-[#C9A227]/5 transition-colors relative shadow-sm">
-                    <input
-                        type="file"
-                        multiple
-                        onChange={handleFileChange}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        accept=".cdr,.dxf,.ai,.pdf,.eps,.png,.jpg,.jpeg"
-                    />
-                    <div className="space-y-1 pointer-events-none">
-                        <span className="text-3xl">📁</span>
-                        <p className="text-[#F5ECD7] font-medium">
-                            {locale === 'ru' ? 'Выберите или перетащите файлы' : 'Choose or drag files here'}
-                        </p>
-                        <p className="text-xs text-[#F5ECD7]/60">
-                            {locale === 'ru' ? 'Разрешены: .cdr, .dxf, .ai, .pdf, .eps, .png, .jpg (до 50 МБ)' : 'Allowed: .cdr, .dxf, .ai, .pdf, .eps, .png, .jpg (up to 50MB)'}
-                        </p>
-                    </div>
-                </div>
-
-                {/* Uploading Progress & Files List */}
-                {attachments.length > 0 && (
-                    <div className="mt-4 space-y-2">
-                        {attachments.map((file, idx) => (
-                            <div key={file.name + idx} className="flex items-center justify-between p-3 bg-[#1A1517] border border-[#C9A227]/20 rounded-lg shadow-sm backdrop-blur-sm animate-fade-in">
-                                <div className="flex-1 mr-4">
-                                    <div className="flex justify-between items-center text-sm font-semibold text-[#E8D48B] mb-1">
-                                        <span className="truncate max-w-[200px] sm:max-w-xs">{file.name}</span>
-                                        <span className="text-xs font-mono text-[#C9A227]">
-                                            {file.error ? (
-                                                <span className="text-red-400">{file.error}</span>
-                                            ) : (
-                                                `${file.progress}%`
-                                            )}
-                                        </span>
-                                    </div>
-                                    {!file.error && file.progress < 100 && (
-                                        <div className="w-full bg-[#0D0A0B] h-1.5 rounded-full overflow-hidden">
-                                            <div
-                                                className="bg-gradient-to-r from-[#C9A227] to-[#E8D48B] h-full transition-all duration-300"
-                                                style={{ width: `${file.progress}%` }}
-                                            ></div>
-                                        </div>
-                                    )}
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => removeAttachment(file.name)}
-                                    className="text-red-400/80 hover:text-red-400 text-sm p-1 ml-2 transition-colors"
-                                >
-                                    ❌
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
 
             {/* Notes (Optional) */}
             <div>
