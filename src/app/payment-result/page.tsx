@@ -21,6 +21,7 @@ function PaymentResultContent() {
     const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('pending');
     const [checking, setChecking] = useState(true);
     const [attempts, setAttempts] = useState(0);
+    const [email, setEmail] = useState('');
 
     const maxAttempts = 10;
     const pollIntervalMs = 3000;
@@ -44,6 +45,10 @@ function PaymentResultContent() {
                 setPaymentStatus('unknown');
                 setChecking(false);
                 return;
+            }
+
+            if (result.email) {
+                setEmail(result.email);
             }
 
             const status = result.paymentStatus as PaymentStatus;
@@ -132,24 +137,30 @@ function PaymentResultContent() {
                         <div className="bg-[#1A1517]/50 border border-[#C9A227]/10 rounded-xl p-4 mb-8">
                             <p className="text-[#F5ECD7]/60 text-sm">
                                 {locale === 'ru'
-                                    ? 'Если у вас есть вопросы, свяжитесь с нами через Telegram или email.'
-                                    : 'If you have any questions, contact us via Telegram or email.'}
+                                    ? 'Если у вас есть вопросы, свяжитесь с нами через Telegram, MAX, email или в личном кабинете.'
+                                    : 'If you have any questions, contact us via Telegram, MAX, email or in the personal cabinet.'}
                             </p>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center items-center">
                             <Link
-                                href="/catalog"
-                                className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#C9A227] to-[#8B7D4B] text-[#0D0A0B] px-8 py-3 rounded-xl font-bold hover:shadow-[0_0_20px_rgba(201,162,39,0.4)] transition-all transform hover:-translate-y-1"
+                                href={`/cabinet?email=${encodeURIComponent(email)}`}
+                                className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#C9A227] to-[#8B7D4B] text-[#0D0A0B] px-8 py-3 rounded-xl font-bold hover:shadow-[0_0_20px_rgba(201,162,39,0.4)] transition-all transform hover:-translate-y-1 w-full sm:w-auto"
                             >
-                                {locale === 'ru' ? 'Продолжить покупки' : 'Continue Shopping'}
+                                {locale === 'ru' ? 'Личный кабинет (чат)' : 'Personal Cabinet (chat)'}
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                                 </svg>
                             </Link>
                             <Link
+                                href="/catalog"
+                                className="inline-flex items-center justify-center gap-2 border border-[#C9A227]/50 text-[#C9A227] px-8 py-3 rounded-xl font-bold hover:bg-[#C9A227]/10 transition-all w-full sm:w-auto"
+                            >
+                                {locale === 'ru' ? 'Продолжить покупки' : 'Continue Shopping'}
+                            </Link>
+                            <Link
                                 href="/"
-                                className="inline-flex items-center justify-center gap-2 border border-[#C9A227]/50 text-[#C9A227] px-8 py-3 rounded-xl font-bold hover:bg-[#C9A227]/10 transition-all"
+                                className="inline-flex items-center justify-center gap-2 border border-[#C9A227]/50 text-[#C9A227]/60 hover:text-[#C9A227] px-6 py-3 rounded-xl font-bold hover:bg-[#C9A227]/5 transition-all w-full sm:w-auto text-sm"
                             >
                                 {locale === 'ru' ? 'На главную' : 'Home'}
                             </Link>

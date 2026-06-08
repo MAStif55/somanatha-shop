@@ -64,9 +64,10 @@ function getStatusDetails(status: string, paymentStatus?: string, locale: string
     }
 }
 
-export default async function CabinetPage({ searchParams }: { searchParams: { error?: string } }) {
+export default async function CabinetPage({ searchParams }: { searchParams: { error?: string; email?: string } }) {
     const session = await getCustomerSession();
     const errorParam = searchParams.error;
+    const emailParam = searchParams.email;
     
     let orders: DbOrder[] = [];
     let dbError = '';
@@ -101,7 +102,7 @@ export default async function CabinetPage({ searchParams }: { searchParams: { er
                                 Неверный токен авторизации.
                             </div>
                         )}
-                        <LoginForm />
+                        <LoginForm defaultEmail={emailParam} />
                     </div>
                 ) : (
                     <div className="max-w-4xl w-full">

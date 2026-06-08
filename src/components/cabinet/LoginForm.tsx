@@ -3,9 +3,13 @@
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-export default function LoginForm() {
+interface LoginFormProps {
+    defaultEmail?: string;
+}
+
+export default function LoginForm({ defaultEmail = '' }: LoginFormProps) {
     const { locale } = useLanguage();
-    const [email, setEmail] = useState('');
+    const [email, setEmail] = useState(defaultEmail);
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
 

@@ -57,5 +57,8 @@ export async function createOrder(data: Omit<import('@/types/order').Order, 'id'
 export async function getOrderPaymentStatus(orderId: string) {
     const order = await OrderRepository.getById(orderId);
     if (!order) return null;
-    return { paymentStatus: order.paymentStatus || 'pending' };
+    return { 
+        paymentStatus: order.paymentStatus || 'pending',
+        email: order.email 
+    };
 }
